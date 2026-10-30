@@ -329,7 +329,7 @@ const ChatSettings = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Messages archived:</span>
-                  <span className="font-medium text-saylo-emerald font-semibold">
+                  <span className="text-saylo-emerald font-semibold">
                     {lastBackup.messageCount}
                   </span>
                 </div>
@@ -539,3 +539,4 @@ const ChatSettings = () => {
 };
 
 export default ChatSettings;
+
