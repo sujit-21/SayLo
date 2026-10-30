@@ -1,0 +1,225 @@
+import React, { useState } from 'react';
+import {
+  Phone,
+  Video,
+  Search,
+  MoreVertical,
+  Clock,
+  Lock,
+  Download,
+  Trash2,
+  Info,
+  Palette,
+} from 'lucide-react';
+import Avatar from '../common/Avatar';
+import { useAuth } from '../../context/AuthContext';
+import { useSocket } from '../../context/SocketContext';
+import { useCall } from '../../context/CallContext';
+import { useChat } from '../../context/ChatContext';
+import { format } from 'date-fns';
+
+const ChatHeader = ({
+  onToggleSearch,
+  onOpenInfoPanel,
+  onOpenDisappearingModal,
+  onOpenWallpaperModal,
+  onOpenLockModal,
+}) => {
+  const { user } = useAuth();
+  const { activeConversation, messages, deleteMessage } = useChat();
+  const { onlineUsers, typingUsers } = useSocket();
+  const { startCall } = useCall();
+
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  if (!activeConversation) return null;
+
+  // Identify conversation target
+  let name = activeConversation.name || 'Chat';
+  let avatar = activeConversation.avatar;
+  let isOnline = false;
+  let statusText = '';
+  let otherParticipant = null;
+
+  if (activeConversation.isGroup) {
+    statusText = `${activeConversation.participants?.length || 0} participants`;
+  } else if (activeConversation.isNoteToSelf) {
+    name = 'Message Yourself (You)';
+    statusText = 'Message yourself, take notes & links';
+  } else {
+    // 1-on-1 direct
+    otherParticipant = activeConversation.participants?.find(
+      (p) => (p.user?._id || p.user) !== user?._id
+    )?.user;
+
+    if (otherParticipant) {
+      name = otherParticipant.name;
+      avatar = otherParticipant.avatar;
+      isOnline = onlineUsers.has(otherParticipant._id?.toString());
+
+      // Check if other participant is currently typing
+      const chatTyping = typingUsers[activeConversation._id];
+      if (chatTyping && Object.keys(chatTyping).length > 0) {
+        statusText = 'typing...';
+      } else if (isOnline) {
+        statusText = 'online';
+      } else if (otherParticipant.lastSeen) {
+        statusText = `last seen ${format(new Date(otherParticipant.lastSeen), 'HH:mm')}`;
+      }
+    }
+  }
+
+  // Export chat transcript to .txt file
+  const handleExportChat = () => {
+    let transcript = `SAYLO Chat Export: ${name}\nGenerated: ${new Date().toLocaleString()}\n----------------------------------------\n\n`;
+    messages.forEach((m) => {
+      const senderName = m.sender?.name || 'User';
+      const time = format(new Date(m.createdAt || Date.now()), 'yyyy-MM-dd HH:mm');
+      transcript += `[${time}] ${senderName}: ${m.text || `[Attachment: ${m.type}]`}\n`;
+    });
+
+    const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SAYLO_chat_${name.replace(/\s+/g, '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowDropdown(false);
+  };
+
+  return (
+    <div className="h-16 bg-[#202c33] dark:bg-[#202c33] border-b border-gray-800 flex items-center justify-between px-4 z-20 select-none">
+      {/* Contact info click opens info panel */}
+      <div
+        onClick={onOpenInfoPanel}
+        className="flex items-center gap-3 cursor-pointer hover:opacity-90 flex-1 min-w-0"
+      >
+        <Avatar src={avatar} name={name} size="md" isOnline={isOnline} />
+        <div className="truncate">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-100 truncate">{name}</h3>
+            {activeConversation.disappearingTimer > 0 && (
+              <Clock size={13} className="text-saylo-emerald flex-shrink-0" title="Disappearing messages on" />
+            )}
+          </div>
+          <p
+            className={`text-xs truncate ${
+              statusText === 'typing...' || statusText === 'online'
+                ? 'text-saylo-emerald font-medium'
+                : 'text-gray-400'
+            }`}
+          >
+            {statusText}
+          </p>
+        </div>
+      </div>
+
+      {/* Header action buttons */}
+      <div className="flex items-center gap-1 text-gray-400">
+        {!activeConversation.isNoteToSelf && otherParticipant && (
+          <>
+            {/* Audio Call */}
+            <button
+              onClick={() => startCall(otherParticipant, 'audio', activeConversation._id)}
+              className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+              title="Voice call"
+            >
+              <Phone size={19} />
+            </button>
+
+            {/* Video Call */}
+            <button
+              onClick={() => startCall(otherParticipant, 'video', activeConversation._id)}
+              className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+              title="Video call"
+            >
+              <Video size={19} />
+            </button>
+          </>
+        )}
+
+        {/* Search within conversation */}
+        <button
+          onClick={onToggleSearch}
+          className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+          title="Search in chat"
+        >
+          <Search size={19} />
+        </button>
+
+        {/* More options menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className="p-2 hover:bg-white/5 rounded-full hover:text-white transition-colors"
+            title="More options"
+          >
+            <MoreVertical size={19} />
+          </button>
+
+          {showDropdown && (
+            <div
+              className="absolute right-0 top-11 w-52 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl py-2 z-40 text-xs text-gray-200 animate-fadeIn"
+              onMouseLeave={() => setShowDropdown(false)}
+            >
+              <button
+                onClick={() => {
+                  onOpenInfoPanel();
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+              >
+                <Info size={16} />
+                Contact / Group info
+              </button>
+
+              <button
+                onClick={() => {
+                  onOpenDisappearingModal();
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+              >
+                <Clock size={16} />
+                Disappearing messages
+              </button>
+
+              <button
+                onClick={() => {
+                  onOpenWallpaperModal();
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+              >
+                <Palette size={16} />
+                Chat wallpaper
+              </button>
+
+              <button
+                onClick={() => {
+                  onOpenLockModal();
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+              >
+                <Lock size={16} />
+                Lock chat
+              </button>
+
+              <button
+                onClick={handleExportChat}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+              >
+                <Download size={16} />
+                Export chat
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatHeader;
