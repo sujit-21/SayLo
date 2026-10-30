@@ -154,7 +154,7 @@ const ProfilePage = () => {
           {/* Form Fields */}
           <div className="space-y-4 bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg">
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5 flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-300 mb-1.5">
                 <User size={14} className="text-saylo-emerald" />
                 Your Name
               </label>
@@ -172,7 +172,7 @@ const ProfilePage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5 flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-300 mb-1.5">
                 <Info size={14} className="text-saylo-emerald" />
                 About
               </label>
@@ -187,7 +187,7 @@ const ProfilePage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5 flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-300 mb-1.5">
                 <Phone size={14} className="text-saylo-emerald" />
                 Phone Number
               </label>
@@ -201,7 +201,7 @@ const ProfilePage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5 flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-300 mb-1.5">
                 <Mail size={14} className="text-gray-500" />
                 Email Address
               </label>

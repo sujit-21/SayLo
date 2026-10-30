@@ -73,7 +73,7 @@ const NewEventModal = ({ isOpen, onClose }) => {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1.5 flex items-center gap-1">
+            <label className="flex items-center gap-1 text-xs font-medium text-gray-300 mb-1.5">
               <Calendar size={13} className="text-saylo-emerald" /> Date
             </label>
             <input
@@ -85,7 +85,7 @@ const NewEventModal = ({ isOpen, onClose }) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1.5 flex items-center gap-1">
+            <label className="flex items-center gap-1 text-xs font-medium text-gray-300 mb-1.5">
               <Clock size={13} className="text-saylo-emerald" /> Time
             </label>
             <input
@@ -98,7 +98,7 @@ const NewEventModal = ({ isOpen, onClose }) => {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5 flex items-center gap-1">
+          <label className="flex items-center gap-1 text-xs font-medium text-gray-300 mb-1.5">
             <MapPin size={13} className="text-saylo-emerald" /> Location / Link
           </label>
           <input
