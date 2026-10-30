@@ -132,3 +132,4 @@ const NewEventModal = ({ isOpen, onClose }) => {
 };
 
 export default NewEventModal;
+
