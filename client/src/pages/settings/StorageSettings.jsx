@@ -196,6 +196,78 @@ const StorageSettings = () => {
               </div>
             </div>
 
+            {/* Review and Free Up Storage (WhatsApp Style) */}
+            <div className="bg-[#202c33] p-5 rounded-3xl border border-gray-700/60 shadow-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-100">Review and Free Up Storage</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Files larger than 500 KB and cached data
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem('saylo_draft_cache');
+                    setCleaned(true);
+                    setTimeout(() => setCleaned(false), 3000);
+                  }}
+                  className="px-3.5 py-1.5 bg-saylo-emerald/15 hover:bg-saylo-emerald hover:text-white text-saylo-emerald text-xs font-semibold rounded-xl border border-saylo-emerald/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  <Trash2 size={14} />
+                  <span>{cleaned ? 'Cache Cleaned!' : 'Clean App Cache'}</span>
+                </button>
+              </div>
+
+              {/* Large Files List */}
+              {stats?.largeFiles && stats.largeFiles.length > 0 ? (
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {stats.largeFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      className="p-2.5 rounded-xl bg-[#111b21] border border-gray-800 flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="flex items-center gap-2.5 truncate min-w-0">
+                        <div className="p-1.5 rounded-lg bg-gray-800 text-saylo-emerald flex-shrink-0">
+                          {file.type === 'video' ? (
+                            <Video size={16} />
+                          ) : file.type === 'image' ? (
+                            <Image size={16} />
+                          ) : file.type === 'audio' ? (
+                            <Mic size={16} />
+                          ) : (
+                            <FileText size={16} />
+                          )}
+                        </div>
+                        <div className="truncate">
+                          <p className="font-medium text-gray-200 truncate">{file.name}</p>
+                          <p className="text-[10px] text-gray-500 uppercase">{file.type}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className="font-mono text-gray-300 font-semibold text-[11px]">
+                          {formatBytes(file.size)}
+                        </span>
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 text-[10px] font-medium"
+                        >
+                          View
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-xs text-gray-500 bg-[#111b21] rounded-2xl">
+                  No large files found. Your storage is optimized.
+                </div>
+              )}
+            </div>
+
             {/* Network Auto-Download Settings Mockup */}
             <div className="bg-[#202c33] p-5 rounded-2xl border border-gray-700/60 space-y-3">
               <h3 className="text-sm font-bold text-gray-100">Media Auto-Download</h3>

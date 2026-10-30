@@ -484,7 +484,7 @@ exports.rsvpEvent = async (req, res, next) => {
 // @route POST /api/v1/messages/forward
 exports.forwardMessage = async (req, res, next) => {
   try {
-    const { messageId, conversationIds } = req.body;
+    const { messageId, conversationIds, customCaption } = req.body;
     const currentUserId = req.user._id;
 
     if (!messageId || !conversationIds || !conversationIds.length) {
@@ -512,7 +512,7 @@ exports.forwardMessage = async (req, res, next) => {
       const msg = await Message.create({
         conversation: convId,
         sender: currentUserId,
-        text: original.text || '',
+        text: customCaption !== undefined && customCaption.trim() ? customCaption.trim() : (original.text || ''),
         type: original.type,
         mediaUrl: original.mediaUrl || '',
         mediaName: original.mediaName || '',
@@ -547,6 +547,66 @@ exports.forwardMessage = async (req, res, next) => {
     }
 
     res.json({ success: true, forwardedMessages });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Send broadcast message to multiple individual contacts
+// @route POST /api/v1/messages/broadcast
+exports.sendBroadcast = async (req, res, next) => {
+  try {
+    const { recipientIds, text, type, mediaUrl, mediaName, mediaMimeType, mediaSize } = req.body;
+    const currentUserId = req.user._id;
+
+    if (!recipientIds || !recipientIds.length) {
+      return res.status(400).json({ success: false, message: 'Recipient IDs are required for broadcast' });
+    }
+
+    const broadcastMessages = [];
+
+    for (const recipientId of recipientIds) {
+      if (recipientId.toString() === currentUserId.toString()) continue;
+
+      // Find or create direct 1-on-1 conversation
+      let conv = await Conversation.findOne({
+        isGroup: false,
+        isNoteToSelf: false,
+        'participants.user': { $all: [currentUserId, recipientId] },
+      });
+
+      if (!conv) {
+        conv = await Conversation.create({
+          isGroup: false,
+          participants: [
+            { user: currentUserId, role: 'member' },
+            { user: recipientId, role: 'member' },
+          ],
+        });
+      }
+
+      const msg = await Message.create({
+        conversation: conv._id,
+        sender: currentUserId,
+        text: text || '',
+        type: type || 'text',
+        mediaUrl: mediaUrl || '',
+        mediaName: mediaName || '',
+        mediaMimeType: mediaMimeType || '',
+        mediaSize: mediaSize || 0,
+        status: 'sent',
+      });
+
+      await Conversation.findByIdAndUpdate(conv._id, {
+        lastMessage: msg._id,
+        lastMessageAt: new Date(),
+      });
+
+      const populated = await Message.findById(msg._id).populate('sender', 'name avatar');
+      broadcastMessages.push(populated);
+    }
+
+    res.json({ success: true, count: broadcastMessages.length, messages: broadcastMessages });
   } catch (error) {
     next(error);
   }

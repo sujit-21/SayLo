@@ -14,6 +14,7 @@ const {
   openViewOnce,
   rsvpEvent,
   forwardMessage,
+  sendBroadcast,
   getScheduledMessages,
   cancelScheduledMessage,
 } = require('../controllers/messageController');
@@ -25,6 +26,7 @@ router.delete('/scheduled/:id', protect, cancelScheduledMessage);
 router.get('/:conversationId', protect, getMessages);
 router.post('/', protect, sendMessage);
 router.post('/forward', protect, forwardMessage);
+router.post('/broadcast', protect, sendBroadcast);
 router.put('/:id', protect, editMessage);
 router.post('/:id/delete', protect, deleteMessage);
 router.post('/:id/react', protect, reactToMessage);

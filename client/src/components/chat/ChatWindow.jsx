@@ -30,6 +30,7 @@ import {
   Trash2,
   Keyboard,
   CheckSquare,
+  Info,
 } from 'lucide-react';
 import { isToday, isYesterday, format } from 'date-fns';
 
@@ -360,6 +361,26 @@ const ChatWindow = () => {
           onOpenThemeModal={() => setShowThemeModal(true)}
           onOpenLockModal={() => setShowLockModal(true)}
         />
+
+        {/* Group Description Announcement Banner */}
+        {activeConversation.isGroup && activeConversation.description && (
+          <div className="bg-[#182229] border-b border-gray-800/80 px-4 py-2 flex items-center justify-between text-xs text-gray-300 animate-fadeIn">
+            <div className="flex items-center gap-2 truncate flex-1 mr-3">
+              <span className="text-saylo-emerald font-semibold flex items-center gap-1 flex-shrink-0">
+                <Info size={14} /> Group Info:
+              </span>
+              <span className="truncate text-gray-300 font-normal">
+                {activeConversation.description}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowInfoPanel(true)}
+              className="text-[11px] text-saylo-emerald hover:underline font-semibold flex-shrink-0"
+            >
+              View Info
+            </button>
+          </div>
+        )}
 
         {/* In-Chat Message Search Bar */}
         {showSearch && (

@@ -433,9 +433,9 @@ export const ChatProvider = ({ children }) => {
   };
 
   // Forward message to one or more conversations
-  const forwardMessage = async (messageId, conversationIds) => {
+  const forwardMessage = async (messageId, conversationIds, customCaption = '') => {
     try {
-      const res = await api.post('/messages/forward', { messageId, conversationIds });
+      const res = await api.post('/messages/forward', { messageId, conversationIds, customCaption });
       await fetchConversations();
       return res.data;
     } catch (err) {

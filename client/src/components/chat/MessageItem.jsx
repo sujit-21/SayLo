@@ -325,6 +325,24 @@ const MessageItem = ({
         );
       }
 
+      // Check for @everyone or @all mention badges
+      if (typeof seg === 'string' && (seg.includes('@everyone') || seg.includes('@all'))) {
+        const atParts = seg.split(/(@everyone|@all)/gi);
+        return atParts.map((atPart, aIdx) => {
+          if (atPart.toLowerCase() === '@everyone' || atPart.toLowerCase() === '@all') {
+            return (
+              <span
+                key={`${idx}-at-${aIdx}`}
+                className="bg-saylo-emerald/30 text-saylo-300 font-bold px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5 text-xs select-none"
+              >
+                {atPart}
+              </span>
+            );
+          }
+          return atPart;
+        });
+      }
+
       return seg;
     });
   };

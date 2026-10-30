@@ -10,6 +10,7 @@ const ForwardModal = ({ isOpen, message, messages: messagesToForward, onClose })
 
   const [search, setSearch] = useState('');
   const [selectedChatIds, setSelectedChatIds] = useState([]);
+  const [customCaption, setCustomCaption] = useState('');
   const [sending, setSending] = useState(false);
 
   const targets = messagesToForward && messagesToForward.length > 0 ? messagesToForward : (message ? [message] : []);
@@ -39,9 +40,10 @@ const ForwardModal = ({ isOpen, message, messages: messagesToForward, onClose })
     setSending(true);
     try {
       for (const msg of targets) {
-        await forwardMessage(msg._id, selectedChatIds);
+        await forwardMessage(msg._id, selectedChatIds, customCaption);
       }
       setSelectedChatIds([]);
+      setCustomCaption('');
       onClose();
     } catch (err) {
       console.error(err);
@@ -76,6 +78,17 @@ const ForwardModal = ({ isOpen, message, messages: messagesToForward, onClose })
           <span className="truncate italic">
             {message.text || `[Attachment: ${message.type || 'Media'}]`}
           </span>
+        </div>
+
+        {/* Custom Caption Input */}
+        <div className="px-4 py-2 border-b border-gray-800 bg-[#1a2329]">
+          <input
+            type="text"
+            value={customCaption}
+            onChange={(e) => setCustomCaption(e.target.value)}
+            placeholder="Add a caption / note to forward (optional)..."
+            className="w-full bg-[#111b21] border border-gray-700/80 rounded-xl px-3 py-1.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+          />
         </div>
 
         {/* Search */}

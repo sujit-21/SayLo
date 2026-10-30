@@ -21,6 +21,7 @@ const CallOverlay = () => {
     toggleMute,
     toggleCamera,
     toggleScreenShare,
+    switchToVideo,
   } = useCall();
 
   if (callState === 'idle') return null;
@@ -142,6 +143,17 @@ const CallOverlay = () => {
           >
             {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
           </button>
+
+          {/* Switch to Video (when on voice call) */}
+          {callType === 'audio' && callState === 'connected' && (
+            <button
+              onClick={switchToVideo}
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-colors bg-gray-700/60 hover:bg-saylo-emerald hover:text-white text-gray-200"
+              title="Switch to Video Call"
+            >
+              <Video size={20} />
+            </button>
+          )}
 
           {/* Toggle Camera */}
           {callType === 'video' && (

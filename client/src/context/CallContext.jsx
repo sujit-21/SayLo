@@ -259,6 +259,42 @@ export const CallProvider = ({ children }) => {
     }
   };
 
+  // Seamless Voice to Video Switch
+  const switchToVideo = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const videoTrack = stream.getVideoTracks()[0];
+
+      if (localStreamRef.current) {
+        localStreamRef.current.addTrack(videoTrack);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStreamRef.current;
+        }
+      }
+
+      if (peerConnectionRef.current) {
+        const senders = peerConnectionRef.current.getSenders();
+        const videoSender = senders.find((s) => s.track && s.track.kind === 'video');
+        if (videoSender) {
+          videoSender.replaceTrack(videoTrack);
+        } else {
+          peerConnectionRef.current.addTrack(videoTrack, localStreamRef.current);
+        }
+      }
+
+      setCallType('video');
+      setIsCameraOff(false);
+
+      const peerId = targetUser?._id || caller?._id;
+      if (socket && peerId) {
+        socket.emit('call:switch_video', { targetUserId: peerId });
+      }
+    } catch (err) {
+      console.error('Failed to switch to video', err);
+      alert('Could not access camera to switch to video.');
+    }
+  };
+
   // Socket listeners for signaling
   useEffect(() => {
     if (!socket) return;
@@ -302,11 +338,17 @@ export const CallProvider = ({ children }) => {
       cleanupCall();
     };
 
+    // Remote switched to video
+    const handleSwitchVideo = () => {
+      setCallType('video');
+    };
+
     socket.on('call:incoming', handleIncomingCall);
     socket.on('call:accepted', handleCallAccepted);
     socket.on('call:rejected', handleCallRejected);
     socket.on('call:ice_candidate', handleIceCandidate);
     socket.on('call:ended', handleCallEnded);
+    socket.on('call:switch_video', handleSwitchVideo);
 
     return () => {
       socket.off('call:incoming', handleIncomingCall);
@@ -314,6 +356,7 @@ export const CallProvider = ({ children }) => {
       socket.off('call:rejected', handleCallRejected);
       socket.off('call:ice_candidate', handleIceCandidate);
       socket.off('call:ended', handleCallEnded);
+      socket.off('call:switch_video', handleSwitchVideo);
     };
   }, [socket]);
 
@@ -337,6 +380,7 @@ export const CallProvider = ({ children }) => {
         toggleMute,
         toggleCamera,
         toggleScreenShare,
+        switchToVideo,
       }}
     >
       {children}

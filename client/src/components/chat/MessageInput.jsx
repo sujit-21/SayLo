@@ -22,6 +22,8 @@ import {
   Plus,
   Upload,
   FolderHeart,
+  Play,
+  Pause,
 } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { useSocket } from '../../context/SocketContext';
@@ -54,6 +56,10 @@ const MessageInput = ({
   const [viewOnce, setViewOnce] = useState(false);
   const [isHdQuality, setIsHdQuality] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
+  const [isRecordingPaused, setIsRecordingPaused] = useState(false);
+  const [draftAudioUrl, setDraftAudioUrl] = useState(null);
+  const [isPlayingDraft, setIsPlayingDraft] = useState(false);
+  const draftAudioRef = useRef(null);
   const [recordMode, setRecordMode] = useState('audio'); // 'audio' | 'video'
   const [recordingTime, setRecordingTime] = useState(0);
   const [videoPreviewStream, setVideoPreviewStream] = useState(null);
@@ -429,10 +435,68 @@ const MessageInput = ({
     }
   };
 
+  // Toggle Pause / Resume Recording
+  const togglePauseRecording = () => {
+    if (!mediaRecorderRef.current) return;
+
+    if (mediaRecorderRef.current.state === 'recording') {
+      try {
+        if (typeof mediaRecorderRef.current.requestData === 'function') {
+          mediaRecorderRef.current.requestData();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      mediaRecorderRef.current.pause();
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      setIsRecordingPaused(true);
+
+      // Create draft audio preview
+      setTimeout(() => {
+        if (audioChunksRef.current.length > 0) {
+          const blob = new Blob(audioChunksRef.current, {
+            type: recordMode === 'video' ? 'video/webm' : 'audio/webm',
+          });
+          if (draftAudioUrl) URL.revokeObjectURL(draftAudioUrl);
+          setDraftAudioUrl(URL.createObjectURL(blob));
+        }
+      }, 50);
+    } else if (mediaRecorderRef.current.state === 'paused') {
+      if (draftAudioRef.current) {
+        draftAudioRef.current.pause();
+        setIsPlayingDraft(false);
+      }
+      mediaRecorderRef.current.resume();
+      setIsRecordingPaused(false);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    }
+  };
+
+  // Toggle Draft Audio Playback
+  const togglePlayDraft = () => {
+    if (!draftAudioRef.current) return;
+    if (isPlayingDraft) {
+      draftAudioRef.current.pause();
+      setIsPlayingDraft(false);
+    } else {
+      draftAudioRef.current.play();
+      setIsPlayingDraft(true);
+    }
+  };
+
   // Stop Voice Recording
   const stopRecording = (shouldSend = true) => {
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     setIsRecording(false);
+    setIsRecordingPaused(false);
+    setIsPlayingDraft(false);
+    if (draftAudioUrl) {
+      URL.revokeObjectURL(draftAudioUrl);
+      setDraftAudioUrl(null);
+    }
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       if (!shouldSend) {
@@ -448,9 +512,14 @@ const MessageInput = ({
 
   // Filter mentionable members
   const mentionCandidates = activeConversation?.isGroup && mentionQuery !== null
-    ? activeConversation.participants
-        ?.map((p) => p.user)
-        ?.filter((u) => u && u.name?.toLowerCase().includes(mentionQuery))
+    ? [
+        ...('everyone'.includes(mentionQuery.toLowerCase()) || 'all'.includes(mentionQuery.toLowerCase())
+          ? [{ _id: 'everyone', name: 'everyone', isAll: true }]
+          : []),
+        ...(activeConversation.participants
+            ?.map((p) => p.user)
+            ?.filter((u) => u && u.name?.toLowerCase().includes(mentionQuery.toLowerCase())) || []),
+      ]
     : [];
 
   return (
@@ -800,23 +869,65 @@ const MessageInput = ({
           )}
 
           <div className="flex items-center gap-3">
-            <span className="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
-            <span className="text-xs font-mono text-red-400 font-semibold">
-              Recording {recordMode === 'video' ? 'Video Note' : 'Voice'} {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+            <span className={`w-3 h-3 rounded-full ${isRecordingPaused ? 'bg-amber-400' : 'bg-red-500 animate-ping'}`}></span>
+            <span className={`text-xs font-mono font-semibold ${isRecordingPaused ? 'text-amber-400' : 'text-red-400'}`}>
+              {isRecordingPaused ? 'Paused Draft' : `Recording ${recordMode === 'video' ? 'Video Note' : 'Voice'}`}{' '}
+              {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
             </span>
+
+            {/* Hidden draft audio player for preview */}
+            {draftAudioUrl && (
+              <audio
+                ref={draftAudioRef}
+                src={draftAudioUrl}
+                onEnded={() => setIsPlayingDraft(false)}
+                className="hidden"
+              />
+            )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Play draft preview button when paused */}
+            {isRecordingPaused && draftAudioUrl && (
+              <button
+                type="button"
+                onClick={togglePlayDraft}
+                className="p-2 text-saylo-emerald hover:bg-saylo-emerald/10 rounded-full transition-colors"
+                title={isPlayingDraft ? 'Pause Draft Preview' : 'Play Draft Preview'}
+              >
+                {isPlayingDraft ? <Pause size={18} /> : <Play size={18} />}
+              </button>
+            )}
+
+            {/* Pause / Resume Button */}
             <button
+              type="button"
+              onClick={togglePauseRecording}
+              className={`p-2 rounded-full transition-colors ${
+                isRecordingPaused
+                  ? 'text-saylo-emerald hover:bg-saylo-emerald/10'
+                  : 'text-amber-400 hover:bg-amber-400/10'
+              }`}
+              title={isRecordingPaused ? 'Resume recording' : 'Pause recording'}
+            >
+              {isRecordingPaused ? <Mic size={18} /> : <Pause size={18} />}
+            </button>
+
+            {/* Cancel Button */}
+            <button
+              type="button"
               onClick={() => stopRecording(false)}
-              className="p-2 text-gray-400 hover:text-red-400 rounded-full hover:bg-white/5"
+              className="p-2 text-gray-400 hover:text-red-400 rounded-full hover:bg-white/5 transition-colors"
               title="Cancel recording"
             >
               <Trash2 size={18} />
             </button>
+
+            {/* Send Button */}
             <button
+              type="button"
               onClick={() => stopRecording(true)}
-              className="p-2 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-full shadow-md"
+              className="p-2 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-full shadow-md transition-transform active:scale-95"
               title="Send note"
             >
               <Send size={18} />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X } from 'lucide-react';
+import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X, Megaphone } from 'lucide-react';
 import Avatar from '../common/Avatar';
+import BroadcastModal from './BroadcastModal';
 import { useChat } from '../../context/ChatContext';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
@@ -25,8 +26,36 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
   const [contextMenu, setContextMenu] = useState(null); // { x, y, conversation }
   const [isLockedFolderOpen, setIsLockedFolderOpen] = useState(false);
   const [showPinPrompt, setShowPinPrompt] = useState(false);
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [enteredPin, setEnteredPin] = useState('');
   const [pinError, setPinError] = useState('');
+  const [chatLabels, setChatLabels] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('saylo_chat_labels')) || {};
+    } catch {
+      return {};
+    }
+  });
+
+  const availableLabels = [
+    { id: 'work', label: 'Work', bg: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+    { id: 'personal', label: 'Personal', bg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+    { id: 'family', label: 'Family', bg: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+    { id: 'vip', label: 'VIP', bg: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+    { id: 'pending', label: 'Pending', bg: 'bg-rose-500/20 text-rose-400 border-rose-500/30' },
+  ];
+
+  const handleSetChatLabel = (convId, labelId) => {
+    const updated = { ...chatLabels };
+    if (!labelId) {
+      delete updated[convId];
+    } else {
+      updated[convId] = labelId;
+    }
+    setChatLabels(updated);
+    localStorage.setItem('saylo_chat_labels', JSON.stringify(updated));
+    setContextMenu(null);
+  };
 
   // Format timestamp for sidebar
   const formatSidebarTime = (dateStr) => {
@@ -67,6 +96,9 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     }
     if (activeTabFilter === 'favorites' && !participant?.isPinned) {
       return false;
+    }
+    if (['work', 'personal', 'family', 'vip', 'pending'].includes(activeTabFilter)) {
+      if (chatLabels[c._id] !== activeTabFilter) return false;
     }
 
     // Filter by search
@@ -147,7 +179,14 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       <div className="h-16 px-4 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
         <h1 className="text-xl font-bold text-gray-100 tracking-wide">Chats</h1>
 
-        <div className="flex items-center gap-2 text-gray-300">
+        <div className="flex items-center gap-1 text-gray-300">
+          <button
+            onClick={() => setShowBroadcastModal(true)}
+            className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+            title="New Broadcast List"
+          >
+            <Megaphone size={19} />
+          </button>
           <button
             onClick={onOpenNewGroup}
             className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
@@ -185,6 +224,10 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             { id: 'unread', label: 'Unread' },
             { id: 'favorites', label: 'Favorites' },
             { id: 'groups', label: 'Groups' },
+            { id: 'work', label: '💼 Work' },
+            { id: 'personal', label: '🌿 Personal' },
+            { id: 'vip', label: '⭐ VIP' },
+            { id: 'pending', label: '⏳ Pending' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -322,7 +365,18 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-sm font-semibold text-gray-100 truncate">{chatName}</h3>
+                    <div className="flex items-center gap-1.5 truncate mr-2">
+                      <h3 className="text-sm font-semibold text-gray-100 truncate">{chatName}</h3>
+                      {chatLabels[c._id] && (
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border uppercase tracking-wider flex-shrink-0 ${
+                            availableLabels.find((l) => l.id === chatLabels[c._id])?.bg || ''
+                          }`}
+                        >
+                          {availableLabels.find((l) => l.id === chatLabels[c._id])?.label}
+                        </span>
+                      )}
+                    </div>
                     <span
                       className={`text-[11px] whitespace-nowrap ${
                         unreadCount > 0 ? 'text-saylo-emerald font-semibold' : 'text-gray-400'
@@ -417,6 +471,32 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             <Archive size={14} />
             {contextMenu.conversation.participants?.find((p) => (p.user?._id || p.user) === user?._id)?.isArchived ? 'Unarchive' : 'Archive chat'}
           </button>
+
+          {/* Label Chat Menu */}
+          <div className="py-1.5 border-t border-gray-700/40">
+            <span className="px-3 text-[10px] text-gray-400 font-semibold uppercase tracking-wider block mb-1.5">
+              Set Chat Label
+            </span>
+            <div className="grid grid-cols-2 gap-1 px-2.5 pb-1">
+              {availableLabels.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => handleSetChatLabel(contextMenu.conversation._id, l.id)}
+                  className={`text-left px-2 py-1 rounded text-[11px] font-medium border ${l.bg} hover:opacity-80 transition-opacity`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+            {chatLabels[contextMenu.conversation._id] && (
+              <button
+                onClick={() => handleSetChatLabel(contextMenu.conversation._id, null)}
+                className="w-full text-left px-3 py-1 text-[11px] text-red-400 hover:bg-gray-700/50"
+              >
+                Clear Label
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -466,6 +546,12 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
           </div>
         </div>
       )}
+
+      {/* Broadcast Modal */}
+      <BroadcastModal
+        isOpen={showBroadcastModal}
+        onClose={() => setShowBroadcastModal(false)}
+      />
     </div>
   );
 };
