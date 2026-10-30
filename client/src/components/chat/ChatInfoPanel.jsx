@@ -415,6 +415,76 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
                     className="rounded text-saylo-emerald focus:ring-saylo-emerald"
                   />
                 </div>
+
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <span className="text-gray-300">Approve new members (Join queue)</span>
+                  <input
+                    type="checkbox"
+                    checked={!!activeConversation.groupSettings?.approveNewMembers}
+                    onChange={() => handleToggleSetting('approveNewMembers')}
+                    className="rounded text-saylo-emerald focus:ring-saylo-emerald"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Pending Member Join Requests Queue */}
+            {isAdmin && activeConversation.joinRequests && activeConversation.joinRequests.length > 0 && (
+              <div className="p-3 bg-amber-500/10 rounded-2xl border border-amber-500/30 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-amber-300">
+                    Pending Join Requests ({activeConversation.joinRequests.length})
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {activeConversation.joinRequests.map((req) => {
+                    const u = req.user;
+                    if (!u) return null;
+                    return (
+                      <div key={u._id} className="flex items-center justify-between p-2 rounded-xl bg-black/30">
+                        <div className="flex items-center gap-2 truncate mr-2">
+                          <Avatar src={u.avatar} name={u.name} size="xs" />
+                          <span className="text-xs text-gray-200 font-medium truncate">{u.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const res = await api.post(
+                                  `/conversations/group/${activeConversation._id}/join-requests/${u._id}/approve`
+                                );
+                                selectConversation(res.data.conversation);
+                              } catch (err) {
+                                console.error(err);
+                              }
+                            }}
+                            className="px-2 py-1 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-lg text-[10px] font-semibold"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const res = await api.post(
+                                  `/conversations/group/${activeConversation._id}/join-requests/${u._id}/reject`
+                                );
+                                selectConversation(res.data.conversation);
+                              } catch (err) {
+                                console.error(err);
+                              }
+                            }}
+                            className="px-2 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-[10px] font-semibold"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </>

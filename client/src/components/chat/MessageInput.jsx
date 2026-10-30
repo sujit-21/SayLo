@@ -30,6 +30,7 @@ const MessageInput = ({
   onOpenEventModal,
   onOpenScheduleModal,
   onOpenShareContactModal,
+  onOpenDoodleEditor,
 }) => {
   const { activeConversation, sendMessage, replyMessage, setReplyMessage } = useChat();
   const { socket } = useSocket();
@@ -220,6 +221,13 @@ const MessageInput = ({
   const handleFileUpload = async (e, forcedType = null) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // If an image is selected, offer the Doodle & Edit canvas first
+    if (!forcedType && file.type.startsWith('image/') && onOpenDoodleEditor) {
+      onOpenDoodleEditor(file);
+      e.target.value = '';
+      return;
+    }
 
     const formData = new FormData();
     formData.append('file', file);

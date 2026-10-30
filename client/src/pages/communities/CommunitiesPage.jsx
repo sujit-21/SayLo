@@ -10,6 +10,10 @@ const CommunitiesPage = () => {
   const [communities, setCommunities] = useState([]);
   const [channels, setChannels] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSubgroupModal, setShowSubgroupModal] = useState(false);
+  const [selectedCommunityForGroup, setSelectedCommunityForGroup] = useState(null);
+  const [subgroupName, setSubgroupName] = useState('');
+  const [subgroupDesc, setSubgroupDesc] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -118,6 +122,40 @@ const CommunitiesPage = () => {
                       <ChevronRight size={16} className="text-gray-500" />
                     </div>
                   )}
+
+                  {/* Sub-groups list */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                        Topic Groups ({c.groups?.filter((g) => g._id !== c.announcementGroup?._id)?.length || 0})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCommunityForGroup(c);
+                          setShowSubgroupModal(true);
+                        }}
+                        className="text-[11px] text-saylo-emerald hover:underline font-semibold flex items-center gap-1"
+                      >
+                        <Plus size={13} />
+                        <span>Add Sub-group</span>
+                      </button>
+                    </div>
+
+                    {c.groups && c.groups.filter((g) => g._id !== c.announcementGroup?._id).map((grp) => (
+                      <div
+                        key={grp._id}
+                        onClick={() => selectConversation(grp._id)}
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-black/10 hover:bg-white/5 cursor-pointer border border-gray-800/60 transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <MessageSquare size={15} className="text-gray-400" />
+                          <span className="text-xs text-gray-300 font-medium">{grp.name}</span>
+                        </div>
+                        <ChevronRight size={15} className="text-gray-600" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -233,6 +271,81 @@ const CommunitiesPage = () => {
               className="px-5 py-2 text-xs font-semibold bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl shadow-md disabled:opacity-50"
             >
               {loading ? 'Creating...' : 'Create Community'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* New Community Sub-group Modal */}
+      <Modal
+        isOpen={showSubgroupModal}
+        onClose={() => {
+          setShowSubgroupModal(false);
+          setSubgroupName('');
+          setSubgroupDesc('');
+        }}
+        title={`Add Sub-group to ${selectedCommunityForGroup?.name || 'Community'}`}
+      >
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!subgroupName.trim() || !selectedCommunityForGroup) return;
+            setLoading(true);
+            try {
+              await api.post(`/communities/${selectedCommunityForGroup._id}/groups`, {
+                name: subgroupName.trim(),
+                description: subgroupDesc.trim(),
+              });
+              setShowSubgroupModal(false);
+              setSubgroupName('');
+              setSubgroupDesc('');
+              await fetchData();
+            } catch (err) {
+              console.error(err);
+              alert('Failed to create sub-group');
+            } finally {
+              setLoading(false);
+            }
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <label className="block text-xs font-medium text-gray-300 mb-1.5">Sub-group Name</label>
+            <input
+              type="text"
+              value={subgroupName}
+              onChange={(e) => setSubgroupName(e.target.value)}
+              placeholder="e.g. Design Critiques, Project Alpha"
+              required
+              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-300 mb-1.5">Description (optional)</label>
+            <textarea
+              rows={2}
+              value={subgroupDesc}
+              onChange={(e) => setSubgroupDesc(e.target.value)}
+              placeholder="What is this sub-topic for?"
+              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-800">
+            <button
+              type="button"
+              onClick={() => setShowSubgroupModal(false)}
+              className="px-4 py-2 text-xs font-medium text-gray-400 hover:bg-white/5 rounded-xl"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-5 py-2 text-xs font-semibold bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl shadow-md disabled:opacity-50"
+            >
+              {loading ? 'Creating...' : 'Create Sub-group'}
             </button>
           </div>
         </form>

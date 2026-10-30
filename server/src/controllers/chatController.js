@@ -427,7 +427,7 @@ exports.setDisappearingTimer = async (req, res, next) => {
   }
 };
 
-// @desc Join group via invite link code
+// @desc Join group via invite link code (with approveNewMembers support)
 // @route POST /api/v1/conversations/join/:inviteCode
 exports.joinByInviteCode = async (req, res, next) => {
   try {
@@ -441,19 +441,86 @@ exports.joinByInviteCode = async (req, res, next) => {
       (p) => p.user.toString() === currentUserId.toString()
     );
 
-    if (!isMember) {
-      conversation.participants.push({ user: currentUserId, role: 'member' });
-      await conversation.save();
+    if (isMember) {
+      return res.json({ success: true, conversationId: conversation._id, alreadyMember: true });
+    }
 
-      await Message.create({
-        conversation: conversation._id,
-        sender: currentUserId,
-        type: 'system',
-        text: `${req.user.name} joined using this group's invite link`,
+    // If group requires admin approval
+    if (conversation.groupSettings?.approveNewMembers) {
+      const alreadyRequested = conversation.joinRequests?.some(
+        (r) => r.user.toString() === currentUserId.toString()
+      );
+
+      if (!alreadyRequested) {
+        if (!conversation.joinRequests) conversation.joinRequests = [];
+        conversation.joinRequests.push({ user: currentUserId, requestedAt: new Date() });
+        await conversation.save();
+      }
+
+      return res.json({
+        success: true,
+        pendingApproval: true,
+        message: 'Your request to join this group has been sent to group admins for approval.',
       });
     }
 
+    conversation.participants.push({ user: currentUserId, role: 'member' });
+    await conversation.save();
+
+    await Message.create({
+      conversation: conversation._id,
+      sender: currentUserId,
+      type: 'system',
+      text: `${req.user.name} joined using this group's invite link`,
+    });
+
     res.json({ success: true, conversationId: conversation._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Approve or reject a group join request
+// @route POST /api/v1/conversations/group/:id/join-requests/:userId/:action
+exports.handleJoinRequest = async (req, res, next) => {
+  try {
+    const { id, userId, action } = req.params; // action: 'approve' | 'reject'
+    const conversation = await Conversation.findById(id);
+
+    if (!conversation || !conversation.isGroup) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    const isAdmin = conversation.admins.some((a) => a.toString() === req.user._id.toString());
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only admins can approve/reject join requests' });
+    }
+
+    conversation.joinRequests = (conversation.joinRequests || []).filter(
+      (r) => r.user.toString() !== userId
+    );
+
+    if (action === 'approve') {
+      const isAlready = conversation.participants.some((p) => p.user.toString() === userId);
+      if (!isAlready) {
+        conversation.participants.push({ user: userId, role: 'member' });
+        const joinedUser = await User.findById(userId).select('name');
+        await Message.create({
+          conversation: conversation._id,
+          sender: req.user._id,
+          type: 'system',
+          text: `${req.user.name} approved ${joinedUser?.name || 'a member'}'s request to join`,
+        });
+      }
+    }
+
+    await conversation.save();
+
+    const updated = await Conversation.findById(conversation._id)
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
+      .populate('joinRequests.user', 'name email avatar about');
+
+    res.json({ success: true, conversation: updated });
   } catch (error) {
     next(error);
   }

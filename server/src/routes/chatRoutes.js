@@ -13,6 +13,7 @@ const {
   updateParticipantPreference,
   setDisappearingTimer,
   joinByInviteCode,
+  handleJoinRequest,
   clearChat,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/authMiddleware');
@@ -25,6 +26,7 @@ router.put('/group/:id', protect, updateGroup);
 router.put('/group/:id/members/:userId/role', protect, updateMemberRole);
 router.post('/group/:id/members', protect, addGroupMembers);
 router.delete('/group/:id/members/:userId', protect, removeGroupMember);
+router.post('/group/:id/join-requests/:userId/:action', protect, handleJoinRequest);
 router.put('/:id/preference', protect, updateParticipantPreference);
 router.put('/:id/disappearing', protect, setDisappearingTimer);
 router.post('/join/:inviteCode', protect, joinByInviteCode);

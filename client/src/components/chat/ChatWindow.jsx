@@ -15,6 +15,7 @@ import MediaLightboxModal from './MediaLightboxModal';
 import ScheduleMessageModal from './ScheduleMessageModal';
 import ShareContactModal from './ShareContactModal';
 import ChatThemeModal from './ChatThemeModal';
+import ImageDoodleEditor from './ImageDoodleEditor';
 import { useChat } from '../../context/ChatContext';
 import { useTheme } from '../../context/ThemeContext';
 import api from '../../services/api';
@@ -58,6 +59,7 @@ const ChatWindow = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showShareContactModal, setShowShareContactModal] = useState(false);
   const [lightboxData, setLightboxData] = useState(null); // { url, name, type }
+  const [doodleImageFile, setDoodleImageFile] = useState(null);
   const [customTheme, setCustomTheme] = useState('default');
 
   const [forwardingMessage, setForwardingMessage] = useState(null);
@@ -562,6 +564,7 @@ const ChatWindow = () => {
             onOpenEventModal={() => setShowEventModal(true)}
             onOpenScheduleModal={() => setShowScheduleModal(true)}
             onOpenShareContactModal={() => setShowShareContactModal(true)}
+            onOpenDoodleEditor={(file) => setDoodleImageFile(file)}
           />
         )}
       </div>
@@ -640,6 +643,17 @@ const ChatWindow = () => {
             setForwardingMessage(matching);
           }
           setLightboxData(null);
+        }}
+      />
+
+      {/* Image Doodle & Photo Canvas Editor */}
+      <ImageDoodleEditor
+        isOpen={!!doodleImageFile}
+        imageFile={doodleImageFile}
+        onClose={() => setDoodleImageFile(null)}
+        onSave={(editedFile) => {
+          uploadAndSendFile(editedFile);
+          setDoodleImageFile(null);
         }}
       />
 

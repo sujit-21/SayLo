@@ -47,6 +47,10 @@ const participantSchema = new mongoose.Schema(
       type: String,
       default: '', // e.g. emerald, ocean, purple, sunset, midnight
     },
+    notificationTone: {
+      type: String,
+      default: 'default', // default, chime, droplet, cosmic, pop
+    },
     lastReadMessageId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Message',
@@ -128,6 +132,22 @@ const conversationSchema = new mongoose.Schema(
         type: Boolean,
         default: false,
       },
+    },
+    joinRequests: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        requestedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    community: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Community',
     },
   },
   {

@@ -198,6 +198,33 @@ const initSocketIO = (io) => {
       }
     });
 
+    // 10c. Multi-Peer / Group Call Room Signaling
+    socket.on('group_call:join', ({ roomId }) => {
+      socket.join(`call_room_${roomId}`);
+      socket.to(`call_room_${roomId}`).emit('group_call:user_joined', {
+        userId,
+        user: {
+          _id: socket.user._id,
+          name: socket.user.name,
+          avatar: socket.user.avatar,
+        },
+      });
+    });
+
+    socket.on('group_call:signal', ({ targetUserId, signal }) => {
+      io.to(`user_${targetUserId}`).emit('group_call:signal', {
+        fromUserId: userId,
+        signal,
+      });
+    });
+
+    socket.on('group_call:leave', ({ roomId }) => {
+      socket.leave(`call_room_${roomId}`);
+      socket.to(`call_room_${roomId}`).emit('group_call:user_left', {
+        userId,
+      });
+    });
+
     // Disconnect handling
     socket.on('disconnect', async () => {
       console.log(`[Socket] User disconnected: ${socket.user.name}`);

@@ -66,3 +66,44 @@ exports.createCommunity = async (req, res, next) => {
   }
 };
 
+// @desc Add a new sub-group to an existing Community
+// @route POST /api/v1/communities/:id/groups
+exports.createCommunityGroup = async (req, res, next) => {
+  try {
+    const { name, description } = req.body;
+    const { id } = req.params;
+    const currentUserId = req.user._id;
+
+    const community = await Community.findById(id);
+    if (!community) {
+      return res.status(404).json({ success: false, message: 'Community not found' });
+    }
+
+    if (community.owner.toString() !== currentUserId.toString()) {
+      return res.status(403).json({ success: false, message: 'Only community owner can create sub-groups' });
+    }
+
+    if (!name) {
+      return res.status(400).json({ success: false, message: 'Sub-group name is required' });
+    }
+
+    const subGroup = await Conversation.create({
+      name,
+      description: description || `Sub-group of ${community.name}`,
+      avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(name)}`,
+      isGroup: true,
+      community: community._id,
+      participants: [{ user: currentUserId, role: 'admin' }],
+      admins: [currentUserId],
+      createdBy: currentUserId,
+    });
+
+    community.groups.push(subGroup._id);
+    await community.save();
+
+    res.status(201).json({ success: true, group: subGroup });
+  } catch (error) {
+    next(error);
+  }
+};
+
