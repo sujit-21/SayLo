@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 const User = require('../models/User');
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
 const DeviceSession = require('../models/DeviceSession');
 const { generateToken } = require('../utils/jwt');
 const bcrypt = require('bcryptjs');
@@ -361,5 +363,96 @@ exports.updatePublicKey = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc Export full encrypted or portable chat backup archive
+// @route GET /api/v1/auth/backup
+exports.exportChatBackup = async (req, res, next) => {
+  try {
+    const currentUserId = req.user._id;
+
+    // Find all conversations user is a part of
+    const conversations = await Conversation.find({
+      'participants.user': currentUserId,
+    }).populate('participants.user', 'name avatar email');
+
+    const conversationIds = conversations.map((c) => c._id);
+
+    // Find all messages in those conversations not deleted for user
+    const messages = await Message.find({
+      conversation: { $in: conversationIds },
+      deletedFor: { $ne: currentUserId },
+    })
+      .sort({ createdAt: 1 })
+      .populate('sender', 'name avatar')
+      .populate('keptBy', 'name avatar');
+
+    const backupPayload = {
+      app: 'SAYLO',
+      version: '1.0.0',
+      exportedAt: new Date().toISOString(),
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+      },
+      stats: {
+        conversationCount: conversations.length,
+        messageCount: messages.length,
+      },
+      conversations,
+      messages,
+    };
+
+    res.json({
+      success: true,
+      backup: backupPayload,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Restore chat backup archive
+// @route POST /api/v1/auth/restore
+exports.restoreChatBackup = async (req, res, next) => {
+  try {
+    const currentUserId = req.user._id;
+    const { backup } = req.body;
+
+    if (!backup || !backup.messages || !Array.isArray(backup.messages)) {
+      return res.status(400).json({ success: false, message: 'Invalid backup file structure' });
+    }
+
+    let restoredCount = 0;
+    for (const msg of backup.messages) {
+      if (!msg._id || !msg.conversation) continue;
+      const existing = await Message.findById(msg._id);
+      if (!existing) {
+        await Message.create({
+          ...msg,
+          sender: msg.sender?._id || msg.sender || currentUserId,
+        });
+        restoredCount++;
+      } else {
+        if (existing.deletedFor?.some((d) => d.toString() === currentUserId.toString())) {
+          existing.deletedFor = existing.deletedFor.filter(
+            (d) => d.toString() !== currentUserId.toString()
+          );
+          await existing.save();
+          restoredCount++;
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully restored ${restoredCount} messages into your chat history`,
+      restoredCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 

@@ -8,6 +8,7 @@ import {
   Palette,
   Key,
   HardDrive,
+  MessageSquare,
   ChevronRight,
   LogOut,
 } from 'lucide-react';
@@ -22,6 +23,7 @@ const SettingsPage = () => {
     { to: '/settings/account', icon: Key, label: 'Account', desc: 'Security info, export data' },
     { to: '/settings/privacy', icon: Lock, label: 'Privacy', desc: 'Last seen, read receipts, disappearing timer' },
     { to: '/settings/security', icon: Shield, label: 'Security & Linked Devices', desc: 'Two-step verification, device sessions' },
+    { to: '/settings/chats', icon: MessageSquare, label: 'Chats & Backup', desc: 'Chat backup, enter is send, chat history' },
     { to: '/settings/storage', icon: HardDrive, label: 'Storage and Data', desc: 'Network usage, media storage breakdown' },
     { to: '/settings/notifications', icon: Bell, label: 'Notifications', desc: 'Message tones, desktop notifications' },
     { to: '/settings/appearance', icon: Palette, label: 'Appearance & Wallpaper', desc: 'Dark/light theme, chat backgrounds' },

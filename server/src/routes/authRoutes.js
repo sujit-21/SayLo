@@ -12,6 +12,8 @@ const {
   setupChatLockPin,
   updatePrivacy,
   updatePublicKey,
+  exportChatBackup,
+  restoreChatBackup,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -26,6 +28,8 @@ router.post('/two-factor', protect, setupTwoFactor);
 router.post('/chat-lock-pin', protect, setupChatLockPin);
 router.put('/privacy', protect, updatePrivacy);
 router.put('/public-key', protect, updatePublicKey);
+router.get('/backup', protect, exportChatBackup);
+router.post('/restore', protect, restoreChatBackup);
 
 module.exports = router;
 

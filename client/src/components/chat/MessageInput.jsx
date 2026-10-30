@@ -1141,8 +1141,11 @@ const MessageInput = ({
               onChange={handleTyping}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
+                  const enterSends = localStorage.getItem('saylo_enter_is_send') !== 'false';
+                  if (enterSends) {
+                    e.preventDefault();
+                    handleSend();
+                  }
                 }
               }}
               placeholder="Type a message or @ to mention..."

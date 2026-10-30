@@ -8,7 +8,7 @@ exports.getMessages = async (req, res, next) => {
     const { conversationId } = req.params;
     const currentUserId = req.user._id;
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 50;
+    const limit = parseInt(req.query.limit, 10) || 100;
     const skip = (page - 1) * limit;
 
     // Verify user is in conversation

@@ -40,6 +40,7 @@ import SecuritySettings from './pages/settings/SecuritySettings';
 import NotificationSettings from './pages/settings/NotificationSettings';
 import AppearanceSettings from './pages/settings/AppearanceSettings';
 import StorageSettings from './pages/settings/StorageSettings';
+import ChatSettings from './pages/settings/ChatSettings';
 
 // Not Found
 import NotFoundPage from './pages/NotFoundPage';
@@ -86,6 +87,7 @@ function App() {
                       <Route path="/settings/security" element={<SecuritySettings />} />
                       <Route path="/settings/notifications" element={<NotificationSettings />} />
                       <Route path="/settings/appearance" element={<AppearanceSettings />} />
+                      <Route path="/settings/chats" element={<ChatSettings />} />
                       <Route path="/settings/storage" element={<StorageSettings />} />
                     </Route>
                   </Route>
