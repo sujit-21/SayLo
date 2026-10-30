@@ -13,7 +13,7 @@
   "devDependencies": {
     "concurrently": "^9.1.2"
   },
-  "keywords": ["chat", "whatsapp-clone", "mern", "socketio", "webrtc", "realtime", "messaging"],
+  "keywords": ["chat", "saylo-messenger", "mern", "socketio", "webrtc", "realtime", "messaging"],
   "author": "SAYLO Team",
   "license": "MIT"
 }

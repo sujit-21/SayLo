@@ -1,4 +1,4 @@
-// Web Audio API Synthesizer for SAYLO WhatsApp-style Notifications
+// Web Audio API Synthesizer for SAYLO Message Notifications
 class SoundManager {
   constructor() {
     this.ctx = null;
@@ -17,7 +17,7 @@ class SoundManager {
     }
   }
 
-  // Play pleasant WhatsApp Web-style incoming message chime
+  // Play pleasant incoming message chime
   playMessageIncoming() {
     if (this.muted) return;
     try {

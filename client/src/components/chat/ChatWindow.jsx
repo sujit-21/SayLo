@@ -252,7 +252,7 @@ const ChatWindow = () => {
           onOpenLockModal={() => setShowLockModal(true)}
         />
 
-        {/* WhatsApp-style In-Chat Message Search Bar */}
+        {/* In-Chat Message Search Bar */}
         {showSearch && (
           <div className="bg-[#202c33] px-4 py-2.5 border-b border-gray-800 flex items-center justify-between gap-3 animate-fadeIn">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">

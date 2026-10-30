@@ -23,7 +23,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 
-// WhatsApp-style Voice Message Player with Speed Controls (1x, 1.5x, 2x)
+// Voice Message Player with Speed Controls (1x, 1.5x, 2x)
 const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);

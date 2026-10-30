@@ -2,14 +2,14 @@
 
 ![SAYLO Logo](client/public/saylo-icon.svg)
 
-**SAYLO** is a modern, responsive, full-stack real-time messaging web platform inspired by WhatsApp Web, built with original branding, a clean component design system, and an enterprise-grade architecture.
+**SAYLO** is a modern, responsive, full-stack real-time messaging web platform, built with original branding, a clean component design system, and an enterprise-grade architecture.
 
 ---
 
 ## 🌟 Key Highlights
 
 - **Pure JavaScript Full-Stack:** Built entirely in JavaScript (JSX frontend + Node.js/Express backend). No TypeScript or Next.js.
-- **WhatsApp Web Inspired UI:** Clean 3-pane layout (Navigation strip, Conversation list, and Active chat window) with light and dark themes, WhatsApp-style green accent (`#00a884`), rounded message bubbles, and smooth responsive transitions for desktop, tablet, and mobile.
+- **Modern Responsive Web UI:** Clean 3-pane layout (Navigation strip, Conversation list, and Active chat window) with light and dark themes, SAYLO signature teal-green accent (`#00a884`), rounded message bubbles, and smooth responsive transitions for desktop, tablet, and mobile.
 - **Real-Time WebSockets:** Powered by Socket.IO for instant messaging, delivered/read receipts, typing indicators, online presence, live emoji reactions, and poll voting.
 - **Peer-to-Peer Voice & Video Calls:** WebRTC implementation with public Google STUN fallback, call signaling, screen sharing, audio muting, camera toggling, and call history tracking.
 - **Advanced Messaging Suite:**

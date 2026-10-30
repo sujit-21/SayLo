@@ -19,7 +19,7 @@ export default {
           700: '#15803d',
           800: '#166534',
           900: '#14532d',
-          emerald: '#00a884', // WhatsApp/Saylo signature teal-green
+          emerald: '#00a884', // Saylo signature teal-green
           teal: '#128c7e',
           darkgreen: '#075e54',
           lightgreen: '#25d366',

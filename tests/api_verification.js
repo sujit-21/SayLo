@@ -306,7 +306,7 @@ async function runTests() {
     }
     console.log(`✅ User unblocked successfully!`);
 
-    console.log('\n🎉 ALL 18 ADVANCED VERIFICATION TESTS PASSED SUCCESSFULLY! All WhatsApp Web features verified.\n');
+    console.log('\n🎉 ALL 18 ADVANCED VERIFICATION TESTS PASSED SUCCESSFULLY! All SAYLO messaging features verified.\n');
   } catch (err) {
     console.error('❌ Test failed:', err);
     process.exit(1);
