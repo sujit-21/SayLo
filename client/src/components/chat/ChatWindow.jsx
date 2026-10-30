@@ -4,6 +4,7 @@ import MessageItem from './MessageItem';
 import MessageInput from './MessageInput';
 import ChatInfoPanel from './ChatInfoPanel';
 import NewPollModal from './NewPollModal';
+import NewEventModal from './NewEventModal';
 import DisappearingModal from './DisappearingModal';
 import LockChatModal from './LockChatModal';
 import WallpaperModal from './WallpaperModal';
@@ -20,6 +21,7 @@ const ChatWindow = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
   const [showPollModal, setShowPollModal] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
   const [showDisappearingModal, setShowDisappearingModal] = useState(false);
   const [showLockModal, setShowLockModal] = useState(false);
   const [showWallpaperModal, setShowWallpaperModal] = useState(false);
@@ -170,7 +172,10 @@ const ChatWindow = () => {
         </div>
 
         {/* Input composer */}
-        <MessageInput onOpenPollModal={() => setShowPollModal(true)} />
+        <MessageInput
+          onOpenPollModal={() => setShowPollModal(true)}
+          onOpenEventModal={() => setShowEventModal(true)}
+        />
       </div>
 
       {/* Slide-over Info Panel */}
@@ -178,6 +183,7 @@ const ChatWindow = () => {
 
       {/* Modals */}
       <NewPollModal isOpen={showPollModal} onClose={() => setShowPollModal(false)} />
+      <NewEventModal isOpen={showEventModal} onClose={() => setShowEventModal(false)} />
       <DisappearingModal
         isOpen={showDisappearingModal}
         onClose={() => setShowDisappearingModal(false)}
@@ -189,3 +195,4 @@ const ChatWindow = () => {
 };
 
 export default ChatWindow;
+

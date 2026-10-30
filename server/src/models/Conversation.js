@@ -131,3 +131,4 @@ const conversationSchema = new mongoose.Schema(
 conversationSchema.index({ 'participants.user': 1 });
 
 module.exports = mongoose.model('Conversation', conversationSchema);
+

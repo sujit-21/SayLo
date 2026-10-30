@@ -268,6 +268,25 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  // RSVP to event
+  const rsvpEvent = async (messageId, status) => {
+    try {
+      const res = await api.post(`/messages/${messageId}/event/rsvp`, { status });
+      const updated = res.data.message;
+
+      setMessages((prev) => prev.map((m) => (m._id === messageId ? updated : m)));
+
+      if (socket && activeConversation) {
+        socket.emit('event:rsvp', {
+          conversationId: activeConversation._id,
+          message: updated,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to RSVP to event', err);
+    }
+  };
+
   // Open view-once media
   const openViewOnce = async (messageId) => {
     try {
@@ -376,6 +395,11 @@ export const ChatProvider = ({ children }) => {
       setMessages((prev) => prev.map((m) => (m._id === message._id ? message : m)));
     };
 
+    // Event update
+    const handleEventUpdate = ({ message }) => {
+      setMessages((prev) => prev.map((m) => (m._id === message._id ? message : m)));
+    };
+
     socket.on('message:new', handleNewMessage);
     socket.on('notification:new_message', handleNewMessage);
     socket.on('message:edited', handleMessageEdited);
@@ -383,6 +407,7 @@ export const ChatProvider = ({ children }) => {
     socket.on('message:reaction_update', handleReactionUpdate);
     socket.on('message:read_receipt', handleReadReceipt);
     socket.on('poll:update', handlePollUpdate);
+    socket.on('event:update', handleEventUpdate);
 
     return () => {
       socket.off('message:new', handleNewMessage);
@@ -392,6 +417,7 @@ export const ChatProvider = ({ children }) => {
       socket.off('message:reaction_update', handleReactionUpdate);
       socket.off('message:read_receipt', handleReadReceipt);
       socket.off('poll:update', handlePollUpdate);
+      socket.off('event:update', handleEventUpdate);
     };
   }, [socket, user, fetchConversations]);
 
@@ -412,6 +438,7 @@ export const ChatProvider = ({ children }) => {
         reactToMessage,
         toggleStarMessage,
         votePoll,
+        rsvpEvent,
         openViewOnce,
         replyMessage,
         setReplyMessage,
@@ -428,3 +455,4 @@ export const ChatProvider = ({ children }) => {
 };
 
 export const useChat = () => useContext(ChatContext);
+

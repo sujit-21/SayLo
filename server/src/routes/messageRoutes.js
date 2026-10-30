@@ -12,6 +12,7 @@ const {
   markAsRead,
   votePoll,
   openViewOnce,
+  rsvpEvent,
 } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -25,6 +26,8 @@ router.post('/:id/star', protect, toggleStarMessage);
 router.post('/:id/pin', protect, togglePinMessage);
 router.post('/read', protect, markAsRead);
 router.post('/:id/poll/vote', protect, votePoll);
+router.post('/:id/event/rsvp', protect, rsvpEvent);
 router.post('/:id/view-once', protect, openViewOnce);
 
 module.exports = router;
+

@@ -24,3 +24,4 @@ router.delete('/devices/:id', protect, revokeDeviceSession);
 router.get('/:id', protect, getUserById);
 
 module.exports = router;
+

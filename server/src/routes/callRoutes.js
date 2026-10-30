@@ -7,3 +7,4 @@ router.get('/', protect, getCallHistory);
 router.post('/', protect, logCall);
 
 module.exports = router;
+

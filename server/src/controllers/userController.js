@@ -175,3 +175,4 @@ exports.revokeDeviceSession = async (req, res, next) => {
     next(error);
   }
 };
+

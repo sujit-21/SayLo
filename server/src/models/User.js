@@ -83,6 +83,10 @@ const userSchema = new mongoose.Schema(
         type: Number,
         default: 0, // 0 = off, 86400 (24h), 604800 (7d), 7776000 (90d)
       },
+      silenceUnknownCallers: {
+        type: Boolean,
+        default: false,
+      },
     },
     blockedUsers: [
       {
@@ -132,3 +136,4 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 module.exports = mongoose.model('User', userSchema);
+

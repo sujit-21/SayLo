@@ -326,7 +326,7 @@ exports.setupChatLockPin = async (req, res, next) => {
 // @route PUT /api/v1/auth/privacy
 exports.updatePrivacy = async (req, res, next) => {
   try {
-    const { lastSeen, profilePhoto, about, readReceipts, disappearingDefaultTimer } = req.body;
+    const { lastSeen, profilePhoto, about, readReceipts, disappearingDefaultTimer, silenceUnknownCallers } = req.body;
     const user = await User.findById(req.user._id);
 
     if (lastSeen) user.privacy.lastSeen = lastSeen;
@@ -334,6 +334,7 @@ exports.updatePrivacy = async (req, res, next) => {
     if (about) user.privacy.about = about;
     if (readReceipts !== undefined) user.privacy.readReceipts = readReceipts;
     if (disappearingDefaultTimer !== undefined) user.privacy.disappearingDefaultTimer = disappearingDefaultTimer;
+    if (silenceUnknownCallers !== undefined) user.privacy.silenceUnknownCallers = silenceUnknownCallers;
 
     await user.save();
     res.json({ success: true, privacy: user.privacy });
@@ -341,3 +342,4 @@ exports.updatePrivacy = async (req, res, next) => {
     next(error);
   }
 };
+

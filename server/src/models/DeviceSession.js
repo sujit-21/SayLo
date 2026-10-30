@@ -43,3 +43,4 @@ const deviceSessionSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model('DeviceSession', deviceSessionSchema);
+

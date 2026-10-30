@@ -26,3 +26,4 @@ router.post('/chat-lock-pin', protect, setupChatLockPin);
 router.put('/privacy', protect, updatePrivacy);
 
 module.exports = router;
+

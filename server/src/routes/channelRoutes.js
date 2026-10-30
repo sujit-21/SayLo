@@ -12,3 +12,4 @@ router.post('/', protect, createChannel);
 router.post('/:id/follow', protect, toggleFollowChannel);
 
 module.exports = router;
+

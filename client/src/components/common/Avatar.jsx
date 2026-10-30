@@ -47,3 +47,4 @@ const Avatar = ({ src, name = 'User', size = 'md', isOnline = false, className =
 };
 
 export default Avatar;
+

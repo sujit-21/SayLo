@@ -10,24 +10,30 @@ import {
   BarChart2,
   MapPin,
   Trash2,
-  StopCircle,
+  Calendar,
+  Sparkles,
+  Sticker,
+  Film,
 } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
-const MessageInput = ({ onOpenPollModal }) => {
-  const { activeConversation, sendMessage, replyMessage, setReplyMessage, editMessage } = useChat();
+const MessageInput = ({ onOpenPollModal, onOpenEventModal }) => {
+  const { activeConversation, sendMessage, replyMessage, setReplyMessage } = useChat();
   const { socket } = useSocket();
   const { user } = useAuth();
 
   const [text, setText] = useState('');
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerTab, setPickerTab] = useState('emoji'); // 'emoji', 'gif', 'sticker'
   const [viewOnce, setViewOnce] = useState(false);
+  const [isHdQuality, setIsHdQuality] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [mentionQuery, setMentionQuery] = useState(null); // null or string
 
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
@@ -41,8 +47,37 @@ const MessageInput = ({ onOpenPollModal }) => {
   const emojiList = [
     '😀', '😂', '😍', '🥳', '😎', '🤩', '🤔', '🙌',
     '👍', '👏', '🔥', '🚀', '✨', '🎉', '❤️', '💯',
-    '☕', '🍕', '💻', '💡', '🌟', '💪', '🤝', '🌈'
+    '☕', '🍕', '💻', '💡', '🌟', '💪', '🤝', '🌈',
+    '🙏', '👀', '🎯', '⚡', '🎈', '🏆', '🥑', '🏖️'
   ];
+
+  // Curated GIFs
+  const gifList = [
+    { title: 'Celebrate', url: 'https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif' },
+    { title: 'Thumbs Up', url: 'https://media.giphy.com/media/111ebonMs90YLu/giphy.gif' },
+    { title: 'Dance Party', url: 'https://media.giphy.com/media/blSTtZehjAZ8I/giphy.gif' },
+    { title: 'Laughing', url: 'https://media.giphy.com/media/3oEjHAUOqG3lSS0f1C/giphy.gif' },
+    { title: 'Popcorn', url: 'https://media.giphy.com/media/t3dLl0TGHCxTG/giphy.gif' },
+    { title: 'Mind Blown', url: 'https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif' },
+  ];
+
+  // Curated Stickers
+  const stickerList = [
+    { name: 'Wave', emoji: '👋', bg: 'bg-amber-500/20 text-amber-300' },
+    { name: 'Fire', emoji: '🔥', bg: 'bg-red-500/20 text-red-400' },
+    { name: 'Rocket', emoji: '🚀', bg: 'bg-blue-500/20 text-blue-400' },
+    { name: 'Love', emoji: '💖', bg: 'bg-pink-500/20 text-pink-400' },
+    { name: 'Target', emoji: '🎯', bg: 'bg-emerald-500/20 text-emerald-400' },
+    { name: 'Coffee', emoji: '☕', bg: 'bg-yellow-500/20 text-yellow-400' },
+  ];
+
+  // Draft persistence per conversation
+  useEffect(() => {
+    if (activeConversation?._id) {
+      const saved = localStorage.getItem(`saylo_draft_${activeConversation._id}`) || '';
+      setText(saved);
+    }
+  }, [activeConversation?._id]);
 
   // Auto-focus and resize textarea
   useEffect(() => {
@@ -52,9 +87,24 @@ const MessageInput = ({ onOpenPollModal }) => {
     }
   }, [text]);
 
-  // Typing event handler
+  // Typing event and mention detection
   const handleTyping = (e) => {
-    setText(e.target.value);
+    const val = e.target.value;
+    setText(val);
+
+    if (activeConversation?._id) {
+      localStorage.setItem(`saylo_draft_${activeConversation._id}`, val);
+    }
+
+    // Mention detection in groups
+    if (activeConversation?.isGroup) {
+      const lastAt = val.lastIndexOf('@');
+      if (lastAt !== -1 && lastAt >= val.length - 15) {
+        setMentionQuery(val.slice(lastAt + 1).toLowerCase());
+      } else {
+        setMentionQuery(null);
+      }
+    }
 
     if (socket && activeConversation) {
       socket.emit('typing:start', {
@@ -71,6 +121,17 @@ const MessageInput = ({ onOpenPollModal }) => {
     }
   };
 
+  // Insert Mention
+  const handleInsertMention = (userName) => {
+    const lastAt = text.lastIndexOf('@');
+    if (lastAt !== -1) {
+      const newText = text.slice(0, lastAt) + `@${userName} `;
+      setText(newText);
+      setMentionQuery(null);
+      if (textareaRef.current) textareaRef.current.focus();
+    }
+  };
+
   // Send Text Message
   const handleSend = async (e) => {
     if (e) e.preventDefault();
@@ -78,6 +139,10 @@ const MessageInput = ({ onOpenPollModal }) => {
 
     const messageText = text.trim();
     setText('');
+    setMentionQuery(null);
+    if (activeConversation?._id) {
+      localStorage.removeItem(`saylo_draft_${activeConversation._id}`);
+    }
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
     if (socket && activeConversation) {
@@ -91,6 +156,33 @@ const MessageInput = ({ onOpenPollModal }) => {
       });
     } catch (err) {
       console.error('Failed to send text message', err);
+    }
+  };
+
+  // Send GIF
+  const handleSendGif = async (gifUrl) => {
+    setShowPicker(false);
+    try {
+      await sendMessage({
+        type: 'gif',
+        mediaUrl: gifUrl,
+        text: 'GIF',
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Send Sticker
+  const handleSendSticker = async (sticker) => {
+    setShowPicker(false);
+    try {
+      await sendMessage({
+        type: 'sticker',
+        text: sticker.emoji,
+      });
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -130,6 +222,9 @@ const MessageInput = ({ onOpenPollModal }) => {
       setText('');
       setViewOnce(false);
       setShowAttachmentMenu(false);
+      if (activeConversation?._id) {
+        localStorage.removeItem(`saylo_draft_${activeConversation._id}`);
+      }
     } catch (err) {
       console.error('Upload failed', err);
       alert('File upload failed. Please try again.');
@@ -233,6 +328,13 @@ const MessageInput = ({ onOpenPollModal }) => {
     }
   };
 
+  // Filter mentionable members
+  const mentionCandidates = activeConversation?.isGroup && mentionQuery !== null
+    ? activeConversation.participants
+        ?.map((p) => p.user)
+        ?.filter((u) => u && u.name?.toLowerCase().includes(mentionQuery))
+    : [];
+
   return (
     <div className="relative border-t border-gray-800 bg-[#202c33] dark:bg-[#202c33] px-4 py-2.5">
       {/* Reply Banner */}
@@ -250,6 +352,25 @@ const MessageInput = ({ onOpenPollModal }) => {
           >
             <X size={16} />
           </button>
+        </div>
+      )}
+
+      {/* Mention Autocomplete Dropdown */}
+      {mentionCandidates && mentionCandidates.length > 0 && (
+        <div className="absolute bottom-16 left-12 z-30 bg-[#202c33] border border-gray-700 rounded-2xl shadow-2xl p-2 w-64 max-h-44 overflow-y-auto animate-fadeIn">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 py-1">
+            Mention Member
+          </p>
+          {mentionCandidates.map((mUser) => (
+            <button
+              key={mUser._id}
+              onClick={() => handleInsertMention(mUser.name)}
+              className="w-full text-left px-2 py-1.5 rounded-xl text-xs hover:bg-white/5 flex items-center gap-2 text-gray-100"
+            >
+              <span className="font-bold text-saylo-emerald">@</span>
+              <span className="truncate">{mUser.name}</span>
+            </button>
+          ))}
         </div>
       )}
 
@@ -298,6 +419,22 @@ const MessageInput = ({ onOpenPollModal }) => {
             Create Poll
           </button>
 
+          {/* Event */}
+          {onOpenEventModal && (
+            <button
+              onClick={() => {
+                onOpenEventModal();
+                setShowAttachmentMenu(false);
+              }}
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs hover:bg-gray-700/50 text-gray-200 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                <Calendar size={18} />
+              </div>
+              Group Event
+            </button>
+          )}
+
           {/* Location */}
           <button
             onClick={handleShareLocation}
@@ -311,21 +448,88 @@ const MessageInput = ({ onOpenPollModal }) => {
         </div>
       )}
 
-      {/* Emoji Picker Popup */}
-      {showEmojiPicker && (
-        <div className="absolute bottom-16 left-4 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-3 grid grid-cols-8 gap-2 max-w-xs animate-fadeIn">
-          {emojiList.map((emoji) => (
+      {/* Tabbed Emoji, GIF & Sticker Picker */}
+      {showPicker && (
+        <div className="absolute bottom-16 left-4 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-3 w-80 animate-fadeIn">
+          {/* Picker Tabs */}
+          <div className="flex items-center justify-around border-b border-gray-700/60 pb-2 mb-3">
             <button
-              key={emoji}
-              onClick={() => {
-                setText((prev) => prev + emoji);
-                setShowEmojiPicker(false);
-              }}
-              className="text-xl hover:scale-125 transition-transform p-1"
+              onClick={() => setPickerTab('emoji')}
+              className={`flex items-center gap-1.5 text-xs font-semibold pb-1 transition-colors ${
+                pickerTab === 'emoji' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-400 hover:text-white'
+              }`}
             >
-              {emoji}
+              <Smile size={15} /> Emojis
             </button>
-          ))}
+            <button
+              onClick={() => setPickerTab('gif')}
+              className={`flex items-center gap-1.5 text-xs font-semibold pb-1 transition-colors ${
+                pickerTab === 'gif' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Film size={15} /> GIFs
+            </button>
+            <button
+              onClick={() => setPickerTab('sticker')}
+              className={`flex items-center gap-1.5 text-xs font-semibold pb-1 transition-colors ${
+                pickerTab === 'sticker' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Sticker size={15} /> Stickers
+            </button>
+          </div>
+
+          {/* Emojis Grid */}
+          {pickerTab === 'emoji' && (
+            <div className="grid grid-cols-8 gap-2 max-h-48 overflow-y-auto pr-1">
+              {emojiList.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => {
+                    setText((prev) => prev + emoji);
+                    setShowPicker(false);
+                  }}
+                  className="text-xl hover:scale-125 transition-transform p-1 text-center"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* GIFs Grid */}
+          {pickerTab === 'gif' && (
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+              {gifList.map((g, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => handleSendGif(g.url)}
+                  className="h-20 rounded-xl overflow-hidden cursor-pointer border border-gray-700/60 hover:border-saylo-emerald group relative"
+                >
+                  <img src={g.url} alt={g.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <span className="absolute bottom-1 left-1.5 text-[9px] bg-black/60 px-1 rounded text-white font-medium">
+                    {g.title}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Stickers Grid */}
+          {pickerTab === 'sticker' && (
+            <div className="grid grid-cols-3 gap-2.5 max-h-48 overflow-y-auto pr-1">
+              {stickerList.map((st, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendSticker(st)}
+                  className={`h-16 rounded-2xl flex flex-col items-center justify-center gap-1 border border-transparent hover:border-saylo-emerald transition-transform hover:scale-105 ${st.bg}`}
+                >
+                  <span className="text-2xl">{st.emoji}</span>
+                  <span className="text-[10px] font-semibold">{st.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -373,12 +577,14 @@ const MessageInput = ({ onOpenPollModal }) => {
         </div>
       ) : (
         <div className="flex items-end gap-2">
-          {/* Emojis Button */}
+          {/* Emojis / GIFs / Stickers Button */}
           <button
             type="button"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="p-2 text-gray-400 hover:text-gray-200 transition-colors rounded-full"
-            title="Emoji"
+            onClick={() => setShowPicker(!showPicker)}
+            className={`p-2 transition-colors rounded-full ${
+              showPicker ? 'text-saylo-emerald' : 'text-gray-400 hover:text-gray-200'
+            }`}
+            title="Emojis, GIFs & Stickers"
           >
             <Smile size={22} />
           </button>
@@ -408,9 +614,23 @@ const MessageInput = ({ onOpenPollModal }) => {
                   handleSend();
                 }
               }}
-              placeholder="Type a message..."
+              placeholder="Type a message or @ to mention..."
               className="w-full bg-transparent resize-none text-sm text-gray-100 placeholder-gray-400 focus:outline-none max-h-28 overflow-y-auto"
             />
+
+            {/* HD Media Quality Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsHdQuality(!isHdQuality)}
+              className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
+                isHdQuality
+                  ? 'border-saylo-emerald text-saylo-emerald bg-saylo-emerald/10'
+                  : 'border-gray-500 text-gray-400'
+              }`}
+              title={isHdQuality ? 'HD Media Quality enabled' : 'Standard Quality'}
+            >
+              HD
+            </button>
 
             {/* View Once Toggle Button */}
             <button

@@ -10,3 +10,4 @@ router.get('/', protect, getCommunities);
 router.post('/', protect, createCommunity);
 
 module.exports = router;
+

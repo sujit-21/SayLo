@@ -78,3 +78,4 @@ const LockChatModal = ({ isOpen, onClose }) => {
 };
 
 export default LockChatModal;
+

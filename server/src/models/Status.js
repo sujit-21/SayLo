@@ -58,3 +58,4 @@ const statusSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model('Status', statusSchema);
+

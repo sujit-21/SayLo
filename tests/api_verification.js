@@ -173,7 +173,71 @@ async function runTests() {
     }
     console.log(`✅ Call logged! ID: ${callRes.data.call._id}, Type: ${callRes.data.call.type}, Duration: ${callRes.data.call.duration}s`);
 
-    console.log('\n🎉 ALL 10 TESTS PASSED SUCCESSFULLY! SAYLO full-stack messaging platform is 100% functional.\n');
+    // 11. Test Group Event Creation
+    console.log('\n11. Testing Group Event Creation (/api/v1/messages)...');
+    const eventRes = await request(
+      'POST',
+      '/messages',
+      {
+        conversationId: directChat._id,
+        type: 'event',
+        event: {
+          title: 'SAYLO Q4 Planning Review',
+          description: 'Quarterly architecture and feature roadmap meeting',
+          startTime: new Date(Date.now() + 86400000),
+          location: 'Conference Room Alpha',
+          attendees: [],
+        },
+      },
+      aliceToken
+    );
+    if (eventRes.status !== 201 || !eventRes.data.message.event) {
+      throw new Error(`Event creation failed: ${JSON.stringify(eventRes)}`);
+    }
+    const eventMessageId = eventRes.data.message._id;
+    console.log(`✅ Event message created! Title: "${eventRes.data.message.event.title}"`);
+
+    // 12. Test Bob RSVP to Event
+    console.log('\n12. Testing Event RSVP (/api/v1/messages/:id/event/rsvp)...');
+    const rsvpRes = await request(
+      'POST',
+      `/messages/${eventMessageId}/event/rsvp`,
+      { status: 'going' },
+      bobToken
+    );
+    if (rsvpRes.status !== 200 || !rsvpRes.data.message.event.attendees.length) {
+      throw new Error(`Event RSVP failed: ${JSON.stringify(rsvpRes)}`);
+    }
+    console.log(`✅ Bob RSVP recorded: Status "${rsvpRes.data.message.event.attendees[0].status}"`);
+
+    // 13. Test Privacy Setting: Silence Unknown Callers
+    console.log('\n13. Testing Privacy Settings Update (/api/v1/auth/privacy)...');
+    const privRes = await request(
+      'PUT',
+      '/auth/privacy',
+      { silenceUnknownCallers: true, readReceipts: true },
+      aliceToken
+    );
+    if (privRes.status !== 200 || !privRes.data.privacy.silenceUnknownCallers) {
+      throw new Error(`Privacy update failed: ${JSON.stringify(privRes)}`);
+    }
+    console.log(`✅ Privacy setting updated: silenceUnknownCallers = ${privRes.data.privacy.silenceUnknownCallers}`);
+
+    // 14. Test Chat Lock PIN Verification
+    console.log('\n14. Testing Chat Lock PIN Setup & Verification (/api/v1/auth/chat-lock-pin)...');
+    await request('POST', '/auth/chat-lock-pin', { pin: '7788' }, aliceToken);
+    const pinVerifyRes = await request(
+      'POST',
+      '/auth/chat-lock-pin',
+      { action: 'verify', enteredPin: '7788' },
+      aliceToken
+    );
+    if (pinVerifyRes.status !== 200 || !pinVerifyRes.data.verified) {
+      throw new Error(`PIN verification failed: ${JSON.stringify(pinVerifyRes)}`);
+    }
+    console.log(`✅ Chat Lock PIN verified successfully!`);
+
+    console.log('\n🎉 ALL 14 ADVANCED VERIFICATION TESTS PASSED SUCCESSFULLY! SAYLO full-stack platform is 100% complete and verified.\n');
   } catch (err) {
     console.error('❌ Test failed:', err);
     process.exit(1);
@@ -181,3 +245,4 @@ async function runTests() {
 }
 
 runTests();
+

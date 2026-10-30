@@ -119,6 +119,23 @@ const PrivacySettings = () => {
           />
         </div>
 
+        {/* Silence Unknown Callers */}
+        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg flex items-center justify-between">
+          <div className="pr-4">
+            <h3 className="text-sm font-bold text-gray-100">Silence Unknown Callers</h3>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Calls from unknown numbers will be silenced. They will still be shown in the Calls tab.
+            </p>
+          </div>
+
+          <input
+            type="checkbox"
+            checked={!!privacy.silenceUnknownCallers}
+            onChange={(e) => handleSave({ silenceUnknownCallers: e.target.checked })}
+            className="w-5 h-5 rounded text-saylo-emerald focus:ring-saylo-emerald"
+          />
+        </div>
+
         {/* Default Disappearing Message Timer */}
         <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-3">
           <div>
@@ -155,3 +172,4 @@ const PrivacySettings = () => {
 };
 
 export default PrivacySettings;
+

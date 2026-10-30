@@ -88,3 +88,4 @@ const AppearanceSettings = () => {
 };
 
 export default AppearanceSettings;
+

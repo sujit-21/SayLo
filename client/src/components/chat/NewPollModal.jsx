@@ -146,3 +146,4 @@ const NewPollModal = ({ isOpen, onClose }) => {
 };
 
 export default NewPollModal;
+

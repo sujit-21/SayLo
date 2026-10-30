@@ -138,6 +138,14 @@ const initSocketIO = (io) => {
       });
     });
 
+    // 9b. Event RSVP Update
+    socket.on('event:rsvp', ({ conversationId, message }) => {
+      io.to(`conversation_${conversationId}`).emit('event:update', {
+        conversationId,
+        message,
+      });
+    });
+
     // 10. WebRTC Audio / Video Calls Signaling
     socket.on('call:initiate', ({ receiverId, conversationId, callType, offer }) => {
       io.to(`user_${receiverId}`).emit('call:incoming', {
@@ -202,3 +210,4 @@ const initSocketIO = (io) => {
 };
 
 module.exports = { initSocketIO };
+

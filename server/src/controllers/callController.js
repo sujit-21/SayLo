@@ -47,3 +47,4 @@ exports.logCall = async (req, res, next) => {
     next(error);
   }
 };
+

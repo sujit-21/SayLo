@@ -138,3 +138,4 @@ const NewGroupModal = ({ isOpen, onClose }) => {
 };
 
 export default NewGroupModal;
+

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive } from 'lucide-react';
+import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import { useChat } from '../../context/ChatContext';
 import { useAuth } from '../../context/AuthContext';
@@ -22,6 +22,10 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
 
   const { onlineUsers } = useSocket();
   const [contextMenu, setContextMenu] = useState(null); // { x, y, conversation }
+  const [isLockedFolderOpen, setIsLockedFolderOpen] = useState(false);
+  const [showPinPrompt, setShowPinPrompt] = useState(false);
+  const [enteredPin, setEnteredPin] = useState('');
+  const [pinError, setPinError] = useState('');
 
   // Format timestamp for sidebar
   const formatSidebarTime = (dateStr) => {
@@ -33,10 +37,20 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
   };
 
   // Filter conversations
+  const lockedCount = conversations.filter((c) => {
+    const p = c.participants?.find((part) => (part.user?._id || part.user) === user?._id);
+    return !!p?.isLocked;
+  }).length;
+
   const filteredConversations = conversations.filter((c) => {
     const participant = c.participants?.find(
       (p) => (p.user?._id || p.user) === user?._id
     );
+
+    // Filter out locked chats if folder is closed
+    if (participant?.isLocked && !isLockedFolderOpen) {
+      return false;
+    }
 
     // Filter out archived unless viewing archived
     if (participant?.isArchived && activeTabFilter !== 'archived') {
@@ -93,6 +107,26 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     await api.put(`/conversations/${c._id}/preference`, { isMuted: newMuted });
     fetchConversations();
     setContextMenu(null);
+  };
+
+  const handleVerifyPin = async (e) => {
+    e.preventDefault();
+    setPinError('');
+    try {
+      const res = await api.post('/auth/chat-lock-pin', {
+        action: 'verify',
+        enteredPin,
+      });
+      if (res.data.verified) {
+        setIsLockedFolderOpen(true);
+        setShowPinPrompt(false);
+        setEnteredPin('');
+      } else {
+        setPinError('Incorrect PIN');
+      }
+    } catch (err) {
+      setPinError('Verification error');
+    }
   };
 
   return (
@@ -160,6 +194,37 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
 
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto">
+        {/* Locked Chats Folder */}
+        {lockedCount > 0 && (
+          <div
+            onClick={() => {
+              if (isLockedFolderOpen) {
+                setIsLockedFolderOpen(false);
+              } else {
+                setShowPinPrompt(true);
+              }
+            }}
+            className="flex items-center justify-between px-4 py-3 bg-[#182229] border-b border-gray-800 cursor-pointer hover:bg-[#202c33] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-saylo-emerald/15 text-saylo-emerald flex items-center justify-center">
+                {isLockedFolderOpen ? <Unlock size={18} /> : <Lock size={18} />}
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-100">Locked Chats</h4>
+                <p className="text-[11px] text-gray-400">
+                  {isLockedFolderOpen ? 'Unlocked • Tap to hide' : `${lockedCount} chat(s) protected`}
+                </p>
+              </div>
+            </div>
+            {isLockedFolderOpen && (
+              <span className="text-[10px] text-saylo-emerald font-semibold uppercase tracking-wider">
+                Active
+              </span>
+            )}
+          </div>
+        )}
+
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center px-4">
             <p className="text-xs text-gray-500 mb-3">No conversations found</p>
@@ -319,8 +384,56 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
           </button>
         </div>
       )}
+
+      {/* PIN Verification Modal */}
+      {showPinPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#202c33] p-6 rounded-3xl max-w-xs w-full text-center border border-gray-700 shadow-2xl">
+            <div className="w-12 h-12 mx-auto rounded-full bg-saylo-emerald/20 text-saylo-emerald flex items-center justify-center mb-3">
+              <Lock size={22} />
+            </div>
+            <h3 className="text-sm font-bold text-white mb-1">Enter Security PIN</h3>
+            <p className="text-xs text-gray-400 mb-4">Enter your 4-digit PIN to access locked chats</p>
+
+            {pinError && <p className="text-xs text-red-400 mb-3">{pinError}</p>}
+
+            <form onSubmit={handleVerifyPin} className="space-y-4">
+              <input
+                type="password"
+                maxLength={6}
+                value={enteredPin}
+                onChange={(e) => setEnteredPin(e.target.value.replace(/\D/g, ''))}
+                placeholder="••••"
+                required
+                className="w-full text-center tracking-widest text-xl font-mono bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-saylo-emerald"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPinPrompt(false);
+                    setEnteredPin('');
+                    setPinError('');
+                  }}
+                  className="flex-1 py-2 text-xs text-gray-400 hover:bg-white/5 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl text-xs font-semibold"
+                >
+                  Unlock
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ConversationList;
+

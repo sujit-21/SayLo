@@ -72,3 +72,4 @@ const VerifyAccountPage = () => {
 };
 
 export default VerifyAccountPage;
+

@@ -23,7 +23,7 @@ import { useChat } from '../../context/ChatContext';
 
 const MessageItem = ({ message, onReply, onEdit }) => {
   const { user } = useAuth();
-  const { reactToMessage, toggleStarMessage, deleteMessage, votePoll, openViewOnce } = useChat();
+  const { reactToMessage, toggleStarMessage, deleteMessage, votePoll, rsvpEvent, openViewOnce } = useChat();
 
   const [showMenu, setShowMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -230,6 +230,67 @@ const MessageItem = ({ message, onReply, onEdit }) => {
               </div>
             )}
 
+            {/* Event Widget */}
+            {message.type === 'event' && message.event && (
+              <div className="my-2 min-w-[260px] p-3 rounded-xl bg-black/20 border border-gray-700/60 space-y-2.5">
+                <div className="flex items-start gap-2.5">
+                  <div className="p-2 rounded-xl bg-saylo-emerald/20 text-saylo-emerald flex-shrink-0">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-white">{message.event.title}</h4>
+                    {message.event.description && (
+                      <p className="text-xs text-gray-300 mt-0.5">{message.event.description}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1 text-xs text-gray-400 pt-1 border-t border-gray-700/40">
+                  {message.event.startTime && (
+                    <div className="flex items-center gap-1.5 text-saylo-300 font-medium">
+                      <Clock size={13} />
+                      <span>{format(new Date(message.event.startTime), 'EEE, MMM d • HH:mm')}</span>
+                    </div>
+                  )}
+                  {message.event.location && (
+                    <div className="flex items-center gap-1.5 text-gray-300">
+                      <MapPin size={13} className="text-saylo-emerald" />
+                      <span>{message.event.location}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* RSVP Controls */}
+                <div className="pt-2 border-t border-gray-700/40">
+                  <p className="text-[10px] text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
+                    RSVP ({message.event.attendees?.filter(a => a.status === 'going').length || 0} Going)
+                  </p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {['going', 'maybe', 'declined'].map((rsvpStatus) => {
+                      const myStatus = message.event.attendees?.find(
+                        (a) => (a.user?._id || a.user) === user?._id
+                      )?.status;
+                      const isActive = myStatus === rsvpStatus;
+
+                      return (
+                        <button
+                          key={rsvpStatus}
+                          onClick={() => rsvpEvent(message._id, rsvpStatus)}
+                          className={`py-1 px-2 rounded-lg text-xs font-semibold capitalize border transition-all ${
+                            isActive
+                              ? 'bg-saylo-emerald text-white border-saylo-emerald'
+                              : 'bg-black/30 border-gray-700 text-gray-300 hover:border-gray-500'
+                          }`}
+                        >
+                          {rsvpStatus}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Location Message */}
             {message.type === 'location' && message.location && (
               <div className="my-1 p-2 bg-black/20 rounded-xl">
@@ -409,3 +470,4 @@ const MessageItem = ({ message, onReply, onEdit }) => {
 };
 
 export default MessageItem;
+

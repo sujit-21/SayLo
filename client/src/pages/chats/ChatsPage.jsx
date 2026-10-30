@@ -5,13 +5,29 @@ import ChatWindow from '../../components/chat/ChatWindow';
 import NewChatModal from '../../components/chat/NewChatModal';
 import NewGroupModal from '../../components/chat/NewGroupModal';
 import { useChat } from '../../context/ChatContext';
+import api from '../../services/api';
 
 const ChatsPage = () => {
   const { conversationId } = useParams();
-  const { activeConversation, selectConversation } = useChat();
+  const { activeConversation, selectConversation, fetchConversations } = useChat();
 
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const joinCode = params.get('join');
+    if (joinCode) {
+      api.post(`/conversations/join/${joinCode}`)
+        .then(async (res) => {
+          if (res.data.conversationId) {
+            await fetchConversations();
+            selectConversation(res.data.conversationId);
+          }
+        })
+        .catch(console.error);
+    }
+  }, []);
 
   useEffect(() => {
     if (conversationId && (!activeConversation || activeConversation._id !== conversationId)) {
@@ -53,3 +69,4 @@ const ChatsPage = () => {
 };
 
 export default ChatsPage;
+

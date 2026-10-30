@@ -14,3 +14,4 @@ router.post('/:id/view', protect, viewStatus);
 router.delete('/:id', protect, deleteStatus);
 
 module.exports = router;
+

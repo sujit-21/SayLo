@@ -153,3 +153,4 @@ const NewChatModal = ({ isOpen, onClose, onOpenNewGroup }) => {
 };
 
 export default NewChatModal;
+

@@ -42,3 +42,4 @@ const WallpaperModal = ({ isOpen, onClose }) => {
 };
 
 export default WallpaperModal;
+

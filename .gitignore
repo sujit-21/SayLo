@@ -30,3 +30,4 @@ Thumbs.db
 # Uploads temporary
 server/uploads/*
 !server/uploads/.gitkeep
+

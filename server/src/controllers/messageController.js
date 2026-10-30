@@ -424,3 +424,40 @@ exports.openViewOnce = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc RSVP to Group Event
+// @route POST /api/v1/messages/:id/event/rsvp
+exports.rsvpEvent = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // 'going', 'maybe', 'declined'
+    const currentUserId = req.user._id;
+
+    const message = await Message.findById(id);
+    if (!message || !message.event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    const existingIndex = message.event.attendees.findIndex(
+      (a) => a.user.toString() === currentUserId.toString()
+    );
+
+    if (existingIndex > -1) {
+      message.event.attendees[existingIndex].status = status;
+    } else {
+      message.event.attendees.push({ user: currentUserId, status });
+    }
+
+    await message.save();
+
+    const populated = await Message.findById(message._id)
+      .populate('sender', 'name avatar')
+      .populate('event.attendees.user', 'name avatar');
+
+    res.json({ success: true, message: populated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
