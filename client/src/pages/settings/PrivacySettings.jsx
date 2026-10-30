@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Check, Lock, Shield, Clock } from 'lucide-react';
+import { ArrowLeft, Check, Lock, Shield, Clock, Ban, ChevronRight, X } from 'lucide-react';
+import Avatar from '../../components/common/Avatar';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -13,8 +14,32 @@ const PrivacySettings = () => {
     readReceipts: true,
     disappearingDefaultTimer: 0,
   });
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchBlocked = async () => {
+      try {
+        const res = await api.get('/users/blocked');
+        setBlockedUsers(res.data.blockedUsers || []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchBlocked();
+  }, []);
+
+  const handleUnblock = async (targetUserId) => {
+    try {
+      await api.post('/users/block', { targetUserId });
+      setBlockedUsers((prev) => prev.filter((u) => u._id !== targetUserId));
+    } catch (e) {
+      console.error(e);
+      alert('Failed to unblock contact');
+    }
+  };
 
   const handleSave = async (updatedFields) => {
     const newPrivacy = { ...privacy, ...updatedFields };
@@ -166,7 +191,72 @@ const PrivacySettings = () => {
             ))}
           </div>
         </div>
+
+        {/* Blocked Contacts */}
+        <div
+          onClick={() => setShowBlockedModal(true)}
+          className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg flex items-center justify-between cursor-pointer hover:bg-[#25323a] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-red-500/10 text-red-400">
+              <Ban size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-100">Blocked contacts</h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {blockedUsers.length === 0
+                  ? 'No blocked contacts'
+                  : `${blockedUsers.length} blocked contact(s)`}
+              </p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-gray-400" />
+        </div>
       </div>
+
+      {/* Blocked Contacts Modal */}
+      {showBlockedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[#202c33] border border-gray-700/80 w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700/70">
+              <h3 className="text-base font-semibold text-gray-100">Blocked contacts</h3>
+              <button
+                onClick={() => setShowBlockedModal(false)}
+                className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/5"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto divide-y divide-gray-800 p-3">
+              {blockedUsers.length === 0 ? (
+                <div className="py-12 text-center text-xs text-gray-400">
+                  You haven't blocked any contacts.
+                </div>
+              ) : (
+                blockedUsers.map((u) => (
+                  <div key={u._id} className="flex items-center justify-between py-3 px-2">
+                    <div className="flex items-center gap-3 truncate">
+                      <Avatar src={u.avatar} name={u.name} size="sm" />
+                      <div className="truncate">
+                        <h4 className="text-sm font-semibold text-gray-100 truncate">{u.name}</h4>
+                        <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleUnblock(u._id)}
+                      className="px-3 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
+                    >
+                      Unblock
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

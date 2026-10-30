@@ -65,6 +65,20 @@ const ChatInfoPanel = ({ isOpen, onClose }) => {
   };
 
   // Handle Remove Member or Leave Group
+  const handleToggleAdminRole = async (targetUserId, newRole) => {
+    try {
+      const res = await api.put(
+        `/conversations/group/${activeConversation._id}/members/${targetUserId}/role`,
+        { role: newRole }
+      );
+      selectConversation(res.data.conversation);
+      fetchConversations();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update admin status');
+    }
+  };
+
   const handleRemoveMember = async (targetUserId) => {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
     try {
@@ -320,13 +334,28 @@ const ChatInfoPanel = ({ isOpen, onClose }) => {
                         </span>
                       )}
                       {isAdmin && pUser._id !== user._id && (
-                        <button
-                          onClick={() => handleRemoveMember(pUser._id)}
-                          className="text-gray-400 hover:text-red-400 p-1"
-                          title="Remove member"
-                        >
-                          <X size={14} />
-                        </button>
+                        <>
+                          <button
+                            onClick={() =>
+                              handleToggleAdminRole(pUser._id, isMemberAdmin ? 'member' : 'admin')
+                            }
+                            className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${
+                              isMemberAdmin
+                                ? 'border-amber-500/40 text-amber-400 hover:bg-amber-500/10'
+                                : 'border-saylo-emerald/40 text-saylo-emerald hover:bg-saylo-emerald/10'
+                            }`}
+                            title={isMemberAdmin ? 'Dismiss as admin' : 'Make group admin'}
+                          >
+                            {isMemberAdmin ? 'Dismiss' : 'Make admin'}
+                          </button>
+                          <button
+                            onClick={() => handleRemoveMember(pUser._id)}
+                            className="text-gray-400 hover:text-red-400 p-1"
+                            title="Remove member"
+                          >
+                            <X size={14} />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

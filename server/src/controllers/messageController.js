@@ -460,4 +460,71 @@ exports.rsvpEvent = async (req, res, next) => {
   }
 };
 
+// @desc Forward a message to one or more conversations
+// @route POST /api/v1/messages/forward
+exports.forwardMessage = async (req, res, next) => {
+  try {
+    const { messageId, conversationIds } = req.body;
+    const currentUserId = req.user._id;
+
+    if (!messageId || !conversationIds || !conversationIds.length) {
+      return res.status(400).json({ success: false, message: 'Message ID and conversation IDs are required' });
+    }
+
+    const original = await Message.findById(messageId);
+    if (!original) {
+      return res.status(404).json({ success: false, message: 'Original message not found' });
+    }
+
+    const forwardedMessages = [];
+    for (const convId of conversationIds) {
+      const conv = await Conversation.findOne({
+        _id: convId,
+        'participants.user': currentUserId,
+      });
+      if (!conv) continue;
+
+      let expiresAt = null;
+      if (conv.disappearingTimer > 0) {
+        expiresAt = new Date(Date.now() + conv.disappearingTimer * 1000);
+      }
+
+      const msg = await Message.create({
+        conversation: convId,
+        sender: currentUserId,
+        text: original.text || '',
+        type: original.type,
+        mediaUrl: original.mediaUrl || '',
+        mediaName: original.mediaName || '',
+        mediaSize: original.mediaSize,
+        mediaMimeType: original.mediaMimeType,
+        mediaDuration: original.mediaDuration,
+        location: original.location,
+        poll: original.poll,
+        event: original.event,
+        forwarded: true,
+        expiresAt,
+      });
+
+      await Conversation.findByIdAndUpdate(convId, {
+        lastMessage: msg._id,
+        lastMessageAt: new Date(),
+      });
+
+      const populated = await Message.findById(msg._id)
+        .populate('sender', 'name avatar')
+        .populate({
+          path: 'replyTo',
+          populate: { path: 'sender', select: 'name' },
+        });
+
+      forwardedMessages.push(populated);
+    }
+
+    res.json({ success: true, forwardedMessages });
+  } catch (error) {
+    next(error);
+  }
+};
+
 

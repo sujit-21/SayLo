@@ -23,6 +23,16 @@ const io = new Server(server, {
 
 initSocketIO(io);
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[SAYLO Server] Port ${PORT} is already in use by another process.`);
+    console.error(`To kill the process using port ${PORT} on Windows, run:\n  cmd /c "for /f \\"tokens=5\\" %a in ('netstat -aon ^| findstr :${PORT}') do taskkill /f /pid %a"`);
+    process.exit(1);
+  } else {
+    console.error('[SAYLO Server] Server error:', err);
+  }
+});
+
 server.listen(PORT, () => {
   console.log(`[SAYLO Server] Running on http://localhost:${PORT}`);
 });

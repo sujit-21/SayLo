@@ -7,6 +7,7 @@ const {
   createNoteToSelfChat,
   createGroup,
   updateGroup,
+  updateMemberRole,
   addGroupMembers,
   removeGroupMember,
   updateParticipantPreference,
@@ -21,6 +22,7 @@ router.post('/direct', protect, createOrGetDirectChat);
 router.post('/note-to-self', protect, createNoteToSelfChat);
 router.post('/group', protect, createGroup);
 router.put('/group/:id', protect, updateGroup);
+router.put('/group/:id/members/:userId/role', protect, updateMemberRole);
 router.post('/group/:id/members', protect, addGroupMembers);
 router.delete('/group/:id/members/:userId', protect, removeGroupMember);
 router.put('/:id/preference', protect, updateParticipantPreference);

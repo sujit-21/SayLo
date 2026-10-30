@@ -13,12 +13,14 @@ const {
   votePoll,
   openViewOnce,
   rsvpEvent,
+  forwardMessage,
 } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/starred', protect, getStarredMessages);
 router.get('/:conversationId', protect, getMessages);
 router.post('/', protect, sendMessage);
+router.post('/forward', protect, forwardMessage);
 router.put('/:id', protect, editMessage);
 router.post('/:id/delete', protect, deleteMessage);
 router.post('/:id/react', protect, reactToMessage);

@@ -237,7 +237,76 @@ async function runTests() {
     }
     console.log(`✅ Chat Lock PIN verified successfully!`);
 
-    console.log('\n🎉 ALL 14 ADVANCED VERIFICATION TESTS PASSED SUCCESSFULLY! SAYLO full-stack platform is 100% complete and verified.\n');
+    // 15. Test Toggle Pin Message
+    console.log('\n15. Testing Pin Message (/api/v1/messages/:id/pin)...');
+    const pinMsgRes = await request('POST', `/messages/${messageId}/pin`, null, aliceToken);
+    if (pinMsgRes.status !== 200 || !pinMsgRes.data.pinned) {
+      throw new Error(`Pin message failed: ${JSON.stringify(pinMsgRes)}`);
+    }
+    console.log(`✅ Message pinned successfully: pinned = ${pinMsgRes.data.pinned}`);
+
+    // 16. Test Forward Message
+    console.log('\n16. Testing Message Forwarding (/api/v1/messages/forward)...');
+    const forwardRes = await request(
+      'POST',
+      '/messages/forward',
+      {
+        messageId: messageId,
+        conversationIds: [directChat._id],
+      },
+      aliceToken
+    );
+    if (forwardRes.status !== 200 || !forwardRes.data.forwardedMessages?.length) {
+      throw new Error(`Forward message failed: ${JSON.stringify(forwardRes)}`);
+    }
+    console.log(`✅ Message forwarded successfully to ${forwardRes.data.forwardedMessages.length} conversation(s)!`);
+
+    // 17. Test Toggle Pin Conversation Preference
+    console.log('\n17. Testing Pin Conversation Preference (/api/v1/conversations/:id/preference)...');
+    const pinConvRes = await request(
+      'PUT',
+      `/conversations/${directChat._id}/preference`,
+      { isPinned: true },
+      aliceToken
+    );
+    if (pinConvRes.status !== 200 || !pinConvRes.data.preference.isPinned) {
+      throw new Error(`Pin conversation failed: ${JSON.stringify(pinConvRes)}`);
+    }
+    console.log(`✅ Conversation pinned in sidebar: isPinned = ${pinConvRes.data.preference.isPinned}`);
+
+    // 18. Test Block & Unblock Contact
+    console.log('\n18. Testing Block & Unblock Contact (/api/v1/users/block)...');
+    const blockRes = await request(
+      'POST',
+      '/users/block',
+      { targetUserId: bobLogin.data.user._id },
+      aliceToken
+    );
+    if (blockRes.status !== 200 || !blockRes.data.isBlocked) {
+      throw new Error(`Block user failed: ${JSON.stringify(blockRes)}`);
+    }
+    console.log(`✅ User blocked successfully: isBlocked = ${blockRes.data.isBlocked}`);
+
+    // Fetch blocked list
+    const getBlockedRes = await request('GET', '/users/blocked', null, aliceToken);
+    if (getBlockedRes.status !== 200 || !getBlockedRes.data.blockedUsers?.length) {
+      throw new Error(`Get blocked users failed: ${JSON.stringify(getBlockedRes)}`);
+    }
+    console.log(`✅ Fetched blocked users list: ${getBlockedRes.data.blockedUsers.length} user(s)`);
+
+    // Unblock
+    const unblockRes = await request(
+      'POST',
+      '/users/block',
+      { targetUserId: bobLogin.data.user._id },
+      aliceToken
+    );
+    if (unblockRes.status !== 200 || unblockRes.data.isBlocked) {
+      throw new Error(`Unblock user failed: ${JSON.stringify(unblockRes)}`);
+    }
+    console.log(`✅ User unblocked successfully!`);
+
+    console.log('\n🎉 ALL 18 ADVANCED VERIFICATION TESTS PASSED SUCCESSFULLY! All WhatsApp Web features verified.\n');
   } catch (err) {
     console.error('❌ Test failed:', err);
     process.exit(1);

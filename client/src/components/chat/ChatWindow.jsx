@@ -8,28 +8,43 @@ import NewEventModal from './NewEventModal';
 import DisappearingModal from './DisappearingModal';
 import LockChatModal from './LockChatModal';
 import WallpaperModal from './WallpaperModal';
+import ForwardModal from './ForwardModal';
 import { useChat } from '../../context/ChatContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Search, X } from 'lucide-react';
+import api from '../../services/api';
+import { Search, X, ChevronUp, ChevronDown, Pin, UploadCloud } from 'lucide-react';
 import { isToday, isYesterday, format } from 'date-fns';
 
 const ChatWindow = () => {
-  const { activeConversation, messages, loadingMessages, setReplyMessage, editMessage } = useChat();
+  const {
+    activeConversation,
+    messages,
+    loadingMessages,
+    setReplyMessage,
+    editMessage,
+    sendMessage,
+  } = useChat();
   const { wallpaper } = useTheme();
 
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+
   const [showPollModal, setShowPollModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showDisappearingModal, setShowDisappearingModal] = useState(false);
   const [showLockModal, setShowLockModal] = useState(false);
   const [showWallpaperModal, setShowWallpaperModal] = useState(false);
-  const [editingMessage, setEditingMessage] = useState(null);
+  const [forwardingMessage, setForwardingMessage] = useState(null);
+
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isUploadingDrop, setIsUploadingDrop] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const chatStreamRef = useRef(null);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom on chat change or new message
   const scrollToBottom = (behavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
@@ -39,8 +54,68 @@ const ChatWindow = () => {
   }, [activeConversation?._id]);
 
   useEffect(() => {
-    scrollToBottom('smooth');
+    if (!searchFilter.trim()) {
+      scrollToBottom('smooth');
+    }
   }, [messages.length]);
+
+  // Handle Drag & Drop / Clipboard file upload
+  const uploadAndSendFile = async (file) => {
+    if (!file || !activeConversation) return;
+    setIsUploadingDrop(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const { url, name, mimeType, size } = res.data.file;
+      let msgType = 'document';
+      if (mimeType.startsWith('image/')) msgType = 'image';
+      else if (mimeType.startsWith('video/')) msgType = 'video';
+      else if (mimeType.startsWith('audio/')) msgType = 'audio';
+
+      await sendMessage({
+        type: msgType,
+        mediaUrl: url,
+        mediaName: name,
+        mediaMimeType: mimeType,
+        mediaSize: size,
+      });
+    } catch (err) {
+      console.error('File drop/paste failed', err);
+      alert('Failed to send file. Please try again.');
+    } finally {
+      setIsUploadingDrop(false);
+    }
+  };
+
+  // Clipboard Paste listener (Ctrl + V for images/files)
+  useEffect(() => {
+    const handlePaste = (e) => {
+      const targetTag = e.target?.tagName?.toLowerCase();
+      const isInput = targetTag === 'input' || targetTag === 'textarea';
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            e.preventDefault();
+            uploadAndSendFile(file);
+            return;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [activeConversation?._id]);
 
   if (!activeConversation) {
     return (
@@ -65,12 +140,42 @@ const ChatWindow = () => {
     );
   }
 
-  // Filter messages by search if search bar is open
-  const filteredMessages = searchFilter.trim()
+  // Find all messages matching the search filter
+  const matchingMessages = searchFilter.trim()
     ? messages.filter((m) =>
         m.text?.toLowerCase().includes(searchFilter.toLowerCase().trim())
       )
-    : messages;
+    : [];
+
+  // Pinned messages in this conversation
+  const pinnedMessages = messages.filter((m) => !!m.pinned);
+
+  // Jump to active matched message
+  const jumpToMatch = (idx) => {
+    if (matchingMessages.length === 0) return;
+    const targetMsg = matchingMessages[idx];
+    if (targetMsg) {
+      const el = document.getElementById(`msg-${targetMsg._id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  };
+
+  const handleNextMatch = () => {
+    if (matchingMessages.length === 0) return;
+    const nextIdx = (currentMatchIndex + 1) % matchingMessages.length;
+    setCurrentMatchIndex(nextIdx);
+    jumpToMatch(nextIdx);
+  };
+
+  const handlePrevMatch = () => {
+    if (matchingMessages.length === 0) return;
+    const prevIdx =
+      (currentMatchIndex - 1 + matchingMessages.length) % matchingMessages.length;
+    setCurrentMatchIndex(prevIdx);
+    jumpToMatch(prevIdx);
+  };
 
   // Format date dividers
   const renderDateDivider = (dateStr) => {
@@ -96,74 +201,200 @@ const ChatWindow = () => {
   else if (wallpaper === 'charcoal') wallpaperClass = 'bg-[#18181b]';
 
   return (
-    <div className="flex-1 h-full flex overflow-hidden">
+    <div
+      className="flex-1 h-full flex overflow-hidden relative"
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDraggingOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        setIsDraggingOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDraggingOver(false);
+        if (e.dataTransfer?.files?.[0]) {
+          uploadAndSendFile(e.dataTransfer.files[0]);
+        }
+      }}
+    >
+      {/* Drag & Drop Overlay */}
+      {isDraggingOver && (
+        <div className="absolute inset-0 z-40 bg-[#0b141a]/90 backdrop-blur-sm border-2 border-dashed border-saylo-emerald flex flex-col items-center justify-center pointer-events-none animate-fadeIn">
+          <UploadCloud size={48} className="text-saylo-emerald mb-3 animate-bounce" />
+          <h3 className="text-lg font-bold text-gray-100">Drop files here to send</h3>
+          <p className="text-xs text-gray-400 mt-1">Photos, videos, audio, and documents</p>
+        </div>
+      )}
+
+      {/* Uploading Spinner Overlay */}
+      {isUploadingDrop && (
+        <div className="absolute top-4 right-4 z-40 bg-[#202c33] border border-gray-700/80 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3">
+          <div className="w-4 h-4 border-2 border-saylo-emerald border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-xs text-gray-200 font-medium">Sending dropped file...</span>
+        </div>
+      )}
+
       <div className="flex-1 h-full flex flex-col min-w-0 bg-[#0b141a] dark:bg-[#0b141a]">
         {/* Header */}
         <ChatHeader
-          onToggleSearch={() => setShowSearch(!showSearch)}
+          onToggleSearch={() => {
+            setShowSearch(!showSearch);
+            if (showSearch) {
+              setSearchFilter('');
+              setCurrentMatchIndex(0);
+            }
+          }}
           onOpenInfoPanel={() => setShowInfoPanel(!showInfoPanel)}
           onOpenDisappearingModal={() => setShowDisappearingModal(true)}
           onOpenWallpaperModal={() => setShowWallpaperModal(true)}
           onOpenLockModal={() => setShowLockModal(true)}
         />
 
-        {/* In-chat Search Banner */}
+        {/* WhatsApp-style In-Chat Message Search Bar */}
         {showSearch && (
-          <div className="bg-[#202c33] px-4 py-2 border-b border-gray-800 flex items-center gap-3">
-            <Search size={16} className="text-gray-400" />
-            <input
-              type="text"
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              placeholder="Search messages in this chat..."
-              className="flex-1 bg-transparent text-xs text-white placeholder-gray-400 focus:outline-none"
-              autoFocus
-            />
-            <button
-              onClick={() => {
-                setShowSearch(false);
-                setSearchFilter('');
-              }}
-              className="p-1 text-gray-400 hover:text-white"
-            >
-              <X size={16} />
-            </button>
+          <div className="bg-[#202c33] px-4 py-2.5 border-b border-gray-800 flex items-center justify-between gap-3 animate-fadeIn">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <Search size={16} className="text-gray-400 flex-shrink-0" />
+              <input
+                type="text"
+                value={searchFilter}
+                onChange={(e) => {
+                  setSearchFilter(e.target.value);
+                  setCurrentMatchIndex(0);
+                }}
+                placeholder="Search messages in this chat..."
+                className="w-full bg-transparent text-xs text-white placeholder-gray-400 focus:outline-none"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0 text-xs">
+              {searchFilter.trim() && (
+                <span className="text-[11px] text-gray-400">
+                  {matchingMessages.length > 0
+                    ? `${currentMatchIndex + 1} of ${matchingMessages.length}`
+                    : '0 of 0'}
+                </span>
+              )}
+
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handlePrevMatch}
+                  disabled={matchingMessages.length === 0}
+                  className="p-1 rounded text-gray-400 hover:text-white disabled:opacity-30 hover:bg-white/5"
+                  title="Previous match"
+                >
+                  <ChevronUp size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextMatch}
+                  disabled={matchingMessages.length === 0}
+                  className="p-1 rounded text-gray-400 hover:text-white disabled:opacity-30 hover:bg-white/5"
+                  title="Next match"
+                >
+                  <ChevronDown size={16} />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSearch(false);
+                  setSearchFilter('');
+                  setCurrentMatchIndex(0);
+                }}
+                className="p-1 text-gray-400 hover:text-white hover:bg-white/5 rounded"
+                title="Close search"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Pinned Messages Top Banner */}
+        {pinnedMessages.length > 0 && (
+          <div
+            onClick={() => {
+              const lastPinned = pinnedMessages[pinnedMessages.length - 1];
+              document
+                .getElementById(`msg-${lastPinned._id}`)
+                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
+            className="bg-[#182229] border-b border-gray-800 px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-[#202c33] transition-colors z-10"
+          >
+            <div className="flex items-center gap-2.5 truncate">
+              <Pin
+                size={14}
+                className="text-saylo-emerald fill-saylo-emerald flex-shrink-0 transform -rotate-45"
+              />
+              <div className="truncate text-xs">
+                <span className="font-semibold text-saylo-300 mr-2">Pinned:</span>
+                <span className="text-gray-300 truncate">
+                  {pinnedMessages[pinnedMessages.length - 1].text ||
+                    `[Attachment: ${pinnedMessages[pinnedMessages.length - 1].type || 'Media'}]`}
+                </span>
+              </div>
+            </div>
+            <span className="text-[10px] text-saylo-emerald font-semibold uppercase tracking-wider flex-shrink-0">
+              View ({pinnedMessages.length})
+            </span>
           </div>
         )}
 
         {/* Messages Stream */}
-        <div className={`flex-1 overflow-y-auto px-4 md:px-12 py-4 ${wallpaperClass}`}>
+        <div
+          ref={chatStreamRef}
+          className={`flex-1 overflow-y-auto px-4 md:px-12 py-4 ${wallpaperClass}`}
+        >
           {loadingMessages ? (
             <div className="flex justify-center items-center h-full">
               <div className="w-8 h-8 border-2 border-saylo-emerald border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ) : filteredMessages.length === 0 ? (
+          ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <span className="text-xs bg-[#182229] text-gray-400 px-4 py-2 rounded-xl border border-gray-800">
-                {searchFilter ? 'No matching messages found' : 'No messages yet. Send a message to start the conversation!'}
+                No messages yet. Send a message to start the conversation!
               </span>
             </div>
           ) : (
-            filteredMessages.map((msg, idx) => {
-              const prevMsg = filteredMessages[idx - 1];
+            messages.map((msg, idx) => {
+              const prevMsg = messages[idx - 1];
               const isDifferentDay =
                 !prevMsg ||
                 format(new Date(prevMsg.createdAt), 'yyyy-MM-dd') !==
                   format(new Date(msg.createdAt), 'yyyy-MM-dd');
 
+              const isMatch =
+                searchFilter.trim() &&
+                msg.text?.toLowerCase().includes(searchFilter.toLowerCase().trim());
+
+              const isCurrentActiveMatch =
+                isMatch &&
+                matchingMessages[currentMatchIndex]?._id === msg._id;
+
               return (
                 <React.Fragment key={msg._id || idx}>
                   {isDifferentDay && renderDateDivider(msg.createdAt)}
-                  <MessageItem
-                    message={msg}
-                    onReply={(m) => setReplyMessage(m)}
-                    onEdit={(m) => {
-                      const newText = window.prompt('Edit your message:', m.text);
-                      if (newText && newText !== m.text) {
-                        editMessage(m._id, newText);
-                      }
-                    }}
-                  />
+                  <div id={`msg-${msg._id}`}>
+                    <MessageItem
+                      message={msg}
+                      onReply={(m) => setReplyMessage(m)}
+                      onEdit={(m) => {
+                        const newText = window.prompt('Edit your message:', m.text);
+                        if (newText && newText !== m.text) {
+                          editMessage(m._id, newText);
+                        }
+                      }}
+                      onForward={(m) => setForwardingMessage(m)}
+                      searchQuery={searchFilter}
+                      isHighlighted={isCurrentActiveMatch}
+                    />
+                  </div>
                 </React.Fragment>
               );
             })
@@ -190,9 +421,15 @@ const ChatWindow = () => {
       />
       <LockChatModal isOpen={showLockModal} onClose={() => setShowLockModal(false)} />
       <WallpaperModal isOpen={showWallpaperModal} onClose={() => setShowWallpaperModal(false)} />
+
+      {/* Forward Message Modal */}
+      <ForwardModal
+        isOpen={!!forwardingMessage}
+        message={forwardingMessage}
+        onClose={() => setForwardingMessage(null)}
+      />
     </div>
   );
 };
 
 export default ChatWindow;
-

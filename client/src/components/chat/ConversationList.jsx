@@ -82,6 +82,11 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     }
 
     return true;
+  }).sort((a, b) => {
+    const pA = a.participants?.find((p) => (p.user?._id || p.user) === user?._id)?.isPinned ? 1 : 0;
+    const pB = b.participants?.find((p) => (p.user?._id || p.user) === user?._id)?.isPinned ? 1 : 0;
+    if (pA !== pB) return pB - pA;
+    return new Date(b.lastMessageAt || b.updatedAt) - new Date(a.lastMessageAt || a.updatedAt);
   });
 
   // Handle Participant Preference toggles
@@ -339,7 +344,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
 
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {isMuted && <VolumeX size={13} className="text-gray-500" />}
-                      {isPinned && <Pin size={13} className="text-gray-400 fill-gray-400" />}
+                      {isPinned && <Pin size={13} className="text-saylo-emerald fill-saylo-emerald transform -rotate-45" />}
                       {unreadCount > 0 && (
                         <span className="bg-saylo-emerald text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                           {unreadCount}
@@ -366,21 +371,21 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
           >
             <Pin size={14} />
-            Toggle Pin
+            {contextMenu.conversation.participants?.find((p) => (p.user?._id || p.user) === user?._id)?.isPinned ? 'Unpin chat' : 'Pin chat'}
           </button>
           <button
             onClick={() => handleToggleMute(contextMenu.conversation)}
             className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
           >
             <VolumeX size={14} />
-            Toggle Mute
+            {contextMenu.conversation.participants?.find((p) => (p.user?._id || p.user) === user?._id)?.isMuted ? 'Unmute' : 'Mute chat'}
           </button>
           <button
             onClick={() => handleToggleArchive(contextMenu.conversation)}
             className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
           >
             <Archive size={14} />
-            Archive chat
+            {contextMenu.conversation.participants?.find((p) => (p.user?._id || p.user) === user?._id)?.isArchived ? 'Unarchive' : 'Archive chat'}
           </button>
         </div>
       )}

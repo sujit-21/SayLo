@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { format } from 'date-fns';
 import {
   Check,
@@ -17,13 +17,123 @@ import {
   MapPin,
   Calendar,
   MoreVertical,
+  Share2,
+  Pin,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 
-const MessageItem = ({ message, onReply, onEdit }) => {
+// WhatsApp-style Voice Message Player with Speed Controls (1x, 1.5x, 2x)
+const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(initialDuration || 0);
+  const audioRef = useRef(null);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const cycleSpeed = () => {
+    const speeds = [1, 1.5, 2];
+    const next = speeds[(speeds.indexOf(speed) + 1) % speeds.length];
+    setSpeed(next);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = next;
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current && (!duration || isNaN(duration))) {
+      setDuration(audioRef.current.duration || 0);
+    }
+  };
+
+  const handleSeek = (e) => {
+    const time = parseFloat(e.target.value);
+    setCurrentTime(time);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
+  };
+
+  const formatSecs = (sec) => {
+    if (!sec || isNaN(sec)) return '0:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  return (
+    <div className="my-1.5 flex items-center gap-2.5 bg-black/25 p-2.5 rounded-2xl min-w-[260px] border border-gray-700/30">
+      <audio
+        ref={audioRef}
+        src={src}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={() => setIsPlaying(false)}
+        preload="metadata"
+      />
+      <button
+        type="button"
+        onClick={togglePlay}
+        className="w-9 h-9 rounded-full bg-saylo-emerald hover:bg-saylo-500 text-white flex items-center justify-center flex-shrink-0 transition-transform active:scale-95 shadow-sm"
+      >
+        {isPlaying ? <Pause size={16} fill="white" /> : <Play size={16} fill="white" className="ml-0.5" />}
+      </button>
+
+      <div className="flex-1 flex flex-col justify-center min-w-0">
+        <input
+          type="range"
+          min="0"
+          max={duration || 100}
+          value={currentTime}
+          onChange={handleSeek}
+          className="w-full h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-saylo-emerald"
+        />
+        <div className="flex justify-between items-center text-[10px] text-gray-400 mt-1">
+          <span>{formatSecs(currentTime)}</span>
+          <span>{formatSecs(duration)}</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={cycleSpeed}
+        className="px-2 py-1 rounded-full text-[11px] font-bold bg-white/10 hover:bg-white/20 text-saylo-300 transition-colors flex-shrink-0"
+        title="Playback speed (1x, 1.5x, 2x)"
+      >
+        {speed}x
+      </button>
+    </div>
+  );
+};
+
+const MessageItem = ({ message, onReply, onEdit, onForward, searchQuery, isHighlighted }) => {
   const { user } = useAuth();
-  const { reactToMessage, toggleStarMessage, deleteMessage, votePoll, rsvpEvent, openViewOnce } = useChat();
+  const {
+    reactToMessage,
+    toggleStarMessage,
+    togglePinMessage,
+    deleteMessage,
+    votePoll,
+    rsvpEvent,
+    openViewOnce,
+  } = useChat();
 
   const [showMenu, setShowMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -31,6 +141,7 @@ const MessageItem = ({ message, onReply, onEdit }) => {
 
   const isSelf = message.sender?._id === user?._id || message.sender === user?._id;
   const isStarred = message.starredBy?.includes(user?._id);
+  const isPinned = !!message.pinned;
   const isViewOnceOpened = message.viewOnceOpenedBy?.includes(user?._id);
 
   // Quick reaction emojis
@@ -50,6 +161,22 @@ const MessageItem = ({ message, onReply, onEdit }) => {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  // Highlight search term helper
+  const renderHighlightedText = (text) => {
+    if (!searchQuery || !searchQuery.trim() || !text) return text;
+    const q = searchQuery.trim();
+    const parts = text.split(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return parts.map((part, i) =>
+      part.toLowerCase() === q.toLowerCase() ? (
+        <mark key={i} className="bg-amber-400 text-black px-0.5 rounded font-medium">
+          {part}
+        </mark>
+      ) : (
+        part
+      )
+    );
   };
 
   // Render System Message
@@ -153,9 +280,7 @@ const MessageItem = ({ message, onReply, onEdit }) => {
 
             {/* Audio / Voice Message */}
             {(message.type === 'audio' || message.type === 'voice') && message.mediaUrl && (
-              <div className="my-1.5 flex items-center gap-3 bg-black/20 p-2.5 rounded-xl min-w-[240px]">
-                <audio src={message.mediaUrl} controls className="w-full h-8" />
-              </div>
+              <VoiceMessagePlayer src={message.mediaUrl} duration={message.mediaDuration} />
             )}
 
             {/* Document Media */}
@@ -312,13 +437,22 @@ const MessageItem = ({ message, onReply, onEdit }) => {
 
             {/* Regular Text */}
             {message.text && message.type !== 'system' && (
-              <p className="break-words leading-relaxed whitespace-pre-wrap">{message.text}</p>
+              <p className="break-words leading-relaxed whitespace-pre-wrap">
+                {renderHighlightedText(message.text)}
+              </p>
             )}
           </>
         )}
 
         {/* Timestamp & Status Metadata Bar */}
         <div className="flex items-center justify-end gap-1.5 mt-1 select-none text-[10px] text-gray-400">
+          {isPinned && (
+            <Pin
+              size={11}
+              className="text-saylo-300 fill-saylo-300 transform -rotate-45"
+              title="Pinned message"
+            />
+          )}
           {message.edited && <span className="italic">edited</span>}
           {isStarred && <Star size={11} className="text-amber-400 fill-amber-400" />}
           <span>{format(new Date(message.createdAt || Date.now()), 'HH:mm')}</span>
@@ -356,7 +490,7 @@ const MessageItem = ({ message, onReply, onEdit }) => {
       {/* Floating Action Menu on hover */}
       <div
         className={`absolute top-0 ${
-          isSelf ? '-left-20' : '-right-20'
+          isSelf ? '-left-28' : '-right-28'
         } hidden group-hover:flex items-center gap-1 bg-[#202c33] border border-gray-700/60 rounded-xl p-1 shadow-xl z-20`}
       >
         {/* Quick React Button */}
@@ -375,6 +509,15 @@ const MessageItem = ({ message, onReply, onEdit }) => {
           title="Reply"
         >
           <Reply size={16} />
+        </button>
+
+        {/* Forward */}
+        <button
+          onClick={() => onForward && onForward(message)}
+          className="p-1 text-gray-400 hover:text-saylo-emerald rounded hover:bg-gray-700/50"
+          title="Forward message"
+        >
+          <Share2 size={16} />
         </button>
 
         {/* More Actions Toggle */}
@@ -414,8 +557,30 @@ const MessageItem = ({ message, onReply, onEdit }) => {
         <div
           className={`absolute top-8 ${
             isSelf ? 'right-0' : 'left-0'
-          } z-30 w-40 bg-[#202c33] border border-gray-700/80 rounded-xl shadow-2xl py-1 text-xs text-gray-200 animate-fadeIn`}
+          } z-30 w-44 bg-[#202c33] border border-gray-700/80 rounded-xl shadow-2xl py-1 text-xs text-gray-200 animate-fadeIn`}
         >
+          <button
+            onClick={() => {
+              if (onForward) onForward(message);
+              setShowMenu(false);
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+          >
+            <Share2 size={14} />
+            Forward
+          </button>
+
+          <button
+            onClick={() => {
+              togglePinMessage(message._id);
+              setShowMenu(false);
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+          >
+            <Pin size={14} className={isPinned ? 'text-saylo-emerald' : ''} />
+            {isPinned ? 'Unpin message' : 'Pin message'}
+          </button>
+
           <button
             onClick={() => {
               toggleStarMessage(message._id);

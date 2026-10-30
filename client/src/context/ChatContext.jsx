@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import api from '../services/api';
 import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
+import { sound } from '../utils/sound';
 
 const ChatContext = createContext();
 
@@ -120,6 +121,7 @@ export const ChatProvider = ({ children }) => {
       // Append to current messages
       setMessages((prev) => [...prev, newMessage]);
       setReplyMessage(null);
+      sound.playMessageSent();
 
       // Update conversation lastMessage preview
       setConversations((prev) => {
@@ -305,12 +307,46 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  // Forward message to one or more conversations
+  const forwardMessage = async (messageId, conversationIds) => {
+    try {
+      const res = await api.post('/messages/forward', { messageId, conversationIds });
+      await fetchConversations();
+      return res.data;
+    } catch (err) {
+      console.error('Failed to forward message', err);
+      throw err;
+    }
+  };
+
+  // Toggle Pin message
+  const togglePinMessage = async (messageId) => {
+    try {
+      const res = await api.post(`/messages/${messageId}/pin`);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === messageId
+            ? { ...m, pinned: res.data.pinned, pinnedAt: res.data.pinned ? new Date() : null }
+            : m
+        )
+      );
+      return res.data;
+    } catch (err) {
+      console.error('Failed to toggle pin message', err);
+      throw err;
+    }
+  };
+
   // Socket event listeners for real-time conversation updates
   useEffect(() => {
     if (!socket) return;
 
     // Incoming message
     const handleNewMessage = ({ conversationId, message }) => {
+      if (message.sender?._id !== user?._id && message.sender !== user?._id) {
+        sound.playMessageIncoming();
+      }
+
       // If we are currently inside this conversation
       if (activeConversationRef.current && activeConversationRef.current._id === conversationId) {
         setMessages((prev) => {
@@ -440,6 +476,8 @@ export const ChatProvider = ({ children }) => {
         votePoll,
         rsvpEvent,
         openViewOnce,
+        forwardMessage,
+        togglePinMessage,
         replyMessage,
         setReplyMessage,
         fetchConversations,

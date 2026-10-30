@@ -216,6 +216,60 @@ exports.updateGroup = async (req, res, next) => {
   }
 };
 
+// @desc Update member role (admin/member)
+// @route PUT /api/v1/conversations/group/:id/members/:userId/role
+exports.updateMemberRole = async (req, res, next) => {
+  try {
+    const { id, userId } = req.params;
+    const { role } = req.body; // 'admin' | 'member'
+    const conversation = await Conversation.findById(id);
+
+    if (!conversation || !conversation.isGroup) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    const currentIsAdmin = conversation.admins.some((a) => a.toString() === req.user._id.toString());
+    if (!currentIsAdmin) {
+      return res.status(403).json({ success: false, message: 'Only admins can change member roles' });
+    }
+
+    const participant = conversation.participants.find((p) => p.user.toString() === userId);
+    if (!participant) {
+      return res.status(404).json({ success: false, message: 'Member not found in group' });
+    }
+
+    participant.role = role === 'admin' ? 'admin' : 'member';
+    if (role === 'admin') {
+      if (!conversation.admins.some((a) => a.toString() === userId)) {
+        conversation.admins.push(userId);
+      }
+    } else {
+      conversation.admins = conversation.admins.filter((a) => a.toString() !== userId);
+    }
+
+    await conversation.save();
+
+    const targetUser = await User.findById(userId).select('name');
+    await Message.create({
+      conversation: conversation._id,
+      sender: req.user._id,
+      type: 'system',
+      text:
+        role === 'admin'
+          ? `${targetUser?.name || 'A member'} is now an admin`
+          : `${targetUser?.name || 'A member'} is no longer an admin`,
+    });
+
+    const updated = await Conversation.findById(conversation._id)
+      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('admins', 'name avatar');
+
+    res.json({ success: true, conversation: updated });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc Add group members
 // @route POST /api/v1/conversations/group/:id/members
 exports.addGroupMembers = async (req, res, next) => {
