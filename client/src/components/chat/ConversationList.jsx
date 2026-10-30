@@ -316,6 +316,10 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             const isPinned = participant?.isPinned;
             const isMuted = participant?.isMuted;
 
+            // Draft message indicator
+            const draftText = localStorage.getItem(`saylo_draft_${c._id}`);
+            const hasDraft = draftText && draftText.trim().length > 0;
+
             // Last message text preview
             let lastText = 'No messages yet';
             let isLastSelf = false;
@@ -387,17 +391,26 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1 text-xs text-gray-400 truncate">
-                      {isLastSelf && (
-                        <span className="flex-shrink-0">
-                          {lastStatus === 'read' ? (
-                            <CheckCheck size={14} className="text-saylo-300" />
-                          ) : (
-                            <Check size={14} className="text-gray-400" />
-                          )}
+                    <div className="flex items-center gap-1 text-xs truncate">
+                      {hasDraft ? (
+                        <span className="truncate flex items-center gap-1.5 text-xs">
+                          <span className="font-bold text-saylo-emerald">Draft:</span>
+                          <span className="text-gray-300 truncate">{draftText.trim()}</span>
                         </span>
+                      ) : (
+                        <>
+                          {isLastSelf && (
+                            <span className="flex-shrink-0">
+                              {lastStatus === 'read' ? (
+                                <CheckCheck size={14} className="text-saylo-300" />
+                              ) : (
+                                <Check size={14} className="text-gray-400" />
+                              )}
+                            </span>
+                          )}
+                          <span className="truncate text-gray-400">{lastText}</span>
+                        </>
                       )}
-                      <span className="truncate">{lastText}</span>
                     </div>
 
                     <div className="flex items-center gap-1.5 flex-shrink-0">

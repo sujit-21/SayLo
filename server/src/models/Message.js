@@ -176,6 +176,15 @@ const messageSchema = new mongoose.Schema(
       default: false,
     },
     pinnedAt: Date,
+    isKept: {
+      type: Boolean,
+      default: false,
+    },
+    keptBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    keptAt: Date,
     expiresAt: {
       type: Date,
       index: { expires: 0 }, // MongoDB TTL index handles automatic cleanup!

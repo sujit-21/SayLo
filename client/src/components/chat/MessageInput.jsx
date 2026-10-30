@@ -24,6 +24,9 @@ import {
   FolderHeart,
   Play,
   Pause,
+  Volume2,
+  VolumeX,
+  Zap,
 } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { useSocket } from '../../context/SocketContext';
@@ -65,6 +68,17 @@ const MessageInput = ({
   const [videoPreviewStream, setVideoPreviewStream] = useState(null);
   const videoPreviewRef = useRef(null);
   const [mentionQuery, setMentionQuery] = useState(null); // null or string
+  const [pendingVideo, setPendingVideo] = useState(null); // { file, url, isMuted }
+
+  const quickReplies = [
+    { shortcut: '/thanks', text: 'Thank you very much! Appreciate your help. 🙏' },
+    { shortcut: '/busy', text: 'In a meeting right now, will reply shortly.' },
+    { shortcut: '/meeting', text: 'Are you free for a quick sync / call?' },
+    { shortcut: '/agree', text: 'Sounds like a great plan! Let’s proceed.' },
+    { shortcut: '/hello', text: 'Hey! Hope you are having a wonderful day. 👋' },
+    { shortcut: '/call', text: 'Can we hop on a quick SAYLO call?' },
+    { shortcut: '/done', text: 'Task completed and verified! 🚀' },
+  ];
 
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
@@ -121,6 +135,16 @@ const MessageInput = ({
       { name: 'LGTM 👍', emoji: '✅', bg: 'bg-green-500/20 text-green-300' },
       { name: 'Need Coffee', emoji: '☕', bg: 'bg-yellow-500/20 text-yellow-400' },
       { name: '404 Brain', emoji: '🧠', bg: 'bg-purple-500/20 text-purple-300' },
+    ],
+    avatars: [
+      { name: 'Happy Bot', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Happy', bg: 'bg-emerald-500/10' },
+      { name: 'Cool Shades', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Cool', bg: 'bg-blue-500/10' },
+      { name: 'Mind Blown', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Shock', bg: 'bg-purple-500/10' },
+      { name: 'Super Hero', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Hero', bg: 'bg-amber-500/10' },
+      { name: 'Gamer Bot', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Gamer', bg: 'bg-rose-500/10' },
+      { name: 'Love Struck', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Love', bg: 'bg-pink-500/10' },
+      { name: 'Cyber Ninja', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Ninja', bg: 'bg-cyan-500/10' },
+      { name: 'Party Champ', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Party', bg: 'bg-yellow-500/10' },
     ],
   };
 
@@ -299,6 +323,14 @@ const MessageInput = ({
       return;
     }
 
+    // If a video is selected, offer mute audio toggle before sending
+    if (!forcedType && file.type.startsWith('video/')) {
+      const url = URL.createObjectURL(file);
+      setPendingVideo({ file, url, isMuted: false });
+      e.target.value = '';
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
 
@@ -336,6 +368,44 @@ const MessageInput = ({
     } catch (err) {
       console.error('Upload failed', err);
       alert('File upload failed. Please try again.');
+    }
+  };
+
+  // Send pending video (with optional muted audio)
+  const handleSendPendingVideo = async () => {
+    if (!pendingVideo) return;
+    const { file, isMuted } = pendingVideo;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const { url, name, mimeType, size } = res.data.file;
+
+      await sendMessage({
+        type: 'video',
+        mediaUrl: url,
+        mediaName: name,
+        mediaMimeType: isMuted ? 'video/muted' : mimeType,
+        mediaSize: size,
+        viewOnce,
+        text: text.trim() || '',
+      });
+
+      URL.revokeObjectURL(pendingVideo.url);
+      setPendingVideo(null);
+      setText('');
+      setViewOnce(false);
+      if (activeConversation?._id) {
+        localStorage.removeItem(`saylo_draft_${activeConversation._id}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to send video');
     }
   };
 
@@ -539,6 +609,93 @@ const MessageInput = ({
           >
             <X size={16} />
           </button>
+        </div>
+      )}
+
+      {/* Pending Video with Mute Audio Toggle Banner */}
+      {pendingVideo && (
+        <div className="mb-2 p-2.5 bg-[#182229] border border-gray-700/80 rounded-2xl flex items-center justify-between gap-3 animate-fadeIn">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl overflow-hidden bg-black flex-shrink-0">
+              <video src={pendingVideo.url} className="w-full h-full object-cover" muted />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-white truncate max-w-[150px] md:max-w-xs">
+                {pendingVideo.file.name}
+              </p>
+              <p className="text-[10px] text-gray-400">
+                {(pendingVideo.file.size / (1024 * 1024)).toFixed(1)} MB • Video Attachment
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Mute Video Audio Toggle */}
+            <button
+              type="button"
+              onClick={() =>
+                setPendingVideo((prev) => ({ ...prev, isMuted: !prev.isMuted }))
+              }
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                pendingVideo.isMuted
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  : 'bg-white/10 text-gray-200 hover:bg-white/15'
+              }`}
+              title={pendingVideo.isMuted ? 'Audio is muted' : 'Audio is on'}
+            >
+              {pendingVideo.isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+              <span className="text-[11px]">{pendingVideo.isMuted ? 'Muted' : 'Audio On'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                URL.revokeObjectURL(pendingVideo.url);
+                setPendingVideo(null);
+              }}
+              className="p-1.5 rounded-full text-gray-400 hover:text-white"
+              title="Cancel video"
+            >
+              <X size={16} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSendPendingVideo}
+              className="px-3 py-1.5 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1 shadow-sm"
+            >
+              <Send size={13} />
+              <span>Send</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Replies / Shortcuts Popup */}
+      {text.startsWith('/') && (
+        <div className="absolute bottom-16 left-12 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-2 w-72 max-h-48 overflow-y-auto animate-fadeIn">
+          <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-semibold text-saylo-emerald uppercase tracking-wider">
+            <Zap size={13} />
+            <span>Quick Replies</span>
+          </div>
+          {quickReplies
+            .filter((q) => q.shortcut.toLowerCase().startsWith(text.toLowerCase()))
+            .map((q) => (
+              <button
+                key={q.shortcut}
+                type="button"
+                onClick={() => {
+                  setText(q.text);
+                  if (activeConversation?._id) {
+                    localStorage.setItem(`saylo_draft_${activeConversation._id}`, q.text);
+                  }
+                }}
+                className="w-full text-left p-2 rounded-xl text-xs hover:bg-white/5 flex flex-col gap-0.5 text-gray-100 transition-colors"
+              >
+                <span className="font-bold text-saylo-emerald font-mono">{q.shortcut}</span>
+                <span className="text-[11px] text-gray-300 truncate">{q.text}</span>
+              </button>
+            ))}
         </div>
       )}
 
@@ -763,6 +920,17 @@ const MessageInput = ({
                 </button>
                 <button
                   type="button"
+                  onClick={() => setStickerPack('avatars')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
+                    stickerPack === 'avatars'
+                      ? 'bg-saylo-emerald/20 text-saylo-emerald font-bold'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Avatars
+                </button>
+                <button
+                  type="button"
                   onClick={() => setStickerPack('dev')}
                   className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
                     stickerPack === 'dev'
@@ -816,9 +984,13 @@ const MessageInput = ({
                       <button
                         key={idx}
                         onClick={() => handleSendSticker(st)}
-                        className={`h-16 rounded-2xl flex flex-col items-center justify-center gap-1 border border-transparent hover:border-saylo-emerald transition-transform hover:scale-105 ${st.bg}`}
+                        className={`h-16 rounded-2xl flex flex-col items-center justify-center gap-1 border border-transparent hover:border-saylo-emerald transition-transform hover:scale-105 p-1 ${st.bg}`}
                       >
-                        <span className="text-2xl">{st.emoji}</span>
+                        {st.url ? (
+                          <img src={st.url} alt={st.name} className="w-9 h-9 object-contain drop-shadow" />
+                        ) : (
+                          <span className="text-2xl">{st.emoji}</span>
+                        )}
                         <span className="text-[10px] font-semibold truncate max-w-full px-1">{st.name}</span>
                       </button>
                     ))}

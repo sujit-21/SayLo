@@ -462,6 +462,38 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  // Keep or unkeep message from expiring (disappearing messages)
+  const keepMessage = async (messageId) => {
+    try {
+      const res = await api.post(`/messages/${messageId}/keep`);
+      const updated = res.data.message;
+      setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, ...updated } : m)));
+      return updated;
+    } catch (err) {
+      console.error('Failed to toggle keep message', err);
+      throw err;
+    }
+  };
+
+  // Clear conversation messages for current user
+  const clearChat = async (conversationId) => {
+    try {
+      await api.delete(`/conversations/${conversationId}/clear`);
+      if (activeConversation && activeConversation._id === conversationId) {
+        setMessages([]);
+      }
+      setConversations((prev) =>
+        prev.map((c) =>
+          c._id === conversationId ? { ...c, lastMessage: null } : c
+        )
+      );
+      return true;
+    } catch (err) {
+      console.error('Failed to clear chat', err);
+      throw err;
+    }
+  };
+
   // Socket event listeners for real-time conversation updates
   useEffect(() => {
     if (!socket) return;
@@ -469,7 +501,11 @@ export const ChatProvider = ({ children }) => {
     // Incoming message
     const handleNewMessage = async ({ conversationId, message }) => {
       if (message.sender?._id !== user?._id && message.sender !== user?._id) {
-        sound.playMessageIncoming();
+        const chatTone =
+          localStorage.getItem(`saylo_tone_${conversationId}`) ||
+          localStorage.getItem('saylo_notification_tone') ||
+          'chime';
+        sound.playMessageIncoming(chatTone);
       }
 
       let processedMessage = message;
@@ -613,6 +649,8 @@ export const ChatProvider = ({ children }) => {
         openViewOnce,
         forwardMessage,
         togglePinMessage,
+        keepMessage,
+        clearChat,
         replyMessage,
         setReplyMessage,
         fetchConversations,

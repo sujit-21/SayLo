@@ -25,6 +25,7 @@ import {
   Square,
   ExternalLink,
   UserCheck,
+  Bookmark,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
@@ -246,6 +247,7 @@ const MessageItem = ({
     reactToMessage,
     toggleStarMessage,
     togglePinMessage,
+    keepMessage,
     deleteMessage,
     votePoll,
     rsvpEvent,
@@ -515,7 +517,17 @@ const MessageItem = ({
                 </div>
               ) : (
                 <div className="my-1 rounded-xl overflow-hidden max-w-sm relative group/vid">
-                  <video src={message.mediaUrl} controls className="w-full rounded-xl max-h-80" />
+                  <video
+                    src={message.mediaUrl}
+                    controls
+                    muted={message.mediaMimeType === 'video/muted'}
+                    className="w-full rounded-xl max-h-80"
+                  />
+                  {message.mediaMimeType === 'video/muted' && (
+                    <span className="absolute bottom-2 left-2 text-[10px] bg-black/70 text-gray-300 px-2 py-0.5 rounded-md font-medium flex items-center gap-1">
+                      <span>🔇 Muted Video</span>
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => onOpenMedia && onOpenMedia(message.mediaUrl, message.mediaName || 'Video', 'video')}
@@ -849,6 +861,13 @@ const MessageItem = ({
               title="Pinned message"
             />
           )}
+          {message.isKept && (
+            <Bookmark
+              size={11}
+              className="text-amber-400 fill-amber-400 flex-shrink-0"
+              title="Kept in chat (exempt from disappearing expiration)"
+            />
+          )}
           {message.edited && <span className="italic">edited</span>}
           {isStarred && <Star size={11} className="text-amber-400 fill-amber-400" />}
           <span>{format(new Date(message.createdAt || Date.now()), 'HH:mm')}</span>
@@ -1010,6 +1029,17 @@ const MessageItem = ({
           >
             <Star size={14} className={isStarred ? 'text-amber-400' : ''} />
             {isStarred ? 'Unstar' : 'Star message'}
+          </button>
+
+          <button
+            onClick={() => {
+              keepMessage(message._id);
+              setShowMenu(false);
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+          >
+            <Bookmark size={14} className={message.isKept ? 'text-amber-400 fill-amber-400' : ''} />
+            {message.isKept ? 'Unkeep message' : 'Keep in chat'}
           </button>
 
           {isSelf && message.type === 'text' && !message.deletedForEveryone && (

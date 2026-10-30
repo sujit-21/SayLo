@@ -17,6 +17,8 @@ const {
   sendBroadcast,
   getScheduledMessages,
   cancelScheduledMessage,
+  getMessageInfo,
+  keepMessage,
 } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -36,6 +38,8 @@ router.post('/read', protect, markAsRead);
 router.post('/:id/poll/vote', protect, votePoll);
 router.post('/:id/event/rsvp', protect, rsvpEvent);
 router.post('/:id/view-once', protect, openViewOnce);
+router.get('/:id/info', protect, getMessageInfo);
+router.post('/:id/keep', protect, keepMessage);
 
 module.exports = router;
 

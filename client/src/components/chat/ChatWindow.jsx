@@ -31,6 +31,8 @@ import {
   Keyboard,
   CheckSquare,
   Info,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { isToday, isYesterday, format } from 'date-fns';
 
@@ -67,6 +69,7 @@ const ChatWindow = () => {
   const [forwardingMessages, setForwardingMessages] = useState(null);
   const [infoMessage, setInfoMessage] = useState(null);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [activePinIndex, setActivePinIndex] = useState(0);
 
   // Multi-message select state
   const [isSelectMode, setIsSelectMode] = useState(false);
@@ -446,35 +449,62 @@ const ChatWindow = () => {
           </div>
         )}
 
-        {/* Pinned Messages Top Banner */}
-        {pinnedMessages.length > 0 && (
-          <div
-            onClick={() => {
-              const lastPinned = pinnedMessages[pinnedMessages.length - 1];
-              document
-                .getElementById(`msg-${lastPinned._id}`)
-                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
-            className="bg-[#182229] border-b border-gray-800 px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-[#202c33] transition-colors z-10"
-          >
-            <div className="flex items-center gap-2.5 truncate">
-              <Pin
-                size={14}
-                className="text-saylo-emerald fill-saylo-emerald flex-shrink-0 transform -rotate-45"
-              />
-              <div className="truncate text-xs">
-                <span className="font-semibold text-saylo-300 mr-2">Pinned:</span>
-                <span className="text-gray-300 truncate">
-                  {pinnedMessages[pinnedMessages.length - 1].text ||
-                    `[Attachment: ${pinnedMessages[pinnedMessages.length - 1].type || 'Media'}]`}
-                </span>
+        {/* Pinned Messages Top Banner (Multi-Pin Carousel) */}
+        {pinnedMessages.length > 0 && (() => {
+          const currentPinned = pinnedMessages[activePinIndex % pinnedMessages.length];
+          return (
+            <div className="bg-[#182229] border-b border-gray-800 px-4 py-2 flex items-center justify-between z-10 animate-fadeIn">
+              <div
+                onClick={() => {
+                  document
+                    .getElementById(`msg-${currentPinned._id}`)
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+                className="flex items-center gap-2.5 truncate flex-1 cursor-pointer hover:opacity-90"
+              >
+                <Pin
+                  size={14}
+                  className="text-saylo-emerald fill-saylo-emerald flex-shrink-0 transform -rotate-45"
+                />
+                <div className="truncate text-xs">
+                  <span className="font-semibold text-saylo-300 mr-2">
+                    Pinned {pinnedMessages.length > 1 ? `(${activePinIndex % pinnedMessages.length + 1}/${pinnedMessages.length})` : ''}:
+                  </span>
+                  <span className="text-gray-300 truncate">
+                    {currentPinned.text || `[Attachment: ${currentPinned.type || 'Media'}]`}
+                  </span>
+                </div>
               </div>
+
+              {pinnedMessages.length > 1 && (
+                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActivePinIndex((prev) => (prev - 1 + pinnedMessages.length) % pinnedMessages.length);
+                    }}
+                    className="p-1 rounded text-gray-400 hover:text-white hover:bg-white/5"
+                    title="Previous pinned message"
+                  >
+                    <ChevronLeft size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActivePinIndex((prev) => (prev + 1) % pinnedMessages.length);
+                    }}
+                    className="p-1 rounded text-gray-400 hover:text-white hover:bg-white/5"
+                    title="Next pinned message"
+                  >
+                    <ChevronRight size={15} />
+                  </button>
+                </div>
+              )}
             </div>
-            <span className="text-[10px] text-saylo-emerald font-semibold uppercase tracking-wider flex-shrink-0">
-              View ({pinnedMessages.length})
-            </span>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Messages Stream */}
         <div

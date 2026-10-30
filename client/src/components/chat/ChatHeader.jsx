@@ -12,6 +12,7 @@ import {
   Palette,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
+import Modal from '../common/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import { useCall } from '../../context/CallContext';
@@ -27,11 +28,26 @@ const ChatHeader = ({
   onOpenLockModal,
 }) => {
   const { user } = useAuth();
-  const { activeConversation, messages, deleteMessage, getContactNickname } = useChat();
+  const { activeConversation, messages, deleteMessage, clearChat, getContactNickname } = useChat();
   const { onlineUsers, typingUsers } = useSocket();
   const { startCall } = useCall();
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  const handleClearChat = async () => {
+    if (!activeConversation?._id) return;
+    try {
+      setClearing(true);
+      await clearChat(activeConversation._id);
+      setShowClearModal(false);
+    } catch (err) {
+      alert('Failed to clear chat');
+    } finally {
+      setClearing(false);
+    }
+  };
 
   if (!activeConversation) return null;
 
@@ -235,10 +251,51 @@ const ChatHeader = ({
                 <Download size={16} />
                 Export chat
               </button>
+
+              <button
+                onClick={() => {
+                  setShowDropdown(false);
+                  setShowClearModal(true);
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3 text-red-400"
+              >
+                <Trash2 size={16} />
+                Clear chat
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Clear Chat Confirmation Modal */}
+      <Modal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        title="Clear Chat?"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-gray-300 leading-relaxed">
+            Are you sure you want to clear all messages in this chat? This will remove all messages from your conversation thread.
+          </p>
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-700">
+            <button
+              type="button"
+              onClick={() => setShowClearModal(false)}
+              className="px-4 py-1.5 text-xs text-gray-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={clearing}
+              onClick={handleClearChat}
+              className="px-4 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-colors"
+            >
+              {clearing ? 'Clearing...' : 'Clear Chat'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

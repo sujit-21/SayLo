@@ -5,7 +5,7 @@ const User = require('../models/User');
 // @route POST /api/v1/status
 exports.createStatus = async (req, res, next) => {
   try {
-    const { type, content, caption, bgColor, fontStyle, privacy, allowedUsers, deniedUsers } = req.body;
+    const { type, content, caption, bgColor, fontStyle, privacy, allowedUsers, deniedUsers, mediaDuration } = req.body;
     const currentUserId = req.user._id;
 
     if (!content) {
@@ -22,6 +22,7 @@ exports.createStatus = async (req, res, next) => {
       privacy: privacy || 'contacts',
       allowedUsers: allowedUsers || [],
       deniedUsers: deniedUsers || [],
+      mediaDuration: mediaDuration || 0,
     });
 
     const populated = await Status.findById(status._id).populate('user', 'name avatar');

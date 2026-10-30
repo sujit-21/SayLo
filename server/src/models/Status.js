@@ -10,8 +10,12 @@ const statusSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['text', 'image', 'video'],
+      enum: ['text', 'image', 'video', 'voice'],
       default: 'text',
+    },
+    mediaDuration: {
+      type: Number,
+      default: 0,
     },
     content: {
       type: String, // Text message or media URL

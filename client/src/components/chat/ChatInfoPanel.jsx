@@ -17,10 +17,16 @@ import {
   ExternalLink,
   FileEdit,
   Edit3,
+  Search,
+  Music,
+  Volume2,
+  Play,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
+import Modal from '../common/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
+import { sound } from '../../utils/sound';
 import api from '../../services/api';
 
 const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
@@ -33,6 +39,7 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
     contactNotes,
     updateContactNote,
     getContactNickname,
+    clearChat,
   } = useChat();
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [addingMember, setAddingMember] = useState(false);
@@ -45,6 +52,44 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
   const [notesInput, setNotesInput] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
+
+  // Group Participants Search Filter & Custom Sound & Clear Chat
+  const [participantSearch, setParticipantSearch] = useState('');
+  const [customTone, setCustomTone] = useState('chime');
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [clearingChat, setClearingChat] = useState(false);
+
+  useEffect(() => {
+    if (activeConversation?._id) {
+      const savedTone =
+        localStorage.getItem(`saylo_tone_${activeConversation._id}`) ||
+        localStorage.getItem('saylo_notification_tone') ||
+        'chime';
+      setCustomTone(savedTone);
+      setParticipantSearch('');
+    }
+  }, [activeConversation?._id]);
+
+  const handleSelectTone = (toneId) => {
+    setCustomTone(toneId);
+    if (activeConversation?._id) {
+      localStorage.setItem(`saylo_tone_${activeConversation._id}`, toneId);
+    }
+    sound.playTone(toneId);
+  };
+
+  const handleExecuteClearChat = async () => {
+    if (!activeConversation?._id) return;
+    try {
+      setClearingChat(true);
+      await clearChat(activeConversation._id);
+      setShowClearModal(false);
+    } catch (e) {
+      alert('Failed to clear conversation messages');
+    } finally {
+      setClearingChat(false);
+    }
+  };
 
   const isGroup = activeConversation?.isGroup;
   const isAdmin = activeConversation?.admins?.some(
@@ -628,8 +673,30 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
               </form>
             )}
 
+            {/* Participant Instant Search Filter */}
+            <div className="relative">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={participantSearch}
+                onChange={(e) => setParticipantSearch(e.target.value)}
+                placeholder="Search participants..."
+                className="w-full bg-[#111b21] border border-gray-700/60 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+              />
+            </div>
+
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {activeConversation.participants?.map((p) => {
+              {activeConversation.participants
+                ?.filter((p) => {
+                  if (!participantSearch.trim()) return true;
+                  const q = participantSearch.toLowerCase();
+                  return (
+                    p.user?.name?.toLowerCase().includes(q) ||
+                    p.user?.email?.toLowerCase().includes(q) ||
+                    p.user?.about?.toLowerCase().includes(q)
+                  );
+                })
+                .map((p) => {
                 const pUser = p.user;
                 if (!pUser) return null;
                 const isMemberAdmin = activeConversation.admins?.some(
@@ -685,8 +752,51 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
           </div>
         )}
 
-        {/* Action Buttons: Leave Group or Block User */}
-        <div className="space-y-2 pt-2">
+        {/* Custom Notification Tone */}
+        <div className="p-3 bg-[#202c33] rounded-2xl border border-gray-700/40 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-200 flex items-center gap-1.5">
+              <Volume2 size={15} className="text-saylo-emerald" />
+              Custom Notification Tone
+            </span>
+            <span className="text-[10px] text-gray-400 font-medium capitalize">{customTone}</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5">
+            {[
+              { id: 'chime', name: 'Emerald Chime' },
+              { id: 'droplet', name: 'Water Droplet' },
+              { id: 'bell', name: 'Modern Bell' },
+              { id: 'cosmic', name: 'Cosmic Ping' },
+              { id: 'pop', name: 'Bubble Pop' },
+            ].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => handleSelectTone(t.id)}
+                className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${
+                  customTone === t.id
+                    ? 'bg-saylo-emerald text-white font-semibold shadow-sm'
+                    : 'bg-[#111b21] text-gray-300 hover:text-white border border-gray-700/50'
+                }`}
+              >
+                <span className="truncate">{t.name}</span>
+                <Play size={10} className={customTone === t.id ? 'fill-white' : 'fill-gray-400'} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Buttons: Clear Chat, Leave Group or Block User */}
+        <div className="space-y-2 pt-2 border-t border-gray-700/40">
+          <button
+            onClick={() => setShowClearModal(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold rounded-xl transition-colors"
+          >
+            <Trash2 size={16} />
+            Clear Chat
+          </button>
+
           {isGroup ? (
             <button
               onClick={handleLeaveGroup}
@@ -708,6 +818,36 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
           )}
         </div>
       </div>
+
+      {/* Clear Chat Confirmation Modal */}
+      <Modal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        title="Clear Chat?"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-gray-300 leading-relaxed">
+            Are you sure you want to clear all messages in this chat? All messages in this conversation thread will be removed from your view.
+          </p>
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-700">
+            <button
+              type="button"
+              onClick={() => setShowClearModal(false)}
+              className="px-4 py-1.5 text-xs text-gray-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={clearingChat}
+              onClick={handleExecuteClearChat}
+              className="px-4 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-colors"
+            >
+              {clearingChat ? 'Clearing...' : 'Clear Chat'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

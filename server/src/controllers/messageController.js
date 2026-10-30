@@ -30,6 +30,9 @@ exports.getMessages = async (req, res, next) => {
       .skip(skip)
       .limit(limit)
       .populate('sender', 'name avatar')
+      .populate('readBy.user', 'name avatar')
+      .populate('deliveredTo.user', 'name avatar')
+      .populate('keptBy', 'name avatar')
       .populate({
         path: 'replyTo',
         populate: { path: 'sender', select: 'name' },
@@ -150,6 +153,9 @@ exports.sendMessage = async (req, res, next) => {
 
     const populatedMessage = await Message.findById(message._id)
       .populate('sender', 'name avatar')
+      .populate('readBy.user', 'name avatar')
+      .populate('deliveredTo.user', 'name avatar')
+      .populate('keptBy', 'name avatar')
       .populate({
         path: 'replyTo',
         populate: { path: 'sender', select: 'name' },
@@ -189,6 +195,9 @@ exports.editMessage = async (req, res, next) => {
 
     const updated = await Message.findById(message._id)
       .populate('sender', 'name avatar')
+      .populate('readBy.user', 'name avatar')
+      .populate('deliveredTo.user', 'name avatar')
+      .populate('keptBy', 'name avatar')
       .populate({
         path: 'replyTo',
         populate: { path: 'sender', select: 'name' },
@@ -268,6 +277,9 @@ exports.reactToMessage = async (req, res, next) => {
 
     const populated = await Message.findById(message._id)
       .populate('sender', 'name avatar')
+      .populate('readBy.user', 'name avatar')
+      .populate('deliveredTo.user', 'name avatar')
+      .populate('keptBy', 'name avatar')
       .populate({
         path: 'replyTo',
         populate: { path: 'sender', select: 'name' },
@@ -649,5 +661,88 @@ exports.cancelScheduledMessage = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc Get detailed message info (read receipts & delivery per member)
+// @route GET /api/v1/messages/:id/info
+exports.getMessageInfo = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user._id;
+
+    const message = await Message.findById(id)
+      .populate('sender', 'name avatar')
+      .populate('readBy.user', 'name avatar phone email')
+      .populate('deliveredTo.user', 'name avatar phone email')
+      .populate('keptBy', 'name avatar');
+
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+
+    const conversation = await Conversation.findOne({
+      _id: message.conversation,
+      'participants.user': currentUserId,
+    }).populate('participants.user', 'name avatar phone email');
+
+    if (!conversation) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    res.json({
+      success: true,
+      message,
+      conversation,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Keep or unkeep message from expiring (disappearing messages)
+// @route POST /api/v1/messages/:id/keep
+exports.keepMessage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user._id;
+
+    const message = await Message.findById(id);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+
+    const conversation = await Conversation.findOne({
+      _id: message.conversation,
+      'participants.user': currentUserId,
+    });
+    if (!conversation) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    // Toggle keep
+    const willKeep = !message.isKept;
+    message.isKept = willKeep;
+    if (willKeep) {
+      message.keptBy = currentUserId;
+      message.keptAt = new Date();
+      message.expiresAt = undefined;
+    } else {
+      message.keptBy = undefined;
+      message.keptAt = undefined;
+      // If conversation has disappearing messages enabled, restore expiresAt
+      if (conversation.disappearingTimer && conversation.disappearingTimer > 0) {
+        message.expiresAt = new Date(Date.now() + conversation.disappearingTimer * 1000);
+      }
+    }
+
+    await message.save();
+    await message.populate('sender', 'name avatar');
+    await message.populate('keptBy', 'name avatar');
+
+    res.json({ success: true, message });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 

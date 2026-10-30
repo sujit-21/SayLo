@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck } from 'lucide-react';
+import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -15,7 +15,7 @@ const StatusPage = () => {
   const [showViewersSheet, setShowViewersSheet] = useState(false);
 
   // Create status state
-  const [createMode, setCreateMode] = useState('text'); // 'text' | 'media'
+  const [createMode, setCreateMode] = useState('text'); // 'text' | 'media' | 'voice'
   const [newContent, setNewContent] = useState('');
   const [caption, setCaption] = useState('');
   const [mediaFile, setMediaFile] = useState(null);
@@ -26,6 +26,59 @@ const StatusPage = () => {
   const [privacy, setPrivacy] = useState('contacts'); // 'contacts' | 'everyone' | 'nobody'
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Voice Status State
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [voiceRecordTime, setVoiceRecordTime] = useState(0);
+  const [voiceAudioBlob, setVoiceAudioBlob] = useState(null);
+  const [voiceAudioUrl, setVoiceAudioUrl] = useState(null);
+  const voiceRecorderRef = useRef(null);
+  const voiceChunksRef = useRef([]);
+  const voiceTimerRef = useRef(null);
+
+  const startRecordingVoice = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      voiceRecorderRef.current = new MediaRecorder(stream);
+      voiceChunksRef.current = [];
+
+      voiceRecorderRef.current.ondataavailable = (e) => {
+        if (e.data.size > 0) voiceChunksRef.current.push(e.data);
+      };
+
+      voiceRecorderRef.current.onstop = () => {
+        const blob = new Blob(voiceChunksRef.current, { type: 'audio/webm' });
+        setVoiceAudioBlob(blob);
+        setVoiceAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach((t) => t.stop());
+      };
+
+      voiceRecorderRef.current.start();
+      setIsRecordingVoice(true);
+      setVoiceRecordTime(0);
+
+      voiceTimerRef.current = setInterval(() => {
+        setVoiceRecordTime((prev) => {
+          if (prev >= 30) {
+            stopRecordingVoice();
+            return 30;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      alert('Microphone access denied');
+    }
+  };
+
+  const stopRecordingVoice = () => {
+    if (voiceTimerRef.current) clearInterval(voiceTimerRef.current);
+    setIsRecordingVoice(false);
+    if (voiceRecorderRef.current && voiceRecorderRef.current.state !== 'inactive') {
+      voiceRecorderRef.current.stop();
+    }
+  };
 
   const bgColors = ['#005c4b', '#128c7e', '#7c3aed', '#b91c1c', '#b45309', '#1e293b'];
 
@@ -115,6 +168,28 @@ const StatusPage = () => {
           caption: caption.trim(),
           privacy,
         });
+      } else if (createMode === 'voice') {
+        if (!voiceAudioBlob) {
+          alert('Please record a voice note first');
+          setLoading(false);
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', voiceAudioBlob, `voice_status_${Date.now()}.webm`);
+        const uploadRes = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        const uploadedUrl = uploadRes.data?.file?.url;
+
+        await api.post('/status', {
+          type: 'voice',
+          content: uploadedUrl,
+          bgColor,
+          privacy,
+          mediaDuration: voiceRecordTime,
+        });
       } else {
         if (!newContent.trim()) {
           setLoading(false);
@@ -135,6 +210,9 @@ const StatusPage = () => {
       setCaption('');
       setMediaFile(null);
       setMediaPreview(null);
+      setVoiceAudioBlob(null);
+      setVoiceAudioUrl(null);
+      setVoiceRecordTime(0);
       await fetchStatuses();
     } catch (e) {
       console.error(e);
@@ -315,7 +393,8 @@ const StatusPage = () => {
               className="flex-1 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden"
               style={{
                 backgroundColor:
-                  selectedGroup.items[activeStoryIndex]?.type === 'text'
+                  selectedGroup.items[activeStoryIndex]?.type === 'text' ||
+                  selectedGroup.items[activeStoryIndex]?.type === 'voice'
                     ? selectedGroup.items[activeStoryIndex]?.bgColor || '#005c4b'
                     : '#000000',
               }}
@@ -343,6 +422,28 @@ const StatusPage = () => {
                   />
                   {selectedGroup.items[activeStoryIndex]?.caption && (
                     <p className="mt-3 text-sm text-white bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-sm max-w-xs">
+                      {selectedGroup.items[activeStoryIndex].caption}
+                    </p>
+                  )}
+                </div>
+              ) : selectedGroup.items[activeStoryIndex]?.type === 'voice' ? (
+                <div className="flex flex-col items-center justify-center space-y-5 animate-fadeIn">
+                  <div className="w-24 h-24 rounded-full bg-black/30 border-2 border-white/20 flex items-center justify-center shadow-2xl">
+                    <Mic size={40} className="text-white animate-pulse" />
+                  </div>
+                  <div className="p-4 bg-black/40 rounded-2xl backdrop-blur-md border border-white/10 w-72 flex flex-col items-center gap-2">
+                    <audio
+                      src={selectedGroup.items[activeStoryIndex]?.content}
+                      controls
+                      autoPlay
+                      className="w-full h-10 accent-saylo-emerald"
+                    />
+                    <span className="text-[11px] text-white/80 font-mono">
+                      Voice Status ({selectedGroup.items[activeStoryIndex]?.mediaDuration || 0}s)
+                    </span>
+                  </div>
+                  {selectedGroup.items[activeStoryIndex]?.caption && (
+                    <p className="mt-2 text-sm text-white bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-sm max-w-xs">
                       {selectedGroup.items[activeStoryIndex].caption}
                     </p>
                   )}
@@ -456,7 +557,7 @@ const StatusPage = () => {
         title="Create Status Update"
       >
         <form onSubmit={handleCreateStatus} className="space-y-4">
-          {/* Tab selector: Text vs Photo/Video */}
+          {/* Tab selector: Text vs Photo/Video vs Voice Story */}
           <div className="flex gap-2 p-1 bg-[#111b21] rounded-2xl border border-gray-700">
             <button
               type="button"
@@ -468,7 +569,7 @@ const StatusPage = () => {
               }`}
             >
               <Type size={15} />
-              <span>Text Story</span>
+              <span>Text</span>
             </button>
             <button
               type="button"
@@ -483,7 +584,19 @@ const StatusPage = () => {
               }`}
             >
               <Image size={15} />
-              <span>Photo / Video</span>
+              <span>Media</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCreateMode('voice')}
+              className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors ${
+                createMode === 'voice'
+                  ? 'bg-saylo-emerald text-white shadow-sm'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Mic size={15} />
+              <span>Voice Note</span>
             </button>
           </div>
 
@@ -561,6 +674,101 @@ const StatusPage = () => {
                 </div>
               </div>
             </>
+          ) : createMode === 'voice' ? (
+            <div className="space-y-4">
+              <div
+                className="p-6 rounded-2xl flex flex-col items-center justify-center text-center transition-all relative overflow-hidden"
+                style={{ backgroundColor: bgColor }}
+              >
+                {!voiceAudioBlob && !isRecordingVoice && (
+                  <div className="flex flex-col items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={startRecordingVoice}
+                      className="w-16 h-16 rounded-full bg-saylo-emerald hover:bg-saylo-600 text-white flex items-center justify-center shadow-lg transition-transform active:scale-95"
+                    >
+                      <Mic size={28} />
+                    </button>
+                    <span className="text-xs text-white/90 font-medium">
+                      Tap mic to record audio status (up to 30s)
+                    </span>
+                  </div>
+                )}
+
+                {isRecordingVoice && (
+                  <div className="flex flex-col items-center gap-3 animate-pulse">
+                    <div className="w-16 h-16 rounded-full bg-red-600 text-white flex items-center justify-center shadow-xl animate-bounce">
+                      <Mic size={28} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-ping" />
+                      <span className="text-sm font-bold text-white font-mono">
+                        00:{voiceRecordTime < 10 ? `0${voiceRecordTime}` : voiceRecordTime} / 00:30
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={stopRecordingVoice}
+                      className="mt-2 px-4 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold rounded-full flex items-center gap-1.5 backdrop-blur-sm"
+                    >
+                      <Square size={14} /> Stop Recording
+                    </button>
+                  </div>
+                )}
+
+                {voiceAudioBlob && !isRecordingVoice && (
+                  <div className="w-full flex flex-col items-center gap-3">
+                    <audio src={voiceAudioUrl} controls className="w-full h-10 accent-saylo-emerald" />
+                    <div className="flex items-center justify-between w-full px-2">
+                      <span className="text-[11px] text-white/80 font-mono">
+                        Duration: {voiceRecordTime}s
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVoiceAudioBlob(null);
+                          setVoiceAudioUrl(null);
+                          setVoiceRecordTime(0);
+                        }}
+                        className="text-xs text-white/90 hover:text-white flex items-center gap-1 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition-colors"
+                      >
+                        <RotateCcw size={12} /> Re-record
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-2">
+                  Status Background Color
+                </label>
+                <div className="flex items-center gap-2">
+                  {bgColors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setBgColor(color)}
+                      style={{ backgroundColor: color }}
+                      className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                        bgColor === color ? 'border-white scale-110 shadow-lg' : 'border-transparent'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">Caption (optional)</label>
+                <input
+                  type="text"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="Add a voice caption..."
+                  className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+                />
+              </div>
+            </div>
           ) : (
             <div className="space-y-3">
               {mediaPreview ? (
