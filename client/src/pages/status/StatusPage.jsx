@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type } from 'lucide-react';
+import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -23,6 +23,7 @@ const StatusPage = () => {
   const [mediaType, setMediaType] = useState('image'); // 'image' | 'video'
   const [bgColor, setBgColor] = useState('#005c4b');
   const [fontStyle, setFontStyle] = useState('sans');
+  const [privacy, setPrivacy] = useState('contacts'); // 'contacts' | 'everyone' | 'nobody'
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -112,6 +113,7 @@ const StatusPage = () => {
           type: mediaType,
           content: uploadedUrl,
           caption: caption.trim(),
+          privacy,
         });
       } else {
         if (!newContent.trim()) {
@@ -124,6 +126,7 @@ const StatusPage = () => {
           content: newContent.trim(),
           bgColor,
           fontStyle,
+          privacy,
         });
       }
 
@@ -601,6 +604,53 @@ const StatusPage = () => {
               </div>
             </div>
           )}
+
+          {/* Status Audience / Privacy Settings */}
+          <div className="pt-2 border-t border-gray-800/80">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-gray-300 flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-saylo-emerald" /> Who can see this status:
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setPrivacy('contacts')}
+                className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                  privacy === 'contacts'
+                    ? 'border-saylo-emerald bg-saylo-emerald/15 text-white font-medium shadow-sm'
+                    : 'border-gray-800 bg-[#111b21] text-gray-400 hover:border-gray-700'
+                }`}
+              >
+                <Users size={16} className={`mb-1 ${privacy === 'contacts' ? 'text-saylo-emerald' : 'text-gray-400'}`} />
+                <span className="text-[11px]">My Contacts</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPrivacy('everyone')}
+                className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                  privacy === 'everyone'
+                    ? 'border-saylo-emerald bg-saylo-emerald/15 text-white font-medium shadow-sm'
+                    : 'border-gray-800 bg-[#111b21] text-gray-400 hover:border-gray-700'
+                }`}
+              >
+                <Globe size={16} className={`mb-1 ${privacy === 'everyone' ? 'text-saylo-emerald' : 'text-gray-400'}`} />
+                <span className="text-[11px]">Everyone</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPrivacy('nobody')}
+                className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                  privacy === 'nobody'
+                    ? 'border-saylo-emerald bg-saylo-emerald/15 text-white font-medium shadow-sm'
+                    : 'border-gray-800 bg-[#111b21] text-gray-400 hover:border-gray-700'
+                }`}
+              >
+                <Lock size={16} className={`mb-1 ${privacy === 'nobody' ? 'text-saylo-emerald' : 'text-gray-400'}`} />
+                <span className="text-[11px]">Only Me</span>
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-800">
             <button

@@ -304,6 +304,9 @@ const ChatWindow = () => {
   else if (wallpaper === 'emerald') wallpaperClass = 'bg-[#002a22]';
   else if (wallpaper === 'navy') wallpaperClass = 'bg-[#0a192f]';
   else if (wallpaper === 'charcoal') wallpaperClass = 'bg-[#18181b]';
+  else if (wallpaper === 'nebula') wallpaperClass = 'bg-gradient-to-br from-[#1e1b4b] via-[#31104b] to-[#0b141a]';
+  else if (wallpaper === 'sunset') wallpaperClass = 'bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#0f172a]';
+  else if (wallpaper === 'slate') wallpaperClass = 'bg-[#1e293b]';
 
   return (
     <div

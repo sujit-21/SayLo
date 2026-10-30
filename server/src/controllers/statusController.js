@@ -5,7 +5,7 @@ const User = require('../models/User');
 // @route POST /api/v1/status
 exports.createStatus = async (req, res, next) => {
   try {
-    const { type, content, caption, bgColor, fontStyle } = req.body;
+    const { type, content, caption, bgColor, fontStyle, privacy, allowedUsers, deniedUsers } = req.body;
     const currentUserId = req.user._id;
 
     if (!content) {
@@ -19,6 +19,9 @@ exports.createStatus = async (req, res, next) => {
       caption: caption || '',
       bgColor: bgColor || '#075e54',
       fontStyle: fontStyle || 'sans',
+      privacy: privacy || 'contacts',
+      allowedUsers: allowedUsers || [],
+      deniedUsers: deniedUsers || [],
     });
 
     const populated = await Status.findById(status._id).populate('user', 'name avatar');
@@ -48,6 +51,20 @@ exports.getStatuses = async (req, res, next) => {
     const grouped = {};
     statuses.forEach((st) => {
       const uid = st.user._id.toString();
+
+      // Check audience privacy if not own status
+      if (uid !== currentUserId.toString()) {
+        if (st.privacy === 'nobody') return;
+        if (st.privacy === 'whitelist') {
+          const allowed = (st.allowedUsers || []).some((id) => id.toString() === currentUserId.toString());
+          if (!allowed) return;
+        }
+        if (st.privacy === 'blacklist') {
+          const denied = (st.deniedUsers || []).some((id) => id.toString() === currentUserId.toString());
+          if (denied) return;
+        }
+      }
+
       if (!grouped[uid]) {
         grouped[uid] = {
           user: st.user,

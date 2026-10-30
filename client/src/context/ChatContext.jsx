@@ -18,11 +18,57 @@ export const ChatProvider = ({ children }) => {
   const [replyMessage, setReplyMessage] = useState(null);
   const [activeTabFilter, setActiveTabFilter] = useState('all'); // 'all', 'unread', 'favorites', 'groups'
   const [searchQuery, setSearchQuery] = useState('');
+  const [contactNotes, setContactNotes] = useState({});
   const activeConversationRef = useRef(activeConversation);
 
   useEffect(() => {
     activeConversationRef.current = activeConversation;
   }, [activeConversation]);
+
+  // Fetch private contact notes & nicknames
+  const fetchContactNotes = useCallback(async () => {
+    if (!user) return;
+    try {
+      const res = await api.get('/users/contacts/notes');
+      if (res.data?.contactNotes) {
+        const notesMap = {};
+        res.data.contactNotes.forEach((n) => {
+          const uId = (n.user?._id || n.user)?.toString();
+          if (uId) {
+            notesMap[uId] = { nickname: n.nickname || '', notes: n.notes || '' };
+          }
+        });
+        setContactNotes(notesMap);
+      }
+    } catch (err) {
+      console.error('Failed to fetch contact notes', err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchContactNotes();
+  }, [fetchContactNotes]);
+
+  const updateContactNote = async (contactId, nickname, notes) => {
+    try {
+      const res = await api.post('/users/contacts/notes', { contactId, nickname, notes });
+      if (res.data?.success) {
+        setContactNotes((prev) => ({
+          ...prev,
+          [contactId.toString()]: { nickname, notes },
+        }));
+      }
+      return res.data;
+    } catch (err) {
+      console.error('Failed to update contact note', err);
+      throw err;
+    }
+  };
+
+  const getContactNickname = (contactId, fallbackName) => {
+    if (!contactId) return fallbackName;
+    return contactNotes[contactId.toString()]?.nickname || fallbackName;
+  };
 
   // Fetch all user conversations
   const fetchConversations = useCallback(async () => {
@@ -574,6 +620,10 @@ export const ChatProvider = ({ children }) => {
         setActiveTabFilter,
         searchQuery,
         setSearchQuery,
+        contactNotes,
+        fetchContactNotes,
+        updateContactNote,
+        getContactNickname,
       }}
     >
       {children}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   ShieldCheck,
@@ -15,6 +15,8 @@ import {
   Image,
   FileText,
   ExternalLink,
+  FileEdit,
+  Edit3,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
@@ -23,35 +25,74 @@ import api from '../../services/api';
 
 const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
   const { user } = useAuth();
-  const { activeConversation, selectConversation, fetchConversations, messages } = useChat();
+  const {
+    activeConversation,
+    selectConversation,
+    fetchConversations,
+    messages,
+    contactNotes,
+    updateContactNote,
+    getContactNickname,
+  } = useChat();
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [addingMember, setAddingMember] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [mediaTab, setMediaTab] = useState('media'); // 'media', 'docs', 'links'
 
-  if (!isOpen || !activeConversation) return null;
+  // Nickname & Notes State
+  const [nicknameInput, setNicknameInput] = useState('');
+  const [notesInput, setNotesInput] = useState('');
+  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [savingNote, setSavingNote] = useState(false);
 
-  const isGroup = activeConversation.isGroup;
-  const isAdmin = activeConversation.admins?.some(
-    (a) => (a._id || a) === user._id
+  const isGroup = activeConversation?.isGroup;
+  const isAdmin = activeConversation?.admins?.some(
+    (a) => (a._id || a) === user?._id
   );
 
-  let displayName = activeConversation.name;
-  let displayAvatar = activeConversation.avatar;
-  let displayAbout = activeConversation.description;
+  let displayName = activeConversation?.name;
+  let displayAvatar = activeConversation?.avatar;
+  let displayAbout = activeConversation?.description;
   let otherUser = null;
 
-  if (!isGroup && !activeConversation.isNoteToSelf) {
+  if (activeConversation && !isGroup && !activeConversation.isNoteToSelf) {
     otherUser = activeConversation.participants?.find(
-      (p) => (p.user?._id || p.user) !== user._id
+      (p) => (p.user?._id || p.user) !== user?._id
     )?.user;
     if (otherUser) {
-      displayName = otherUser.name;
+      displayName = getContactNickname(otherUser._id, otherUser.name);
       displayAvatar = otherUser.avatar;
       displayAbout = otherUser.about || 'Hey there! I am using SAYLO.';
     }
   }
+
+  // Synchronize contact notes input
+  useEffect(() => {
+    if (otherUser?._id) {
+      const uId = otherUser._id.toString();
+      setNicknameInput(contactNotes?.[uId]?.nickname || '');
+      setNotesInput(contactNotes?.[uId]?.notes || '');
+    }
+  }, [otherUser?._id, contactNotes]);
+
+  if (!isOpen || !activeConversation) return null;
+
+  const handleSaveContactDetails = async (e) => {
+    e.preventDefault();
+    if (!otherUser?._id) return;
+    setSavingNote(true);
+    try {
+      await updateContactNote(otherUser._id, nicknameInput.trim(), notesInput.trim());
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 2500);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save contact details');
+    } finally {
+      setSavingNote(false);
+    }
+  };
 
   // Handle Add Member to Group
   const handleAddMember = async (e) => {
@@ -308,6 +349,66 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
             )}
           </div>
         </div>
+
+        {/* Contact Nickname & Private Notes Card (1-on-1 Chats) */}
+        {otherUser && (
+          <div className="p-3 bg-[#202c33] rounded-2xl border border-gray-700/40 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-saylo-emerald">
+                <FileEdit size={16} />
+                <span className="text-xs font-semibold">Private Nickname & Notes</span>
+              </div>
+              <span className="text-[10px] text-gray-400 italic">Only visible to you</span>
+            </div>
+
+            <form onSubmit={handleSaveContactDetails} className="space-y-2.5">
+              <div>
+                <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                  Custom Nickname
+                </label>
+                <input
+                  type="text"
+                  value={nicknameInput}
+                  onChange={(e) => setNicknameInput(e.target.value)}
+                  placeholder={`Set private nickname for ${otherUser.name}...`}
+                  maxLength={50}
+                  className="w-full bg-[#111b21] border border-gray-700/80 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                  Private Direct Notes
+                </label>
+                <textarea
+                  rows={2}
+                  value={notesInput}
+                  onChange={(e) => setNotesInput(e.target.value)}
+                  placeholder="e.g. Met at tech conference, works on client team..."
+                  maxLength={1000}
+                  className="w-full bg-[#111b21] border border-gray-700/80 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-saylo-emerald resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                {savedSuccess ? (
+                  <span className="text-xs text-saylo-emerald flex items-center gap-1 font-medium">
+                    <Check size={14} /> Saved privately
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-gray-500">Doesn't affect their profile</span>
+                )}
+                <button
+                  type="submit"
+                  disabled={savingNote}
+                  className="px-3.5 py-1.5 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+                >
+                  {savingNote ? 'Saving...' : 'Save Notes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Security / Verification */}
         <div className="p-3 bg-[#202c33] rounded-2xl border border-gray-700/40 space-y-2">

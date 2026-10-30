@@ -43,9 +43,21 @@ const statusSchema = new mongoose.Schema(
     ],
     privacy: {
       type: String,
-      enum: ['everyone', 'contacts', 'nobody'],
-      default: 'everyone',
+      enum: ['everyone', 'contacts', 'nobody', 'whitelist', 'blacklist'],
+      default: 'contacts',
     },
+    allowedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    deniedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours

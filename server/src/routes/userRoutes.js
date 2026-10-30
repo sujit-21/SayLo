@@ -6,6 +6,8 @@ const {
   addContact,
   removeContact,
   getContacts,
+  getContactNotes,
+  updateContactNote,
   toggleBlockUser,
   getBlockedUsers,
   getDeviceSessions,
@@ -17,6 +19,8 @@ const { protect } = require('../middleware/authMiddleware');
 
 router.get('/search', protect, searchUsers);
 router.get('/contacts', protect, getContacts);
+router.get('/contacts/notes', protect, getContactNotes);
+router.post('/contacts/notes', protect, updateContactNote);
 router.post('/contacts/add', protect, addContact);
 router.post('/contacts/remove', protect, removeContact);
 router.get('/blocked', protect, getBlockedUsers);

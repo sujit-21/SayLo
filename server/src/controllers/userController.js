@@ -117,6 +117,57 @@ exports.getContacts = async (req, res, next) => {
   }
 };
 
+// @desc Get private contact notes and nicknames for current user
+// @route GET /api/v1/users/contacts/notes
+exports.getContactNotes = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('contactNotes');
+    res.json({ success: true, contactNotes: user.contactNotes || [] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Set private contact nickname & direct notes
+// @route POST /api/v1/users/contacts/notes
+exports.updateContactNote = async (req, res, next) => {
+  try {
+    const { contactId, nickname, notes } = req.body;
+    if (!contactId) {
+      return res.status(400).json({ success: false, message: 'Contact ID is required' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user.contactNotes) {
+      user.contactNotes = [];
+    }
+
+    const existingIdx = user.contactNotes.findIndex(
+      (n) => n.user.toString() === contactId.toString()
+    );
+
+    if (existingIdx >= 0) {
+      if (nickname !== undefined) user.contactNotes[existingIdx].nickname = nickname;
+      if (notes !== undefined) user.contactNotes[existingIdx].notes = notes;
+    } else {
+      user.contactNotes.push({
+        user: contactId,
+        nickname: nickname || '',
+        notes: notes || '',
+      });
+    }
+
+    await user.save();
+    const updatedNote = user.contactNotes.find(
+      (n) => n.user.toString() === contactId.toString()
+    );
+
+    res.json({ success: true, contactNote: updatedNote });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc Block or Unblock user
 // @route POST /api/v1/users/block
 exports.toggleBlockUser = async (req, res, next) => {

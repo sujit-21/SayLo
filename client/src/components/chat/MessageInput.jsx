@@ -19,6 +19,9 @@ import {
   ExternalLink,
   Video,
   Camera,
+  Plus,
+  Upload,
+  FolderHeart,
 } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { useSocket } from '../../context/SocketContext';
@@ -40,6 +43,14 @@ const MessageInput = ({
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerTab, setPickerTab] = useState('emoji'); // 'emoji', 'gif', 'sticker'
+  const [stickerPack, setStickerPack] = useState('moods'); // 'moods', 'animals', 'dev', 'custom'
+  const [customStickers, setCustomStickers] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('saylo_custom_stickers')) || [];
+    } catch {
+      return [];
+    }
+  });
   const [viewOnce, setViewOnce] = useState(false);
   const [isHdQuality, setIsHdQuality] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
@@ -51,6 +62,7 @@ const MessageInput = ({
 
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
+  const stickerInputRef = useRef(null);
   const textareaRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -75,15 +87,36 @@ const MessageInput = ({
     { title: 'Mind Blown', url: 'https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif' },
   ];
 
-  // Curated Stickers
-  const stickerList = [
-    { name: 'Wave', emoji: '👋', bg: 'bg-amber-500/20 text-amber-300' },
-    { name: 'Fire', emoji: '🔥', bg: 'bg-red-500/20 text-red-400' },
-    { name: 'Rocket', emoji: '🚀', bg: 'bg-blue-500/20 text-blue-400' },
-    { name: 'Love', emoji: '💖', bg: 'bg-pink-500/20 text-pink-400' },
-    { name: 'Target', emoji: '🎯', bg: 'bg-emerald-500/20 text-emerald-400' },
-    { name: 'Coffee', emoji: '☕', bg: 'bg-yellow-500/20 text-yellow-400' },
-  ];
+  // Curated Sticker Packs
+  const stickerPacks = {
+    moods: [
+      { name: 'Wave Hello', emoji: '👋', bg: 'bg-amber-500/20 text-amber-300' },
+      { name: 'Pure Fire', emoji: '🔥', bg: 'bg-red-500/20 text-red-400' },
+      { name: 'To The Moon', emoji: '🚀', bg: 'bg-blue-500/20 text-blue-400' },
+      { name: 'Sparkling Heart', emoji: '💖', bg: 'bg-pink-500/20 text-pink-400' },
+      { name: 'Bullseye', emoji: '🎯', bg: 'bg-emerald-500/20 text-emerald-400' },
+      { name: 'Coffee Time', emoji: '☕', bg: 'bg-yellow-500/20 text-yellow-400' },
+      { name: 'Party Popper', emoji: '🎉', bg: 'bg-purple-500/20 text-purple-300' },
+      { name: '100 Percent', emoji: '💯', bg: 'bg-rose-500/20 text-rose-400' },
+      { name: 'High Five', emoji: '🙌', bg: 'bg-cyan-500/20 text-cyan-300' },
+    ],
+    animals: [
+      { name: 'Cool Cat', emoji: '🐱', bg: 'bg-amber-500/20 text-amber-300' },
+      { name: 'Puppy Love', emoji: '🐶', bg: 'bg-blue-500/20 text-blue-300' },
+      { name: 'Sneaky Fox', emoji: '🦊', bg: 'bg-orange-500/20 text-orange-400' },
+      { name: 'Panda Hug', emoji: '🐼', bg: 'bg-emerald-500/20 text-emerald-300' },
+      { name: 'Sleepy Koala', emoji: '🐨', bg: 'bg-gray-500/20 text-gray-300' },
+      { name: 'Party Parrot', emoji: '🦜', bg: 'bg-green-500/20 text-green-300' },
+    ],
+    dev: [
+      { name: 'Ship It!', emoji: '🚢', bg: 'bg-emerald-500/20 text-emerald-300' },
+      { name: 'Bug or Feature?', emoji: '🐛', bg: 'bg-amber-500/20 text-amber-300' },
+      { name: 'Git Push Force', emoji: '⚡', bg: 'bg-red-500/20 text-red-400' },
+      { name: 'LGTM 👍', emoji: '✅', bg: 'bg-green-500/20 text-green-300' },
+      { name: 'Need Coffee', emoji: '☕', bg: 'bg-yellow-500/20 text-yellow-400' },
+      { name: '404 Brain', emoji: '🧠', bg: 'bg-purple-500/20 text-purple-300' },
+    ],
+  };
 
   // Draft persistence per conversation
   useEffect(() => {
@@ -210,10 +243,41 @@ const MessageInput = ({
     try {
       await sendMessage({
         type: 'sticker',
-        text: sticker.emoji,
+        mediaUrl: sticker.url || null,
+        text: sticker.url ? (sticker.name || 'Sticker') : (sticker.emoji || sticker.name || 'Sticker'),
       });
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  // Upload & Save Custom Sticker
+  const handleCustomStickerUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const uploadedUrl = res.data?.file?.url;
+      if (uploadedUrl) {
+        const newSticker = {
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          url: uploadedUrl,
+          isCustom: true,
+        };
+        const updated = [newSticker, ...customStickers];
+        setCustomStickers(updated);
+        localStorage.setItem('saylo_custom_stickers', JSON.stringify(updated));
+        // Immediately send as sticker
+        handleSendSticker(newSticker);
+      }
+    } catch (err) {
+      console.error('Failed to upload custom sticker', err);
+      alert('Could not upload custom sticker');
     }
   };
 
@@ -601,19 +665,95 @@ const MessageInput = ({
             </div>
           )}
 
-          {/* Stickers Grid */}
+          {/* Stickers Section */}
           {pickerTab === 'sticker' && (
-            <div className="grid grid-cols-3 gap-2.5 max-h-48 overflow-y-auto pr-1">
-              {stickerList.map((st, idx) => (
+            <div className="space-y-2">
+              {/* Sticker Packs Selector */}
+              <div className="flex items-center gap-1 pb-1.5 border-b border-gray-800 text-[11px] overflow-x-auto">
                 <button
-                  key={idx}
-                  onClick={() => handleSendSticker(st)}
-                  className={`h-16 rounded-2xl flex flex-col items-center justify-center gap-1 border border-transparent hover:border-saylo-emerald transition-transform hover:scale-105 ${st.bg}`}
+                  type="button"
+                  onClick={() => setStickerPack('moods')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
+                    stickerPack === 'moods'
+                      ? 'bg-saylo-emerald/20 text-saylo-emerald font-bold'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
                 >
-                  <span className="text-2xl">{st.emoji}</span>
-                  <span className="text-[10px] font-semibold">{st.name}</span>
+                  Moods
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setStickerPack('animals')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
+                    stickerPack === 'animals'
+                      ? 'bg-saylo-emerald/20 text-saylo-emerald font-bold'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Animals
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStickerPack('dev')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
+                    stickerPack === 'dev'
+                      ? 'bg-saylo-emerald/20 text-saylo-emerald font-bold'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Dev & Memes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStickerPack('custom')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 ${
+                    stickerPack === 'custom'
+                      ? 'bg-saylo-emerald/20 text-saylo-emerald font-bold'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <span>My Stickers</span>
+                  <span className="text-[10px] bg-white/10 px-1 rounded-full">{customStickers.length}</span>
+                </button>
+              </div>
+
+              {/* Active Pack Grid */}
+              <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-1">
+                {stickerPack === 'custom' && (
+                  <button
+                    type="button"
+                    onClick={() => stickerInputRef.current?.click()}
+                    className="h-16 rounded-2xl flex flex-col items-center justify-center gap-1 border-2 border-dashed border-saylo-emerald/50 hover:border-saylo-emerald hover:bg-saylo-emerald/10 text-saylo-emerald transition-all"
+                  >
+                    <Plus size={18} />
+                    <span className="text-[10px] font-semibold">Import Sticker</span>
+                  </button>
+                )}
+
+                {stickerPack === 'custom'
+                  ? customStickers.map((st, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSendSticker(st)}
+                        className="h-16 rounded-2xl flex flex-col items-center justify-center gap-1 bg-[#111b21] border border-gray-700/60 hover:border-saylo-emerald transition-transform hover:scale-105 p-1"
+                      >
+                        <img src={st.url} alt={st.name} className="w-9 h-9 object-contain" />
+                        <span className="text-[9px] text-gray-300 font-medium truncate max-w-full px-1">
+                          {st.name}
+                        </span>
+                      </button>
+                    ))
+                  : (stickerPacks[stickerPack] || []).map((st, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSendSticker(st)}
+                        className={`h-16 rounded-2xl flex flex-col items-center justify-center gap-1 border border-transparent hover:border-saylo-emerald transition-transform hover:scale-105 ${st.bg}`}
+                      >
+                        <span className="text-2xl">{st.emoji}</span>
+                        <span className="text-[10px] font-semibold truncate max-w-full px-1">{st.name}</span>
+                      </button>
+                    ))}
+              </div>
             </div>
           )}
         </div>
@@ -632,6 +772,13 @@ const MessageInput = ({
         accept="image/*,video/*"
         className="hidden"
         onChange={(e) => handleFileUpload(e)}
+      />
+      <input
+        type="file"
+        ref={stickerInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={handleCustomStickerUpload}
       />
 
       {/* Voice Recording View or Normal Input View */}

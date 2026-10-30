@@ -260,6 +260,7 @@ const MessageItem = ({
   const isStarred = message.starredBy?.includes(user?._id);
   const isPinned = !!message.pinned;
   const isViewOnceOpened = message.viewOnceOpenedBy?.includes(user?._id);
+  const isSticker = message.type === 'sticker';
 
   // Quick reaction emojis
   const quickEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -388,11 +389,13 @@ const MessageItem = ({
             onToggleSelect(message._id);
           }
         }}
-        className={`relative max-w-[85%] md:max-w-[70%] rounded-2xl px-3.5 py-2 text-sm shadow-sm transition-all ${
-          isSelf
-            ? `${getThemeClass()} text-[#e9edef] rounded-tr-none`
-            : 'bg-[#202c33] dark:bg-[#202c33] text-[#e9edef] rounded-tl-none border border-gray-700/30'
-        } ${isSelected ? 'ring-2 ring-saylo-emerald' : ''} ${
+        className={`relative max-w-[85%] md:max-w-[70%] rounded-2xl ${
+          isSticker
+            ? 'bg-transparent border-0 shadow-none p-1'
+            : isSelf
+            ? `${getThemeClass()} text-[#e9edef] rounded-tr-none px-3.5 py-2 text-sm shadow-sm`
+            : 'bg-[#202c33] dark:bg-[#202c33] text-[#e9edef] rounded-tl-none border border-gray-700/30 px-3.5 py-2 text-sm shadow-sm'
+        } transition-all ${isSelected ? 'ring-2 ring-saylo-emerald' : ''} ${
           isSelectMode ? 'cursor-pointer' : ''
         } ${message.deletedForEveryone ? 'italic opacity-70' : ''}`}
       >
@@ -762,8 +765,49 @@ const MessageItem = ({
               </div>
             )}
 
+            {/* Sticker Graphic */}
+            {message.type === 'sticker' && (
+              <div className="flex flex-col items-center select-none py-1">
+                {message.mediaUrl ? (
+                  <img
+                    src={message.mediaUrl}
+                    alt={message.text || 'Sticker'}
+                    className="w-36 h-36 max-w-[160px] max-h-[160px] object-contain select-none drop-shadow-lg hover:scale-105 transition-transform cursor-pointer"
+                    onClick={() => {
+                      if (onOpenMedia) onOpenMedia(message.mediaUrl, message.text || 'Sticker', 'image');
+                    }}
+                  />
+                ) : (
+                  <span className="text-6xl p-2 select-none inline-block transform hover:scale-110 transition-transform">
+                    {message.text}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* GIF Media */}
+            {message.type === 'gif' && message.mediaUrl && (
+              <div className="my-1 rounded-xl overflow-hidden max-w-sm relative group">
+                <img
+                  src={message.mediaUrl}
+                  alt={message.text || 'GIF'}
+                  className="w-full h-auto max-h-72 object-cover rounded-xl hover:opacity-95 cursor-pointer transition-opacity"
+                  onClick={() => {
+                    if (onOpenMedia) {
+                      onOpenMedia(message.mediaUrl, 'GIF', 'image');
+                    } else {
+                      window.open(message.mediaUrl, '_blank');
+                    }
+                  }}
+                />
+                <span className="absolute bottom-2 left-2 text-[10px] font-bold bg-black/70 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">
+                  GIF
+                </span>
+              </div>
+            )}
+
             {/* Regular Text */}
-            {message.text && message.type !== 'system' && (
+            {message.text && message.type !== 'system' && message.type !== 'sticker' && (message.type !== 'gif' || message.text !== 'GIF') && (
               <p className="break-words leading-relaxed whitespace-pre-wrap">
                 {renderFormattedText(message.text)}
               </p>
@@ -772,7 +816,11 @@ const MessageItem = ({
         )}
 
         {/* Timestamp & Status Metadata Bar */}
-        <div className="flex items-center justify-end gap-1.5 mt-1 select-none text-[10px] text-gray-400">
+        <div
+          className={`flex items-center justify-end gap-1.5 mt-1 select-none text-[10px] ${
+            isSticker ? 'bg-black/60 px-2 py-0.5 rounded-full text-white/90 shadow-sm self-end' : 'text-gray-400'
+          }`}
+        >
           {message.isEncrypted && (
             <Lock size={10} className="text-saylo-300 flex-shrink-0" title="End-to-End Encrypted" />
           )}

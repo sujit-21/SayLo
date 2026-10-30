@@ -27,7 +27,7 @@ const ChatHeader = ({
   onOpenLockModal,
 }) => {
   const { user } = useAuth();
-  const { activeConversation, messages, deleteMessage } = useChat();
+  const { activeConversation, messages, deleteMessage, getContactNickname } = useChat();
   const { onlineUsers, typingUsers } = useSocket();
   const { startCall } = useCall();
 
@@ -54,7 +54,7 @@ const ChatHeader = ({
     )?.user;
 
     if (otherParticipant) {
-      name = otherParticipant.name;
+      name = getContactNickname(otherParticipant._id, otherParticipant.name);
       avatar = otherParticipant.avatar;
       isOnline = onlineUsers.has(otherParticipant._id?.toString());
 

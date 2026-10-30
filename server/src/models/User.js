@@ -104,6 +104,25 @@ const userSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    contactNotes: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        nickname: {
+          type: String,
+          default: '',
+          trim: true,
+          maxlength: 50,
+        },
+        notes: {
+          type: String,
+          default: '',
+          maxlength: 1000,
+        },
+      },
+    ],
     theme: {
       type: String,
       enum: ['system', 'light', 'dark'],

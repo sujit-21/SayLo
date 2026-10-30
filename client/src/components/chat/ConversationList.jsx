@@ -18,6 +18,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     searchQuery,
     setSearchQuery,
     fetchConversations,
+    getContactNickname,
   } = useChat();
 
   const { onlineUsers } = useSocket();
@@ -260,7 +261,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                 (p) => (p.user?._id || p.user) !== user?._id
               )?.user;
               if (other) {
-                chatName = other.name;
+                chatName = getContactNickname(other._id, other.name);
                 chatAvatar = other.avatar;
                 isOnline = onlineUsers.has(other._id?.toString());
               }
