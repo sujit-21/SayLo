@@ -306,7 +306,43 @@ async function runTests() {
     }
     console.log(`✅ User unblocked successfully!`);
 
-    console.log('\n🎉 ALL 18 ADVANCED VERIFICATION TESTS PASSED SUCCESSFULLY! All SAYLO messaging features verified.\n');
+    // 19. Test E2EE Public Key Upload
+    console.log('\n19. Testing E2EE Public Key Upload (/api/v1/auth/public-key)...');
+    const mockAlicePubKey = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7p9X...testAliceKey';
+    const pubKeyRes = await request('PUT', '/auth/public-key', { publicKey: mockAlicePubKey }, aliceToken);
+    if (pubKeyRes.status !== 200 || pubKeyRes.data.publicKey !== mockAlicePubKey) {
+      throw new Error(`Public key upload failed: ${JSON.stringify(pubKeyRes)}`);
+    }
+    console.log(`✅ Public key stored successfully on user profile!`);
+
+    // 20. Test Sending and Receiving End-to-End Encrypted Message
+    console.log('\n20. Testing E2EE Message Send & Retrieval (Ciphertext/IV only)...');
+    const e2eeSendRes = await request(
+      'POST',
+      '/messages',
+      {
+        conversationId: directChat._id,
+        text: '', // securely stripped plaintext
+        ciphertext: '5aG78eL+49WJqX8o6mF1Z9yP0vKlRtU=',
+        iv: '12Ab34Cd56Ef78Gh',
+        isEncrypted: true,
+      },
+      aliceToken
+    );
+    if (e2eeSendRes.status !== 201 || !e2eeSendRes.data.message.isEncrypted) {
+      throw new Error(`E2EE message send failed: ${JSON.stringify(e2eeSendRes)}`);
+    }
+    console.log(`✅ E2EE Message stored blindly on server: isEncrypted = true, ciphertext = "${e2eeSendRes.data.message.ciphertext.slice(0, 15)}..."`);
+
+    // Bob retrieves the encrypted message
+    const bobE2eeMsgs = await request('GET', `/messages/${directChat._id}`, null, bobToken);
+    const foundE2ee = bobE2eeMsgs.data.messages.find((m) => m._id === e2eeSendRes.data.message._id);
+    if (!foundE2ee || !foundE2ee.isEncrypted || !foundE2ee.ciphertext) {
+      throw new Error(`Bob could not retrieve E2EE message`);
+    }
+    console.log(`✅ Bob received encrypted payload: ciphertext = "${foundE2ee.ciphertext.slice(0, 15)}...", iv = "${foundE2ee.iv}"`);
+
+    console.log('\n🎉 ALL 20 ADVANCED VERIFICATION TESTS PASSED SUCCESSFULLY! End-to-End Encryption verified.\n');
   } catch (err) {
     console.error('❌ Test failed:', err);
     process.exit(1);

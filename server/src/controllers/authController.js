@@ -343,3 +343,23 @@ exports.updatePrivacy = async (req, res, next) => {
   }
 };
 
+// @desc Update user E2EE public key
+// @route PUT /api/v1/auth/public-key
+exports.updatePublicKey = async (req, res, next) => {
+  try {
+    const { publicKey } = req.body;
+    if (!publicKey) {
+      return res.status(400).json({ success: false, message: 'Public key is required' });
+    }
+
+    const user = await User.findById(req.user._id);
+    user.publicKey = publicKey;
+    await user.save();
+
+    res.json({ success: true, publicKey: user.publicKey });
+  } catch (error) {
+    next(error);
+  }
+};
+
+

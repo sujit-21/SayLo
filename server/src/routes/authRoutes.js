@@ -11,6 +11,7 @@ const {
   setupTwoFactor,
   setupChatLockPin,
   updatePrivacy,
+  updatePublicKey,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -24,6 +25,7 @@ router.post('/verify-account', protect, verifyAccount);
 router.post('/two-factor', protect, setupTwoFactor);
 router.post('/chat-lock-pin', protect, setupChatLockPin);
 router.put('/privacy', protect, updatePrivacy);
+router.put('/public-key', protect, updatePublicKey);
 
 module.exports = router;
 

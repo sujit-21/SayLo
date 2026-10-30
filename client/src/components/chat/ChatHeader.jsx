@@ -99,6 +99,15 @@ const ChatHeader = ({
         <div className="truncate">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-100 truncate">{name}</h3>
+            {otherParticipant?.publicKey && (
+              <span
+                className="flex items-center gap-1 text-[10px] text-saylo-emerald bg-saylo-emerald/10 border border-saylo-emerald/20 px-1.5 py-0.5 rounded font-medium"
+                title="End-to-End Encrypted with ECDH P-256 and AES-GCM 256"
+              >
+                <Lock size={10} />
+                <span>E2EE</span>
+              </span>
+            )}
             {activeConversation.disappearingTimer > 0 && (
               <Clock size={13} className="text-saylo-emerald flex-shrink-0" title="Disappearing messages on" />
             )}

@@ -71,6 +71,9 @@ exports.sendMessage = async (req, res, next) => {
       poll,
       event,
       location,
+      ciphertext,
+      iv,
+      isEncrypted,
     } = req.body;
 
     const conversation = await Conversation.findOne({
@@ -113,6 +116,9 @@ exports.sendMessage = async (req, res, next) => {
       poll: poll || undefined,
       event: event || undefined,
       location: location || undefined,
+      ciphertext: ciphertext || '',
+      iv: iv || '',
+      isEncrypted: !!isEncrypted,
     });
 
     // Update conversation lastMessage and timestamp
@@ -502,6 +508,9 @@ exports.forwardMessage = async (req, res, next) => {
         location: original.location,
         poll: original.poll,
         event: original.event,
+        ciphertext: original.ciphertext || '',
+        iv: original.iv || '',
+        isEncrypted: !!original.isEncrypted,
         forwarded: true,
         expiresAt,
       });

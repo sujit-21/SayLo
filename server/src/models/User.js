@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema(
       default: 'Hey there! I am using SAYLO.',
       maxlength: [139, 'About cannot exceed 139 characters'],
     },
+    publicKey: {
+      type: String,
+      default: '',
+    },
     isVerified: {
       type: Boolean,
       default: true,

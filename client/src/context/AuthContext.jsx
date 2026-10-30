@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { getOrCreateUserKeyPair } from '../utils/e2ee';
 
 const AuthContext = createContext();
 
@@ -7,6 +8,28 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('saylo_token'));
   const [loading, setLoading] = useState(true);
+  const [e2eeKeyPair, setE2eeKeyPair] = useState(null);
+
+  // Initialize and synchronize user E2EE keys
+  useEffect(() => {
+    const initE2EE = async () => {
+      if (user && token) {
+        try {
+          const keys = await getOrCreateUserKeyPair();
+          if (keys) {
+            setE2eeKeyPair(keys);
+            if (!user.publicKey || user.publicKey !== keys.publicKeyBase64) {
+              await api.put('/auth/public-key', { publicKey: keys.publicKeyBase64 });
+              setUser((prev) => ({ ...prev, publicKey: keys.publicKeyBase64 }));
+            }
+          }
+        } catch (err) {
+          console.error('[E2EE] Init error:', err);
+        }
+      }
+    };
+    initE2EE();
+  }, [user?._id, token]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -69,6 +92,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         updateUser,
+        e2eeKeyPair,
         isAuthenticated: !!token && !!user,
       }}
     >

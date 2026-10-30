@@ -19,7 +19,7 @@ exports.searchUsers = async (req, res, next) => {
         { phone: { $regex: query, $options: 'i' } },
       ],
     })
-      .select('name email phone avatar about isOnline lastSeen')
+      .select('name email phone avatar about isOnline lastSeen publicKey')
       .limit(20);
 
     res.json({ success: true, users });
@@ -57,6 +57,7 @@ exports.getUserById = async (req, res, next) => {
         about: showAbout ? targetUser.about : 'Hey there! I am using SAYLO.',
         isOnline: showLastSeen ? targetUser.isOnline : false,
         lastSeen: showLastSeen ? targetUser.lastSeen : null,
+        publicKey: targetUser.publicKey || '',
       },
     });
   } catch (error) {
@@ -108,7 +109,7 @@ exports.getContacts = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).populate(
       'contacts',
-      'name email phone avatar about isOnline lastSeen'
+      'name email phone avatar about isOnline lastSeen publicKey'
     );
     res.json({ success: true, contacts: user.contacts });
   } catch (error) {

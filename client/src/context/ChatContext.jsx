@@ -3,11 +3,12 @@ import api from '../services/api';
 import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
 import { sound } from '../utils/sound';
+import { getSharedKey, encryptTextMessage, decryptTextMessage } from '../utils/e2ee';
 
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { user, e2eeKeyPair } = useAuth();
   const { socket } = useSocket();
 
   const [conversations, setConversations] = useState([]);
@@ -37,6 +38,53 @@ export const ChatProvider = ({ children }) => {
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  // E2EE: Helper to identify recipient in 1-on-1 direct conversation
+  const getOtherParticipant = (conv) => {
+    if (!conv || conv.isGroup || conv.isNoteToSelf) return null;
+    return conv.participants?.find((p) => (p.user?._id || p.user) !== user?._id)?.user;
+  };
+
+  // E2EE: Decrypt an array of messages
+  const decryptMessagesList = async (msgList, conv) => {
+    const other = getOtherParticipant(conv);
+    if (!other?.publicKey || !e2eeKeyPair?.privateKey) {
+      return msgList;
+    }
+
+    const sharedKey = await getSharedKey(e2eeKeyPair.privateKey, other.publicKey);
+    if (!sharedKey) return msgList;
+
+    const decrypted = await Promise.all(
+      msgList.map(async (m) => {
+        if (m.isEncrypted && m.ciphertext && m.iv) {
+          const plain = await decryptTextMessage(m.ciphertext, m.iv, sharedKey);
+          return {
+            ...m,
+            text: plain !== null ? plain : (m.text || '[Encrypted Message]'),
+          };
+        }
+        return m;
+      })
+    );
+    return decrypted;
+  };
+
+  // E2EE: Decrypt a single incoming message
+  const decryptSingleMessage = async (msg, conv) => {
+    if (!msg?.isEncrypted || !msg?.ciphertext || !msg?.iv) return msg;
+    const other = getOtherParticipant(conv);
+    if (!other?.publicKey || !e2eeKeyPair?.privateKey) return msg;
+
+    const sharedKey = await getSharedKey(e2eeKeyPair.privateKey, other.publicKey);
+    if (!sharedKey) return msg;
+
+    const plain = await decryptTextMessage(msg.ciphertext, msg.iv, sharedKey);
+    return {
+      ...msg,
+      text: plain !== null ? plain : (msg.text || '[Encrypted Message]'),
+    };
+  };
 
   // Select a conversation and load its messages
   const selectConversation = useCallback(
@@ -73,7 +121,9 @@ export const ChatProvider = ({ children }) => {
 
       try {
         const res = await api.get(`/messages/${conversation._id}`);
-        setMessages(res.data.messages || []);
+        const rawMessages = res.data.messages || [];
+        const decryptedMessages = await decryptMessagesList(rawMessages, conversation);
+        setMessages(decryptedMessages);
 
         // Mark messages as read in DB and reset local unread badge
         await api.post('/messages/read', { conversationId: conversation._id });
@@ -109,14 +159,43 @@ export const ChatProvider = ({ children }) => {
   const sendMessage = async (payload) => {
     if (!activeConversation) return;
 
+    let sendPayload = { ...payload };
+    const originalText = payload.text;
+
+    // E2EE: Encrypt text messages if recipient has an established public key
+    const other = getOtherParticipant(activeConversation);
+    if (
+      other?.publicKey &&
+      e2eeKeyPair?.privateKey &&
+      payload.text &&
+      (!payload.type || payload.type === 'text')
+    ) {
+      const sharedKey = await getSharedKey(e2eeKeyPair.privateKey, other.publicKey);
+      if (sharedKey) {
+        const encrypted = await encryptTextMessage(payload.text, sharedKey);
+        if (encrypted) {
+          sendPayload = {
+            ...payload,
+            ciphertext: encrypted.ciphertext,
+            iv: encrypted.iv,
+            isEncrypted: true,
+            text: '', // securely strip plaintext before sending to server
+          };
+        }
+      }
+    }
+
     try {
       const res = await api.post('/messages', {
         conversationId: activeConversation._id,
         replyTo: replyMessage?._id || null,
-        ...payload,
+        ...sendPayload,
       });
 
-      const newMessage = res.data.message;
+      const newMessage = {
+        ...res.data.message,
+        text: originalText || res.data.message.text, // preserve plaintext for sender UI
+      };
 
       // Append to current messages
       setMessages((prev) => [...prev, newMessage]);
@@ -342,16 +421,26 @@ export const ChatProvider = ({ children }) => {
     if (!socket) return;
 
     // Incoming message
-    const handleNewMessage = ({ conversationId, message }) => {
+    const handleNewMessage = async ({ conversationId, message }) => {
       if (message.sender?._id !== user?._id && message.sender !== user?._id) {
         sound.playMessageIncoming();
+      }
+
+      let processedMessage = message;
+      const targetConv =
+        activeConversationRef.current?._id === conversationId
+          ? activeConversationRef.current
+          : conversations.find((c) => c._id === conversationId);
+
+      if (message.isEncrypted && targetConv) {
+        processedMessage = await decryptSingleMessage(message, targetConv);
       }
 
       // If we are currently inside this conversation
       if (activeConversationRef.current && activeConversationRef.current._id === conversationId) {
         setMessages((prev) => {
-          if (prev.some((m) => m._id === message._id)) return prev;
-          return [...prev, message];
+          if (prev.some((m) => m._id === processedMessage._id)) return prev;
+          return [...prev, processedMessage];
         });
 
         // Mark as read immediately
@@ -378,8 +467,8 @@ export const ChatProvider = ({ children }) => {
 
               return {
                 ...c,
-                lastMessage: message,
-                lastMessageAt: message.createdAt,
+                lastMessage: processedMessage,
+                lastMessageAt: processedMessage.createdAt,
                 participants: updatedParticipants,
               };
             }

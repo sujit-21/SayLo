@@ -446,6 +446,9 @@ const MessageItem = ({ message, onReply, onEdit, onForward, searchQuery, isHighl
 
         {/* Timestamp & Status Metadata Bar */}
         <div className="flex items-center justify-end gap-1.5 mt-1 select-none text-[10px] text-gray-400">
+          {message.isEncrypted && (
+            <Lock size={10} className="text-saylo-300 flex-shrink-0" title="End-to-End Encrypted" />
+          )}
           {isPinned && (
             <Pin
               size={11}

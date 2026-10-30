@@ -18,6 +18,18 @@ const messageSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    ciphertext: {
+      type: String,
+      default: '',
+    },
+    iv: {
+      type: String,
+      default: '',
+    },
+    isEncrypted: {
+      type: Boolean,
+      default: false,
+    },
     type: {
       type: String,
       enum: [

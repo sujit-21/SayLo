@@ -12,7 +12,7 @@ exports.getConversations = async (req, res, next) => {
     const conversations = await Conversation.find({
       'participants.user': currentUserId,
     })
-      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
       .populate({
         path: 'lastMessage',
         populate: { path: 'sender', select: 'name' },
@@ -35,7 +35,7 @@ exports.getConversationById = async (req, res, next) => {
       _id: req.params.id,
       'participants.user': currentUserId,
     })
-      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
       .populate('admins', 'name avatar')
       .populate('createdBy', 'name avatar');
 
@@ -71,7 +71,7 @@ exports.createOrGetDirectChat = async (req, res, next) => {
       isNoteToSelf: false,
       'participants.user': { $all: [currentUserId, recipientId] },
     })
-      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
       .populate('lastMessage');
 
     if (!conversation) {
@@ -107,7 +107,7 @@ exports.createNoteToSelfChat = async (req, res, next) => {
       isNoteToSelf: true,
       'participants.user': currentUserId,
     })
-      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
       .populate('lastMessage');
 
     if (!conversation) {
@@ -172,7 +172,7 @@ exports.createGroup = async (req, res, next) => {
     });
 
     const populatedGroup = await Conversation.findById(group._id)
-      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
       .populate('admins', 'name avatar');
 
     res.status(201).json({ success: true, conversation: populatedGroup });
@@ -207,7 +207,7 @@ exports.updateGroup = async (req, res, next) => {
     await conversation.save();
 
     const updated = await Conversation.findById(conversation._id)
-      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
       .populate('admins', 'name avatar');
 
     res.json({ success: true, conversation: updated });
@@ -261,7 +261,7 @@ exports.updateMemberRole = async (req, res, next) => {
     });
 
     const updated = await Conversation.findById(conversation._id)
-      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
       .populate('admins', 'name avatar');
 
     res.json({ success: true, conversation: updated });
@@ -303,7 +303,7 @@ exports.addGroupMembers = async (req, res, next) => {
     }
 
     const updated = await Conversation.findById(conversation._id)
-      .populate('participants.user', 'name email avatar about isOnline lastSeen')
+      .populate('participants.user', 'name email avatar about isOnline lastSeen publicKey')
       .populate('admins', 'name avatar');
 
     res.json({ success: true, conversation: updated });
