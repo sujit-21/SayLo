@@ -45,8 +45,31 @@ const messageSchema = new mongoose.Schema(
         'location',
         'sticker',
         'gif',
+        'contact',
       ],
       default: 'text',
+    },
+    contactCard: {
+      name: String,
+      phone: String,
+      email: String,
+      about: String,
+      avatar: String,
+    },
+    linkPreview: {
+      url: String,
+      title: String,
+      description: String,
+      image: String,
+      siteName: String,
+    },
+    scheduledFor: {
+      type: Date,
+      index: true,
+    },
+    isScheduled: {
+      type: Boolean,
+      default: false,
     },
     mediaUrl: {
       type: String,

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -15,10 +15,16 @@ const StatusPage = () => {
   const [showViewersSheet, setShowViewersSheet] = useState(false);
 
   // Create status state
+  const [createMode, setCreateMode] = useState('text'); // 'text' | 'media'
   const [newContent, setNewContent] = useState('');
+  const [caption, setCaption] = useState('');
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState(null);
+  const [mediaType, setMediaType] = useState('image'); // 'image' | 'video'
   const [bgColor, setBgColor] = useState('#005c4b');
   const [fontStyle, setFontStyle] = useState('sans');
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const bgColors = ['#005c4b', '#128c7e', '#7c3aed', '#b91c1c', '#b45309', '#1e293b'];
 
@@ -70,21 +76,62 @@ const StatusPage = () => {
     }
   };
 
+  // Handle media selection
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setMediaFile(file);
+    const isVid = file.type.startsWith('video');
+    setMediaType(isVid ? 'video' : 'image');
+    setMediaPreview(URL.createObjectURL(file));
+  };
+
   // Create Status Story
   const handleCreateStatus = async (e) => {
     e.preventDefault();
-    if (!newContent.trim()) return;
 
     setLoading(true);
     try {
-      await api.post('/status', {
-        type: 'text',
-        content: newContent.trim(),
-        bgColor,
-        fontStyle,
-      });
+      if (createMode === 'media') {
+        if (!mediaFile) {
+          alert('Please choose an image or video file');
+          setLoading(false);
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', mediaFile);
+        const uploadRes = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        const uploadedUrl = uploadRes.data?.file?.url;
+
+        await api.post('/status', {
+          type: mediaType,
+          content: uploadedUrl,
+          caption: caption.trim(),
+        });
+      } else {
+        if (!newContent.trim()) {
+          setLoading(false);
+          return;
+        }
+
+        await api.post('/status', {
+          type: 'text',
+          content: newContent.trim(),
+          bgColor,
+          fontStyle,
+        });
+      }
+
       setShowCreateModal(false);
       setNewContent('');
+      setCaption('');
+      setMediaFile(null);
+      setMediaPreview(null);
       await fetchStatuses();
     } catch (e) {
       console.error(e);
@@ -262,21 +309,52 @@ const StatusPage = () => {
 
             {/* Story Content Canvas */}
             <div
-              className="flex-1 flex items-center justify-center p-8 text-center"
+              className="flex-1 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden"
               style={{
                 backgroundColor:
-                  selectedGroup.items[activeStoryIndex]?.bgColor || '#005c4b',
+                  selectedGroup.items[activeStoryIndex]?.type === 'text'
+                    ? selectedGroup.items[activeStoryIndex]?.bgColor || '#005c4b'
+                    : '#000000',
               }}
             >
-              <p
-                className={`text-xl font-medium text-white max-w-xs break-words leading-relaxed select-text ${
-                  selectedGroup.items[activeStoryIndex]?.fontStyle === 'serif'
-                    ? 'font-serif'
-                    : 'font-sans'
-                }`}
-              >
-                {selectedGroup.items[activeStoryIndex]?.content}
-              </p>
+              {selectedGroup.items[activeStoryIndex]?.type === 'image' ? (
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                  <img
+                    src={selectedGroup.items[activeStoryIndex]?.content}
+                    alt="Status story"
+                    className="max-h-[75vh] max-w-full object-contain rounded-2xl"
+                  />
+                  {selectedGroup.items[activeStoryIndex]?.caption && (
+                    <p className="mt-3 text-sm text-white bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-sm max-w-xs">
+                      {selectedGroup.items[activeStoryIndex].caption}
+                    </p>
+                  )}
+                </div>
+              ) : selectedGroup.items[activeStoryIndex]?.type === 'video' ? (
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                  <video
+                    src={selectedGroup.items[activeStoryIndex]?.content}
+                    autoPlay
+                    controls
+                    className="max-h-[75vh] max-w-full object-contain rounded-2xl"
+                  />
+                  {selectedGroup.items[activeStoryIndex]?.caption && (
+                    <p className="mt-3 text-sm text-white bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-sm max-w-xs">
+                      {selectedGroup.items[activeStoryIndex].caption}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p
+                  className={`text-xl font-medium text-white max-w-xs break-words leading-relaxed select-text ${
+                    selectedGroup.items[activeStoryIndex]?.fontStyle === 'serif'
+                      ? 'font-serif'
+                      : 'font-sans'
+                  }`}
+                >
+                  {selectedGroup.items[activeStoryIndex]?.content}
+                </p>
+              )}
             </div>
 
             {/* Tap areas for previous / next */}
@@ -367,74 +445,171 @@ const StatusPage = () => {
       {/* Create Status Modal */}
       <Modal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false);
+          setMediaPreview(null);
+          setMediaFile(null);
+        }}
         title="Create Status Update"
       >
         <form onSubmit={handleCreateStatus} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1.5">What's on your mind?</label>
-            <textarea
-              rows={4}
-              value={newContent}
-              onChange={(e) => setNewContent(e.target.value)}
-              placeholder="Type your status..."
-              required
-              style={{ backgroundColor: bgColor }}
-              className={`w-full rounded-2xl p-4 text-white placeholder-white/60 focus:outline-none shadow-inner resize-none text-base ${
-                fontStyle === 'serif' ? 'font-serif' : 'font-sans'
+          {/* Tab selector: Text vs Photo/Video */}
+          <div className="flex gap-2 p-1 bg-[#111b21] rounded-2xl border border-gray-700">
+            <button
+              type="button"
+              onClick={() => setCreateMode('text')}
+              className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors ${
+                createMode === 'text'
+                  ? 'bg-saylo-emerald text-white shadow-sm'
+                  : 'text-gray-400 hover:text-white'
               }`}
-            />
+            >
+              <Type size={15} />
+              <span>Text Story</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCreateMode('media');
+                fileInputRef.current?.click();
+              }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors ${
+                createMode === 'media'
+                  ? 'bg-saylo-emerald text-white shadow-sm'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Image size={15} />
+              <span>Photo / Video</span>
+            </button>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-300 mb-2">Background Color</label>
-            <div className="flex items-center gap-2">
-              {bgColors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setBgColor(color)}
-                  style={{ backgroundColor: color }}
-                  className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                    bgColor === color ? 'border-white scale-110 shadow-lg' : 'border-transparent'
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            accept="image/*,video/*"
+            className="hidden"
+          />
+
+          {createMode === 'text' ? (
+            <>
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                  What's on your mind?
+                </label>
+                <textarea
+                  rows={4}
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  placeholder="Type your status..."
+                  required={createMode === 'text'}
+                  style={{ backgroundColor: bgColor }}
+                  className={`w-full rounded-2xl p-4 text-white placeholder-white/60 focus:outline-none shadow-inner resize-none text-base ${
+                    fontStyle === 'serif' ? 'font-serif' : 'font-sans'
                   }`}
                 />
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-300 mb-2">Font Style</label>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setFontStyle('sans')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-sans border transition-colors ${
-                  fontStyle === 'sans'
-                    ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald font-bold'
-                    : 'border-gray-700 text-gray-400'
-                }`}
-              >
-                Sans Serif
-              </button>
-              <button
-                type="button"
-                onClick={() => setFontStyle('serif')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-serif border transition-colors ${
-                  fontStyle === 'serif'
-                    ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald font-bold'
-                    : 'border-gray-700 text-gray-400'
-                }`}
-              >
-                Serif
-              </button>
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-2">
+                  Background Color
+                </label>
+                <div className="flex items-center gap-2">
+                  {bgColors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setBgColor(color)}
+                      style={{ backgroundColor: color }}
+                      className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                        bgColor === color ? 'border-white scale-110 shadow-lg' : 'border-transparent'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-2">Font Style</label>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFontStyle('sans')}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-sans border transition-colors ${
+                      fontStyle === 'sans'
+                        ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald font-bold'
+                        : 'border-gray-700 text-gray-400'
+                    }`}
+                  >
+                    Sans Serif
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFontStyle('serif')}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-serif border transition-colors ${
+                      fontStyle === 'serif'
+                        ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald font-bold'
+                        : 'border-gray-700 text-gray-400'
+                    }`}
+                  >
+                    Serif
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-3">
+              {mediaPreview ? (
+                <div className="relative rounded-2xl overflow-hidden bg-black max-h-56 flex items-center justify-center">
+                  {mediaType === 'video' ? (
+                    <video src={mediaPreview} controls className="max-h-56 max-w-full" />
+                  ) : (
+                    <img src={mediaPreview} alt="Preview" className="max-h-56 max-w-full object-contain" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMediaPreview(null);
+                      setMediaFile(null);
+                    }}
+                    className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-700 hover:border-saylo-emerald rounded-2xl p-8 text-center cursor-pointer transition-colors"
+                >
+                  <Image size={32} className="mx-auto mb-2 text-saylo-emerald" />
+                  <p className="text-xs font-semibold text-gray-200">Click to select photo or video</p>
+                  <p className="text-[11px] text-gray-500 mt-1">Supports PNG, JPG, MP4, WebM</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">Caption (optional)</label>
+                <input
+                  type="text"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="Add a caption..."
+                  className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-800">
             <button
               type="button"
-              onClick={() => setShowCreateModal(false)}
+              onClick={() => {
+                setShowCreateModal(false);
+                setMediaPreview(null);
+                setMediaFile(null);
+              }}
               className="px-4 py-2 text-xs font-medium text-gray-400 hover:bg-white/5 rounded-xl"
             >
               Cancel

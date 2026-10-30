@@ -48,3 +48,30 @@ exports.logCall = async (req, res, next) => {
   }
 };
 
+// @desc Create or get a shareable call link
+// @route POST /api/v1/calls/link
+exports.createCallLink = async (req, res, next) => {
+  try {
+    const { type = 'video', conversationId } = req.body;
+    const currentUserId = req.user._id;
+    const callCode = 'saylo-' + Math.random().toString(36).substring(2, 8) + '-' + Date.now().toString(36);
+
+    const call = await Call.create({
+      caller: currentUserId,
+      conversation: conversationId || null,
+      type,
+      status: 'initiated',
+      callLink: callCode,
+    });
+
+    res.status(201).json({
+      success: true,
+      callLink: callCode,
+      fullUrl: `${req.protocol}://${req.get('host')}/call/${callCode}`,
+      call,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

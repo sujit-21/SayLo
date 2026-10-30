@@ -56,3 +56,4 @@ const KeyboardShortcutsModal = ({ isOpen, onClose }) => {
 };
 
 export default KeyboardShortcutsModal;
+

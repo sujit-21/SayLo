@@ -355,11 +355,11 @@ exports.removeGroupMember = async (req, res, next) => {
   }
 };
 
-// @desc Toggle participant setting (archive, pin, mute, lock, wallpaper)
+// @desc Toggle participant setting (archive, pin, mute, lock, wallpaper, theme)
 // @route PUT /api/v1/conversations/:id/preference
 exports.updateParticipantPreference = async (req, res, next) => {
   try {
-    const { isArchived, isPinned, isMuted, isLocked, customWallpaper } = req.body;
+    const { isArchived, isPinned, isMuted, isLocked, customWallpaper, customTheme } = req.body;
     const conversation = await Conversation.findById(req.params.id);
 
     if (!conversation) {
@@ -379,6 +379,7 @@ exports.updateParticipantPreference = async (req, res, next) => {
     if (isMuted !== undefined) participant.isMuted = isMuted;
     if (isLocked !== undefined) participant.isLocked = isLocked;
     if (customWallpaper !== undefined) participant.customWallpaper = customWallpaper;
+    if (customTheme !== undefined) participant.customTheme = customTheme;
 
     await conversation.save();
     res.json({ success: true, preference: participant });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Phone, Video, PhoneIncoming, PhoneOutgoing, PhoneMissed, Link, Plus } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
+import CallLinkModal from '../../components/chat/CallLinkModal';
 import { useAuth } from '../../context/AuthContext';
 import { useCall } from '../../context/CallContext';
 import api from '../../services/api';
@@ -11,6 +12,7 @@ const CallsPage = () => {
   const { startCall } = useCall();
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCallLinkModal, setShowCallLinkModal] = useState(false);
 
   const fetchCalls = async () => {
     try {
@@ -45,13 +47,10 @@ const CallsPage = () => {
             <p className="text-xs text-gray-400">Share a link for your SAYLO voice or video call</p>
           </div>
           <button
-            onClick={() => {
-              navigator.clipboard?.writeText(window.location.origin + '/calls');
-              alert('Call link copied to clipboard!');
-            }}
-            className="px-3.5 py-1.5 bg-white/10 hover:bg-white/15 text-white text-xs font-semibold rounded-xl"
+            onClick={() => setShowCallLinkModal(true)}
+            className="px-3.5 py-1.5 bg-saylo-emerald hover:bg-saylo-600 text-white text-xs font-semibold rounded-xl transition-colors shadow-sm"
           >
-            Copy Link
+            Create Link
           </button>
         </div>
 
@@ -135,6 +134,12 @@ const CallsPage = () => {
           )}
         </div>
       </div>
+
+      {/* Call Link Modal */}
+      <CallLinkModal
+        isOpen={showCallLinkModal}
+        onClose={() => setShowCallLinkModal(false)}
+      />
     </div>
   );
 };

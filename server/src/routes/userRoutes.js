@@ -11,6 +11,7 @@ const {
   getDeviceSessions,
   revokeDeviceSession,
   getStorageStats,
+  getLinkPreview,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -23,6 +24,7 @@ router.post('/block', protect, toggleBlockUser);
 router.get('/devices', protect, getDeviceSessions);
 router.delete('/devices/:id', protect, revokeDeviceSession);
 router.get('/storage-stats', protect, getStorageStats);
+router.post('/link-preview', protect, getLinkPreview);
 router.get('/:id', protect, getUserById);
 
 module.exports = router;

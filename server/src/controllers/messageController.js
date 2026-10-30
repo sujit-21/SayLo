@@ -24,6 +24,7 @@ exports.getMessages = async (req, res, next) => {
     const messages = await Message.find({
       conversation: conversationId,
       deletedFor: { $ne: currentUserId },
+      isScheduled: { $ne: true },
     })
       .sort({ createdAt: 1 })
       .skip(skip)
@@ -37,6 +38,7 @@ exports.getMessages = async (req, res, next) => {
     const total = await Message.countDocuments({
       conversation: conversationId,
       deletedFor: { $ne: currentUserId },
+      isScheduled: { $ne: true },
     });
 
     res.json({
@@ -71,6 +73,9 @@ exports.sendMessage = async (req, res, next) => {
       poll,
       event,
       location,
+      contactCard,
+      linkPreview,
+      scheduledFor,
       ciphertext,
       iv,
       isEncrypted,
@@ -99,6 +104,9 @@ exports.sendMessage = async (req, res, next) => {
       expiresAt = new Date(Date.now() + conversation.disappearingTimer * 1000);
     }
 
+    // Check if message is scheduled for future
+    const isFutureSchedule = scheduledFor && new Date(scheduledFor) > new Date();
+
     const message = await Message.create({
       conversation: conversationId,
       sender: currentUserId,
@@ -116,23 +124,29 @@ exports.sendMessage = async (req, res, next) => {
       poll: poll || undefined,
       event: event || undefined,
       location: location || undefined,
+      contactCard: contactCard || undefined,
+      linkPreview: linkPreview || undefined,
+      scheduledFor: scheduledFor ? new Date(scheduledFor) : undefined,
+      isScheduled: isFutureSchedule,
       ciphertext: ciphertext || '',
       iv: iv || '',
       isEncrypted: !!isEncrypted,
     });
 
-    // Update conversation lastMessage and timestamp
-    conversation.lastMessage = message._id;
-    conversation.lastMessageAt = message.createdAt;
+    if (!isFutureSchedule) {
+      // Update conversation lastMessage and timestamp
+      conversation.lastMessage = message._id;
+      conversation.lastMessageAt = message.createdAt;
 
-    // Increment unread count for other participants
-    conversation.participants.forEach((p) => {
-      if (p.user.toString() !== currentUserId.toString()) {
-        p.unreadCount = (p.unreadCount || 0) + 1;
-      }
-    });
+      // Increment unread count for other participants
+      conversation.participants.forEach((p) => {
+        if (p.user.toString() !== currentUserId.toString()) {
+          p.unreadCount = (p.unreadCount || 0) + 1;
+        }
+      });
 
-    await conversation.save();
+      await conversation.save();
+    }
 
     const populatedMessage = await Message.findById(message._id)
       .populate('sender', 'name avatar')
@@ -508,6 +522,8 @@ exports.forwardMessage = async (req, res, next) => {
         location: original.location,
         poll: original.poll,
         event: original.event,
+        contactCard: original.contactCard,
+        linkPreview: original.linkPreview,
         ciphertext: original.ciphertext || '',
         iv: original.iv || '',
         isEncrypted: !!original.isEncrypted,
@@ -531,6 +547,44 @@ exports.forwardMessage = async (req, res, next) => {
     }
 
     res.json({ success: true, forwardedMessages });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Get scheduled messages for current user
+// @route GET /api/v1/messages/scheduled
+exports.getScheduledMessages = async (req, res, next) => {
+  try {
+    const currentUserId = req.user._id;
+    const scheduled = await Message.find({
+      sender: currentUserId,
+      isScheduled: true,
+      scheduledFor: { $gt: new Date() },
+    })
+      .sort({ scheduledFor: 1 })
+      .populate('conversation', 'name avatar isGroup');
+
+    res.json({ success: true, messages: scheduled });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Cancel / Delete a scheduled message
+// @route DELETE /api/v1/messages/scheduled/:id
+exports.cancelScheduledMessage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user._id;
+
+    const message = await Message.findOne({ _id: id, sender: currentUserId, isScheduled: true });
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Scheduled message not found' });
+    }
+
+    await Message.deleteOne({ _id: id });
+    res.json({ success: true, message: 'Scheduled message cancelled' });
   } catch (error) {
     next(error);
   }

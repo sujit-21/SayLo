@@ -40,6 +40,10 @@ const participantSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    customTheme: {
+      type: String,
+      default: '', // e.g. emerald, ocean, purple, sunset, midnight
+    },
     lastReadMessageId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Message',

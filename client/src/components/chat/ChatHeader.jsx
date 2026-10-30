@@ -23,6 +23,7 @@ const ChatHeader = ({
   onOpenInfoPanel,
   onOpenDisappearingModal,
   onOpenWallpaperModal,
+  onOpenThemeModal,
   onOpenLockModal,
 }) => {
   const { user } = useAuth();
@@ -203,6 +204,17 @@ const ChatHeader = ({
               >
                 <Palette size={16} />
                 Chat wallpaper
+              </button>
+
+              <button
+                onClick={() => {
+                  if (onOpenThemeModal) onOpenThemeModal();
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+              >
+                <Palette size={16} className="text-saylo-emerald" />
+                Theme & bubble color
               </button>
 
               <button

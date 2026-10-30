@@ -188,6 +188,16 @@ const initSocketIO = (io) => {
       }
     });
 
+    // 10b. Screen Share Toggle Signaling
+    socket.on('call:screen_share', ({ targetUserId, isSharing }) => {
+      if (targetUserId) {
+        io.to(`user_${targetUserId}`).emit('call:screen_share', {
+          userId,
+          isSharing,
+        });
+      }
+    });
+
     // Disconnect handling
     socket.on('disconnect', async () => {
       console.log(`[Socket] User disconnected: ${socket.user.name}`);

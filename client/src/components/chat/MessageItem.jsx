@@ -23,7 +23,10 @@ import {
   Info,
   CheckSquare,
   Square,
+  ExternalLink,
+  UserCheck,
 } from 'lucide-react';
+import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 
@@ -170,11 +173,13 @@ const MessageItem = ({
   onEdit,
   onForward,
   onInfo,
+  onOpenMedia,
   onToggleSelect,
   isSelectMode,
   isSelected,
   searchQuery,
   isHighlighted,
+  customTheme = 'default',
 }) => {
   const { user } = useAuth();
   const {
@@ -242,6 +247,25 @@ const MessageItem = ({
     );
   }
 
+  // Determine self bubble color based on customTheme
+  const getThemeClass = () => {
+    switch (customTheme) {
+      case 'ocean':
+        return 'bg-[#0284c7] dark:bg-[#0284c7]';
+      case 'purple':
+        return 'bg-[#7c3aed] dark:bg-[#7c3aed]';
+      case 'crimson':
+        return 'bg-[#e11d48] dark:bg-[#e11d48]';
+      case 'sunset':
+        return 'bg-[#d97706] dark:bg-[#d97706]';
+      case 'midnight':
+        return 'bg-[#334155] dark:bg-[#334155]';
+      case 'default':
+      default:
+        return 'bg-[#005c4b] dark:bg-[#005c4b]';
+    }
+  };
+
   return (
     <div
       className={`group relative flex items-center mb-1.5 gap-2.5 ${
@@ -274,7 +298,7 @@ const MessageItem = ({
         }}
         className={`relative max-w-[85%] md:max-w-[70%] rounded-2xl px-3.5 py-2 text-sm shadow-sm transition-all ${
           isSelf
-            ? 'bg-[#005c4b] dark:bg-[#005c4b] text-[#e9edef] rounded-tr-none'
+            ? `${getThemeClass()} text-[#e9edef] rounded-tr-none`
             : 'bg-[#202c33] dark:bg-[#202c33] text-[#e9edef] rounded-tl-none border border-gray-700/30'
         } ${isSelected ? 'ring-2 ring-saylo-emerald' : ''} ${
           isSelectMode ? 'cursor-pointer' : ''
@@ -340,17 +364,112 @@ const MessageItem = ({
                 <img
                   src={message.mediaUrl}
                   alt={message.mediaName || 'Photo'}
-                  className="w-full h-auto max-h-80 object-cover rounded-xl hover:opacity-95 cursor-pointer"
-                  onClick={() => window.open(message.mediaUrl, '_blank')}
+                  className="w-full h-auto max-h-80 object-cover rounded-xl hover:opacity-95 cursor-pointer transition-opacity"
+                  onClick={() => {
+                    if (onOpenMedia) {
+                      onOpenMedia(message.mediaUrl, message.mediaName || 'Photo', 'image');
+                    } else {
+                      window.open(message.mediaUrl, '_blank');
+                    }
+                  }}
                 />
               </div>
             )}
 
             {/* Video Media */}
             {message.type === 'video' && message.mediaUrl && (
-              <div className="my-1 rounded-xl overflow-hidden max-w-sm">
+              <div className="my-1 rounded-xl overflow-hidden max-w-sm relative group/vid">
                 <video src={message.mediaUrl} controls className="w-full rounded-xl max-h-80" />
+                <button
+                  type="button"
+                  onClick={() => onOpenMedia && onOpenMedia(message.mediaUrl, message.mediaName || 'Video', 'video')}
+                  className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg opacity-0 group-hover/vid:opacity-100 transition-opacity"
+                  title="Fullscreen lightbox"
+                >
+                  <Eye size={16} />
+                </button>
               </div>
+            )}
+
+            {/* Contact Card Shared */}
+            {message.type === 'contact' && message.contactCard && (
+              <div className="my-1.5 p-3 rounded-2xl bg-black/25 border border-gray-700/50 min-w-[240px]">
+                <div className="flex items-center gap-3 mb-2.5">
+                  <Avatar
+                    src={message.contactCard.avatar}
+                    name={message.contactCard.name || 'Contact'}
+                    size="md"
+                  />
+                  <div className="truncate">
+                    <h4 className="text-sm font-semibold text-white truncate">
+                      {message.contactCard.name}
+                    </h4>
+                    <p className="text-xs text-gray-300 truncate">
+                      {message.contactCard.phone || message.contactCard.email}
+                    </p>
+                  </div>
+                </div>
+                {message.contactCard.about && (
+                  <p className="text-[11px] text-gray-400 italic mb-2 line-clamp-2">
+                    "{message.contactCard.about}"
+                  </p>
+                )}
+                <div className="pt-2 border-t border-gray-700/40 flex items-center justify-between">
+                  <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
+                    Contact Card
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (message.contactCard.phone) {
+                        window.open(`tel:${message.contactCard.phone}`, '_self');
+                      } else if (message.contactCard.email) {
+                        window.open(`mailto:${message.contactCard.email}`, '_self');
+                      } else {
+                        alert(`Contact: ${message.contactCard.name}`);
+                      }
+                    }}
+                    className="text-xs text-saylo-emerald hover:underline font-medium"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Rich Link Preview Card */}
+            {message.linkPreview && message.linkPreview.url && (
+              <a
+                href={message.linkPreview.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="my-1.5 block rounded-2xl overflow-hidden bg-black/30 border border-gray-700/50 hover:border-saylo-emerald transition-colors max-w-sm"
+              >
+                {message.linkPreview.image && (
+                  <img
+                    src={message.linkPreview.image}
+                    alt={message.linkPreview.title || 'Link preview'}
+                    className="w-full h-36 object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                )}
+                <div className="p-3">
+                  <p className="text-[10px] text-saylo-emerald uppercase tracking-wider font-semibold flex items-center gap-1 mb-1">
+                    <ExternalLink size={10} />
+                    <span>{message.linkPreview.siteName || new URL(message.linkPreview.url).hostname}</span>
+                  </p>
+                  <h4 className="text-xs font-bold text-white line-clamp-2">
+                    {message.linkPreview.title || message.linkPreview.url}
+                  </h4>
+                  {message.linkPreview.description && (
+                    <p className="text-[11px] text-gray-400 line-clamp-2 mt-1">
+                      {message.linkPreview.description}
+                    </p>
+                  )}
+                </div>
+              </a>
             )}
 
             {/* Audio / Voice Message */}

@@ -14,13 +14,21 @@ import {
   Sparkles,
   Sticker,
   Film,
+  Clock,
+  User,
+  ExternalLink,
 } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
-const MessageInput = ({ onOpenPollModal, onOpenEventModal }) => {
+const MessageInput = ({
+  onOpenPollModal,
+  onOpenEventModal,
+  onOpenScheduleModal,
+  onOpenShareContactModal,
+}) => {
   const { activeConversation, sendMessage, replyMessage, setReplyMessage } = useChat();
   const { socket } = useSocket();
   const { user } = useAuth();
@@ -132,7 +140,7 @@ const MessageInput = ({ onOpenPollModal, onOpenEventModal }) => {
     }
   };
 
-  // Send Text Message
+  // Send Text Message (with automatic OpenGraph link preview detection)
   const handleSend = async (e) => {
     if (e) e.preventDefault();
     if (!text.trim()) return;
@@ -150,9 +158,26 @@ const MessageInput = ({ onOpenPollModal, onOpenEventModal }) => {
     }
 
     try {
+      // Check for first URL in message text to attach rich link preview
+      const urlRegex = /(https?:\/\/[^\s]+)/i;
+      const urlMatch = messageText.match(urlRegex);
+      let linkPreview = undefined;
+
+      if (urlMatch && urlMatch[0]) {
+        try {
+          const previewRes = await api.post('/users/link-preview', { url: urlMatch[0] });
+          if (previewRes.data?.preview?.title) {
+            linkPreview = previewRes.data.preview;
+          }
+        } catch (err) {
+          console.error('Link preview generation error', err);
+        }
+      }
+
       await sendMessage({
         text: messageText,
         type: 'text',
+        linkPreview,
       });
     } catch (err) {
       console.error('Failed to send text message', err);
@@ -445,6 +470,38 @@ const MessageInput = ({ onOpenPollModal, onOpenEventModal }) => {
             </div>
             Share Location
           </button>
+
+          {/* Share Contact Card */}
+          {onOpenShareContactModal && (
+            <button
+              onClick={() => {
+                onOpenShareContactModal();
+                setShowAttachmentMenu(false);
+              }}
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs hover:bg-gray-700/50 text-gray-200 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center">
+                <User size={18} />
+              </div>
+              Contact Card
+            </button>
+          )}
+
+          {/* Schedule Message */}
+          {onOpenScheduleModal && (
+            <button
+              onClick={() => {
+                onOpenScheduleModal();
+                setShowAttachmentMenu(false);
+              }}
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs hover:bg-gray-700/50 text-gray-200 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                <Clock size={18} />
+              </div>
+              Schedule Message
+            </button>
+          )}
         </div>
       )}
 

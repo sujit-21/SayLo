@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const app = require('./app');
 const connectDB = require('./config/db');
 const { initSocketIO } = require('./sockets/socketHandler');
+const { initMessageScheduler } = require('./utils/scheduler');
 
 const PORT = process.env.PORT || 5000;
 
@@ -22,6 +23,7 @@ const io = new Server(server, {
 });
 
 initSocketIO(io);
+initMessageScheduler(io);
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {

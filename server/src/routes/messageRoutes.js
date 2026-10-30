@@ -14,10 +14,14 @@ const {
   openViewOnce,
   rsvpEvent,
   forwardMessage,
+  getScheduledMessages,
+  cancelScheduledMessage,
 } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/starred', protect, getStarredMessages);
+router.get('/scheduled', protect, getScheduledMessages);
+router.delete('/scheduled/:id', protect, cancelScheduledMessage);
 router.get('/:conversationId', protect, getMessages);
 router.post('/', protect, sendMessage);
 router.post('/forward', protect, forwardMessage);

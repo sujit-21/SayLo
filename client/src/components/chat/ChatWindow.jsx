@@ -11,6 +11,10 @@ import WallpaperModal from './WallpaperModal';
 import ForwardModal from './ForwardModal';
 import MessageInfoModal from './MessageInfoModal';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
+import MediaLightboxModal from './MediaLightboxModal';
+import ScheduleMessageModal from './ScheduleMessageModal';
+import ShareContactModal from './ShareContactModal';
+import ChatThemeModal from './ChatThemeModal';
 import { useChat } from '../../context/ChatContext';
 import { useTheme } from '../../context/ThemeContext';
 import api from '../../services/api';
@@ -50,6 +54,12 @@ const ChatWindow = () => {
   const [showDisappearingModal, setShowDisappearingModal] = useState(false);
   const [showLockModal, setShowLockModal] = useState(false);
   const [showWallpaperModal, setShowWallpaperModal] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showShareContactModal, setShowShareContactModal] = useState(false);
+  const [lightboxData, setLightboxData] = useState(null); // { url, name, type }
+  const [customTheme, setCustomTheme] = useState('default');
+
   const [forwardingMessage, setForwardingMessage] = useState(null);
   const [forwardingMessages, setForwardingMessages] = useState(null);
   const [infoMessage, setInfoMessage] = useState(null);
@@ -342,6 +352,7 @@ const ChatWindow = () => {
           onOpenInfoPanel={() => setShowInfoPanel(!showInfoPanel)}
           onOpenDisappearingModal={() => setShowDisappearingModal(true)}
           onOpenWallpaperModal={() => setShowWallpaperModal(true)}
+          onOpenThemeModal={() => setShowThemeModal(true)}
           onOpenLockModal={() => setShowLockModal(true)}
         />
 
@@ -485,11 +496,13 @@ const ChatWindow = () => {
                       }}
                       onForward={(m) => setForwardingMessage(m)}
                       onInfo={(m) => setInfoMessage(m)}
+                      onOpenMedia={(url, name, type) => setLightboxData({ url, name, type })}
                       onToggleSelect={handleToggleSelectMessage}
                       isSelectMode={isSelectMode}
                       isSelected={selectedMessageIds.includes(msg._id)}
                       searchQuery={searchFilter}
                       isHighlighted={isCurrentActiveMatch}
+                      customTheme={customTheme}
                     />
                   </div>
                 </React.Fragment>
@@ -547,6 +560,8 @@ const ChatWindow = () => {
           <MessageInput
             onOpenPollModal={() => setShowPollModal(true)}
             onOpenEventModal={() => setShowEventModal(true)}
+            onOpenScheduleModal={() => setShowScheduleModal(true)}
+            onOpenShareContactModal={() => setShowShareContactModal(true)}
           />
         )}
       </div>
@@ -563,6 +578,66 @@ const ChatWindow = () => {
       />
       <LockChatModal isOpen={showLockModal} onClose={() => setShowLockModal(false)} />
       <WallpaperModal isOpen={showWallpaperModal} onClose={() => setShowWallpaperModal(false)} />
+
+      {/* Custom Chat Theme Modal */}
+      <ChatThemeModal
+        isOpen={showThemeModal}
+        currentTheme={customTheme}
+        onClose={() => setShowThemeModal(false)}
+        onSelectTheme={(themeId) => setCustomTheme(themeId)}
+      />
+
+      {/* Schedule Message Modal */}
+      <ScheduleMessageModal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        onSchedule={async (scheduledText, scheduledTimeISO) => {
+          try {
+            await sendMessage({
+              text: scheduledText,
+              type: 'text',
+              scheduledFor: scheduledTimeISO,
+            });
+            alert('Message scheduled successfully!');
+          } catch (err) {
+            console.error('Failed to schedule message', err);
+            alert('Failed to schedule message');
+          }
+        }}
+      />
+
+      {/* Share Contact Card Modal */}
+      <ShareContactModal
+        isOpen={showShareContactModal}
+        onClose={() => setShowShareContactModal(false)}
+        onShareContact={async (contactCard) => {
+          try {
+            await sendMessage({
+              type: 'contact',
+              text: `Contact Card: ${contactCard.name}`,
+              contactCard,
+            });
+          } catch (err) {
+            console.error('Failed to share contact card', err);
+          }
+        }}
+      />
+
+      {/* Media Lightbox Gallery Modal */}
+      <MediaLightboxModal
+        isOpen={!!lightboxData}
+        mediaUrl={lightboxData?.url}
+        mediaName={lightboxData?.name}
+        mediaType={lightboxData?.type}
+        onClose={() => setLightboxData(null)}
+        onForward={() => {
+          const matching = messages.find((m) => m.mediaUrl === lightboxData?.url);
+          if (matching) {
+            setForwardingMessage(matching);
+          }
+          setLightboxData(null);
+        }}
+      />
 
       {/* Message Info Modal (Read & Delivery receipts) */}
       <MessageInfoModal

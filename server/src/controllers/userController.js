@@ -241,4 +241,80 @@ exports.getStorageStats = async (req, res, next) => {
   }
 };
 
+// @desc Fetch OpenGraph / Metadata link preview for a URL
+// @route POST /api/v1/users/link-preview
+exports.getLinkPreview = async (req, res, next) => {
+  try {
+    const { url } = req.body;
+    if (!url || typeof url !== 'string' || !url.startsWith('http')) {
+      return res.status(400).json({ success: false, message: 'Valid HTTP/HTTPS URL required' });
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3500);
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'SAYLO-LinkBot/1.0' },
+    });
+    clearTimeout(timeout);
+
+    const html = await response.text();
+
+    const getMetaContent = (propName) => {
+      const match =
+        html.match(new RegExp(`<meta[^>]+property=["']${propName}["'][^>]+content=["']([^"']+)["']`, 'i')) ||
+        html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+property=["']${propName}["']`, 'i')) ||
+        html.match(new RegExp(`<meta[^>]+name=["']${propName}["'][^>]+content=["']([^"']+)["']`, 'i'));
+      return match ? match[1] : '';
+    };
+
+    let title = getMetaContent('og:title') || getMetaContent('twitter:title');
+    if (!title) {
+      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      title = titleMatch ? titleMatch[1].trim() : '';
+    }
+
+    const description =
+      getMetaContent('og:description') ||
+      getMetaContent('twitter:description') ||
+      getMetaContent('description') ||
+      '';
+
+    let image = getMetaContent('og:image') || getMetaContent('twitter:image') || '';
+    if (image && !image.startsWith('http')) {
+      try {
+        image = new URL(image, url).href;
+      } catch (e) {
+        image = '';
+      }
+    }
+
+    const siteName = getMetaContent('og:site_name') || new URL(url).hostname;
+
+    res.json({
+      success: true,
+      preview: {
+        url,
+        title: title.slice(0, 120),
+        description: description.slice(0, 200),
+        image,
+        siteName,
+      },
+    });
+  } catch (error) {
+    // Return graceful fallback without crashing
+    res.json({
+      success: true,
+      preview: {
+        url: req.body.url,
+        title: req.body.url,
+        description: '',
+        image: '',
+        siteName: '',
+      },
+    });
+  }
+};
+
 

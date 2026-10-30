@@ -34,6 +34,15 @@ const callSchema = new mongoose.Schema(
       enum: ['audio', 'video'],
       default: 'audio',
     },
+    callLink: {
+      type: String,
+      sparse: true,
+      index: true,
+    },
+    screenSharing: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: ['initiated', 'ringing', 'accepted', 'rejected', 'missed', 'ended', 'completed'],
