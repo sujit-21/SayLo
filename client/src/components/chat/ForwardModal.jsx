@@ -4,7 +4,7 @@ import Avatar from '../common/Avatar';
 import { useChat } from '../../context/ChatContext';
 import { useAuth } from '../../context/AuthContext';
 
-const ForwardModal = ({ isOpen, message, onClose }) => {
+const ForwardModal = ({ isOpen, message, messages: messagesToForward, onClose }) => {
   const { user } = useAuth();
   const { conversations, forwardMessage } = useChat();
 
@@ -12,7 +12,9 @@ const ForwardModal = ({ isOpen, message, onClose }) => {
   const [selectedChatIds, setSelectedChatIds] = useState([]);
   const [sending, setSending] = useState(false);
 
-  if (!isOpen || !message) return null;
+  const targets = messagesToForward && messagesToForward.length > 0 ? messagesToForward : (message ? [message] : []);
+
+  if (!isOpen || targets.length === 0) return null;
 
   // Filter conversations
   const filtered = conversations.filter((c) => {
@@ -36,7 +38,9 @@ const ForwardModal = ({ isOpen, message, onClose }) => {
     if (selectedChatIds.length === 0 || sending) return;
     setSending(true);
     try {
-      await forwardMessage(message._id, selectedChatIds);
+      for (const msg of targets) {
+        await forwardMessage(msg._id, selectedChatIds);
+      }
       setSelectedChatIds([]);
       onClose();
     } catch (err) {
@@ -53,7 +57,9 @@ const ForwardModal = ({ isOpen, message, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700/70">
           <div>
-            <h3 className="text-base font-semibold text-gray-100">Forward message to</h3>
+            <h3 className="text-base font-semibold text-gray-100">
+              {targets.length > 1 ? `Forward ${targets.length} messages to` : 'Forward message to'}
+            </h3>
             <p className="text-xs text-gray-400 mt-0.5">Select up to 5 chats</p>
           </div>
           <button

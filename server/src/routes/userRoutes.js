@@ -10,6 +10,7 @@ const {
   getBlockedUsers,
   getDeviceSessions,
   revokeDeviceSession,
+  getStorageStats,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -21,6 +22,7 @@ router.get('/blocked', protect, getBlockedUsers);
 router.post('/block', protect, toggleBlockUser);
 router.get('/devices', protect, getDeviceSessions);
 router.delete('/devices/:id', protect, revokeDeviceSession);
+router.get('/storage-stats', protect, getStorageStats);
 router.get('/:id', protect, getUserById);
 
 module.exports = router;

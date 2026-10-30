@@ -177,3 +177,68 @@ exports.revokeDeviceSession = async (req, res, next) => {
   }
 };
 
+// @desc Get storage media breakdown for current user
+// @route GET /api/v1/users/storage-stats
+exports.getStorageStats = async (req, res, next) => {
+  try {
+    const Message = require('../models/Message');
+    const currentUserId = req.user._id;
+
+    const messages = await Message.find({
+      sender: currentUserId,
+      mediaUrl: { $ne: '' },
+    }).select('type mediaSize mediaName mediaUrl createdAt');
+
+    let photosSize = 0, photosCount = 0;
+    let videosSize = 0, videosCount = 0;
+    let audioSize = 0, audioCount = 0;
+    let docsSize = 0, docsCount = 0;
+    const largeFiles = [];
+
+    messages.forEach((m) => {
+      const sz = m.mediaSize || 0;
+      if (m.type === 'image') {
+        photosSize += sz;
+        photosCount++;
+      } else if (m.type === 'video') {
+        videosSize += sz;
+        videosCount++;
+      } else if (m.type === 'audio' || m.type === 'voice') {
+        audioSize += sz;
+        audioCount++;
+      } else if (m.type === 'document') {
+        docsSize += sz;
+        docsCount++;
+      }
+
+      if (sz > 500 * 1024) { // Files > 500KB considered noteworthy
+        largeFiles.push({
+          id: m._id,
+          name: m.mediaName || 'Media File',
+          type: m.type,
+          size: sz,
+          url: m.mediaUrl,
+          createdAt: m.createdAt,
+        });
+      }
+    });
+
+    const totalSize = photosSize + videosSize + audioSize + docsSize;
+
+    res.json({
+      success: true,
+      stats: {
+        totalSize,
+        photos: { size: photosSize, count: photosCount },
+        videos: { size: videosSize, count: videosCount },
+        audio: { size: audioSize, count: audioCount },
+        documents: { size: docsSize, count: docsCount },
+        largeFiles: largeFiles.sort((a, b) => b.size - a.size).slice(0, 15),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+

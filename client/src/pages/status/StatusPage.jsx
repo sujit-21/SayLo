@@ -12,6 +12,7 @@ const StatusPage = () => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showViewersSheet, setShowViewersSheet] = useState(false);
 
   // Create status state
   const [newContent, setNewContent] = useState('');
@@ -38,6 +39,7 @@ const StatusPage = () => {
   const handleOpenGroup = (group) => {
     setSelectedGroup(group);
     setActiveStoryIndex(0);
+    setShowViewersSheet(false);
 
     // Mark active story as viewed if not own
     if (!group.isSelf && group.items[0]) {
@@ -48,6 +50,7 @@ const StatusPage = () => {
   // Next story
   const nextStory = () => {
     if (!selectedGroup) return;
+    setShowViewersSheet(false);
     if (activeStoryIndex < selectedGroup.items.length - 1) {
       const nextIdx = activeStoryIndex + 1;
       setActiveStoryIndex(nextIdx);
@@ -61,6 +64,7 @@ const StatusPage = () => {
 
   // Prev story
   const prevStory = () => {
+    setShowViewersSheet(false);
     if (activeStoryIndex > 0) {
       setActiveStoryIndex(activeStoryIndex - 1);
     }
@@ -287,11 +291,69 @@ const StatusPage = () => {
 
             {/* Bottom Views Counter (If own status) */}
             {selectedGroup.isSelf && (
-              <div className="absolute bottom-4 inset-x-0 z-30 flex items-center justify-center gap-1.5 text-xs text-white bg-black/40 py-1.5 backdrop-blur-sm">
-                <Eye size={16} />
-                <span>
+              <div
+                onClick={() => setShowViewersSheet(true)}
+                className="absolute bottom-4 inset-x-0 z-30 flex items-center justify-center gap-1.5 text-xs text-white bg-black/50 hover:bg-black/70 cursor-pointer py-2 px-4 backdrop-blur-sm transition-all rounded-full mx-auto w-fit border border-white/10 shadow-lg active:scale-95"
+                title="Tap to see who viewed your status"
+              >
+                <Eye size={16} className="text-saylo-emerald" />
+                <span className="font-medium">
                   {selectedGroup.items[activeStoryIndex]?.viewers?.length || 0} views
                 </span>
+                <span className="text-[10px] text-gray-300 ml-1">▲ View list</span>
+              </div>
+            )}
+
+            {/* Bottom Viewers Slide-up Modal / Drawer */}
+            {selectedGroup.isSelf && showViewersSheet && (
+              <div className="absolute inset-x-0 bottom-0 max-h-[60%] bg-[#1f2c34] border-t border-gray-700/80 rounded-t-3xl z-40 p-4 shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-200">
+                <div className="flex items-center justify-between pb-3 border-b border-gray-700/50">
+                  <div className="flex items-center gap-2">
+                    <Eye size={18} className="text-saylo-emerald" />
+                    <h4 className="text-sm font-bold text-gray-100">
+                      Viewed by {selectedGroup.items[activeStoryIndex]?.viewers?.length || 0}
+                    </h4>
+                  </div>
+                  <button
+                    onClick={() => setShowViewersSheet(false)}
+                    className="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto mt-2 divide-y divide-gray-800/60 max-h-64">
+                  {(!selectedGroup.items[activeStoryIndex]?.viewers ||
+                    selectedGroup.items[activeStoryIndex].viewers.length === 0) ? (
+                    <div className="py-8 text-center text-gray-400 text-xs">
+                      No views yet. When contacts view your status, they will appear here.
+                    </div>
+                  ) : (
+                    selectedGroup.items[activeStoryIndex].viewers.map((viewerRecord, idx) => {
+                      const viewerUser = viewerRecord.user || {};
+                      const timeStr = viewerRecord.viewedAt
+                        ? format(new Date(viewerRecord.viewedAt), 'MMM d, h:mm a')
+                        : 'Recently';
+                      return (
+                        <div key={idx} className="flex items-center justify-between py-2.5">
+                          <div className="flex items-center gap-3">
+                            <Avatar
+                              src={viewerUser.avatar}
+                              name={viewerUser.name || 'Contact'}
+                              size="sm"
+                            />
+                            <div>
+                              <p className="text-xs font-semibold text-gray-100">
+                                {viewerUser.name || 'Unknown Contact'}
+                              </p>
+                              <p className="text-[10px] text-gray-400">Viewed {timeStr}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             )}
           </div>

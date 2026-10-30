@@ -9,10 +9,23 @@ import DisappearingModal from './DisappearingModal';
 import LockChatModal from './LockChatModal';
 import WallpaperModal from './WallpaperModal';
 import ForwardModal from './ForwardModal';
+import MessageInfoModal from './MessageInfoModal';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import { useChat } from '../../context/ChatContext';
 import { useTheme } from '../../context/ThemeContext';
 import api from '../../services/api';
-import { Search, X, ChevronUp, ChevronDown, Pin, UploadCloud } from 'lucide-react';
+import {
+  Search,
+  X,
+  ChevronUp,
+  ChevronDown,
+  Pin,
+  UploadCloud,
+  Share2,
+  Trash2,
+  Keyboard,
+  CheckSquare,
+} from 'lucide-react';
 import { isToday, isYesterday, format } from 'date-fns';
 
 const ChatWindow = () => {
@@ -23,6 +36,7 @@ const ChatWindow = () => {
     setReplyMessage,
     editMessage,
     sendMessage,
+    deleteMessage,
   } = useChat();
   const { wallpaper } = useTheme();
 
@@ -37,6 +51,13 @@ const ChatWindow = () => {
   const [showLockModal, setShowLockModal] = useState(false);
   const [showWallpaperModal, setShowWallpaperModal] = useState(false);
   const [forwardingMessage, setForwardingMessage] = useState(null);
+  const [forwardingMessages, setForwardingMessages] = useState(null);
+  const [infoMessage, setInfoMessage] = useState(null);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+
+  // Multi-message select state
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedMessageIds, setSelectedMessageIds] = useState([]);
 
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [isUploadingDrop, setIsUploadingDrop] = useState(false);
@@ -116,6 +137,78 @@ const ChatWindow = () => {
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
   }, [activeConversation?._id]);
+
+  // Global Keyboard shortcuts listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Toggle Keyboard Shortcuts modal on Ctrl + / or ? (when not inside an input)
+      const targetTag = e.target?.tagName?.toLowerCase();
+      const isInput = targetTag === 'input' || targetTag === 'textarea';
+
+      if ((e.ctrlKey && e.key === '/') || (!isInput && e.key === '?')) {
+        e.preventDefault();
+        setShowShortcutsModal((prev) => !prev);
+      }
+
+      // Exit select mode on Escape
+      if (e.key === 'Escape') {
+        if (isSelectMode) {
+          setIsSelectMode(false);
+          setSelectedMessageIds([]);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSelectMode]);
+
+  // Bulk actions handlers
+  const handleToggleSelectMessage = (msgId) => {
+    if (!isSelectMode) {
+      setIsSelectMode(true);
+      setSelectedMessageIds([msgId]);
+      return;
+    }
+
+    setSelectedMessageIds((prev) => {
+      if (prev.includes(msgId)) {
+        const next = prev.filter((id) => id !== msgId);
+        if (next.length === 0) setIsSelectMode(false);
+        return next;
+      } else {
+        return [...prev, msgId];
+      }
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedMessageIds.length === 0) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedMessageIds.length} selected message(s)?`
+      )
+    ) {
+      return;
+    }
+
+    for (const id of selectedMessageIds) {
+      try {
+        await deleteMessage(id, false);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setIsSelectMode(false);
+    setSelectedMessageIds([]);
+  };
+
+  const handleBulkForward = () => {
+    const selectedObjs = messages.filter((m) => selectedMessageIds.includes(m._id));
+    if (selectedObjs.length > 0) {
+      setForwardingMessages(selectedObjs);
+    }
+  };
 
   if (!activeConversation) {
     return (
@@ -391,6 +484,10 @@ const ChatWindow = () => {
                         }
                       }}
                       onForward={(m) => setForwardingMessage(m)}
+                      onInfo={(m) => setInfoMessage(m)}
+                      onToggleSelect={handleToggleSelectMessage}
+                      isSelectMode={isSelectMode}
+                      isSelected={selectedMessageIds.includes(msg._id)}
                       searchQuery={searchFilter}
                       isHighlighted={isCurrentActiveMatch}
                     />
@@ -402,11 +499,56 @@ const ChatWindow = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input composer */}
-        <MessageInput
-          onOpenPollModal={() => setShowPollModal(true)}
-          onOpenEventModal={() => setShowEventModal(true)}
-        />
+        {/* Floating Bulk Action Bar when messages are selected */}
+        {isSelectMode && (
+          <div className="bg-[#202c33] border-t border-gray-700/80 px-6 py-3 flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom duration-150 z-20">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setIsSelectMode(false);
+                  setSelectedMessageIds([]);
+                }}
+                className="p-1 text-gray-400 hover:text-white rounded-full hover:bg-white/10"
+                title="Cancel selection"
+              >
+                <X size={18} />
+              </button>
+              <span className="text-sm font-semibold text-gray-100">
+                {selectedMessageIds.length} selected
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleBulkForward}
+                disabled={selectedMessageIds.length === 0}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 text-xs font-medium disabled:opacity-40 transition-colors"
+                title="Forward selected messages"
+              >
+                <Share2 size={15} />
+                <span>Forward</span>
+              </button>
+
+              <button
+                onClick={handleBulkDelete}
+                disabled={selectedMessageIds.length === 0}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-medium disabled:opacity-40 transition-colors"
+                title="Delete selected messages"
+              >
+                <Trash2 size={15} />
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Input composer (hidden during bulk select mode) */}
+        {!isSelectMode && (
+          <MessageInput
+            onOpenPollModal={() => setShowPollModal(true)}
+            onOpenEventModal={() => setShowEventModal(true)}
+          />
+        )}
       </div>
 
       {/* Slide-over Info Panel */}
@@ -422,11 +564,35 @@ const ChatWindow = () => {
       <LockChatModal isOpen={showLockModal} onClose={() => setShowLockModal(false)} />
       <WallpaperModal isOpen={showWallpaperModal} onClose={() => setShowWallpaperModal(false)} />
 
-      {/* Forward Message Modal */}
+      {/* Message Info Modal (Read & Delivery receipts) */}
+      <MessageInfoModal
+        isOpen={!!infoMessage}
+        message={infoMessage}
+        onClose={() => setInfoMessage(null)}
+      />
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+      />
+
+      {/* Single Message Forward Modal */}
       <ForwardModal
         isOpen={!!forwardingMessage}
         message={forwardingMessage}
         onClose={() => setForwardingMessage(null)}
+      />
+
+      {/* Bulk Messages Forward Modal */}
+      <ForwardModal
+        isOpen={!!forwardingMessages}
+        messages={forwardingMessages}
+        onClose={() => {
+          setForwardingMessages(null);
+          setIsSelectMode(false);
+          setSelectedMessageIds([]);
+        }}
       />
     </div>
   );

@@ -19,17 +19,24 @@ import {
   MoreVertical,
   Share2,
   Pin,
+  Lock,
+  Info,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 
-// Voice Message Player with Speed Controls (1x, 1.5x, 2x)
+// Voice Message Player with Animated Waveform Bars & Speed Controls (1x, 1.5x, 2x)
 const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(initialDuration || 0);
   const audioRef = useRef(null);
+
+  // Generate a consistent pseudo waveform bar pattern
+  const barHeights = [35, 60, 40, 85, 95, 50, 75, 40, 65, 80, 55, 90, 70, 45, 60, 85, 40, 75, 50, 65];
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -71,6 +78,15 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
     }
   };
 
+  const handleBarClick = (index) => {
+    const effectiveDuration = duration || 10;
+    const seekTime = (index / barHeights.length) * effectiveDuration;
+    setCurrentTime(seekTime);
+    if (audioRef.current) {
+      audioRef.current.currentTime = seekTime;
+    }
+  };
+
   const formatSecs = (sec) => {
     if (!sec || isNaN(sec)) return '0:00';
     const m = Math.floor(sec / 60);
@@ -78,8 +94,10 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  const progressPercent = duration ? (currentTime / duration) * 100 : 0;
+
   return (
-    <div className="my-1.5 flex items-center gap-2.5 bg-black/25 p-2.5 rounded-2xl min-w-[260px] border border-gray-700/30">
+    <div className="my-1.5 flex items-center gap-2.5 bg-black/25 p-2.5 rounded-2xl min-w-[270px] border border-gray-700/30">
       <audio
         ref={audioRef}
         src={src}
@@ -97,15 +115,38 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
       </button>
 
       <div className="flex-1 flex flex-col justify-center min-w-0">
+        {/* Dynamic Waveform Visualizer */}
+        <div className="flex items-center gap-[2.5px] h-7 px-1 py-1 cursor-pointer">
+          {barHeights.map((ht, idx) => {
+            const barProgress = ((idx + 1) / barHeights.length) * 100;
+            const isFilled = progressPercent >= barProgress - 2;
+            return (
+              <div
+                key={idx}
+                onClick={() => handleBarClick(idx)}
+                className={`flex-1 rounded-full transition-all duration-100 ${
+                  isFilled ? 'bg-saylo-emerald' : 'bg-gray-600 hover:bg-gray-500'
+                }`}
+                style={{
+                  height: `${ht}%`,
+                  minWidth: '2px',
+                }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Range slider track for touch/drag */}
         <input
           type="range"
           min="0"
           max={duration || 100}
           value={currentTime}
           onChange={handleSeek}
-          className="w-full h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-saylo-emerald"
+          className="w-full h-1 bg-transparent rounded-lg appearance-none cursor-pointer accent-saylo-emerald -mt-1 opacity-0 hover:opacity-100 transition-opacity"
         />
-        <div className="flex justify-between items-center text-[10px] text-gray-400 mt-1">
+
+        <div className="flex justify-between items-center text-[10px] text-gray-400 mt-0.5">
           <span>{formatSecs(currentTime)}</span>
           <span>{formatSecs(duration)}</span>
         </div>
@@ -123,7 +164,18 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
   );
 };
 
-const MessageItem = ({ message, onReply, onEdit, onForward, searchQuery, isHighlighted }) => {
+const MessageItem = ({
+  message,
+  onReply,
+  onEdit,
+  onForward,
+  onInfo,
+  onToggleSelect,
+  isSelectMode,
+  isSelected,
+  searchQuery,
+  isHighlighted,
+}) => {
   const { user } = useAuth();
   const {
     reactToMessage,
@@ -192,17 +244,40 @@ const MessageItem = ({ message, onReply, onEdit, onForward, searchQuery, isHighl
 
   return (
     <div
-      className={`group relative flex flex-col mb-1.5 ${isSelf ? 'items-end' : 'items-start'}`}
+      className={`group relative flex items-center mb-1.5 gap-2.5 ${
+        isSelf ? 'justify-end' : 'justify-start'
+      }`}
       onMouseLeave={() => {
         setShowMenu(false);
         setShowEmojiPicker(false);
       }}
     >
+      {/* Checkbox when in Multi-Select Mode */}
+      {isSelectMode && (
+        <button
+          type="button"
+          onClick={() => onToggleSelect && onToggleSelect(message._id)}
+          className={`p-1.5 rounded-lg transition-transform active:scale-95 ${
+            isSelf ? 'order-2' : 'order-first'
+          } ${isSelected ? 'text-saylo-emerald' : 'text-gray-500 hover:text-gray-300'}`}
+          title={isSelected ? 'Deselect message' : 'Select message'}
+        >
+          {isSelected ? <CheckSquare size={20} className="fill-saylo-emerald/20" /> : <Square size={20} />}
+        </button>
+      )}
+
       <div
+        onClick={() => {
+          if (isSelectMode && onToggleSelect) {
+            onToggleSelect(message._id);
+          }
+        }}
         className={`relative max-w-[85%] md:max-w-[70%] rounded-2xl px-3.5 py-2 text-sm shadow-sm transition-all ${
           isSelf
             ? 'bg-[#005c4b] dark:bg-[#005c4b] text-[#e9edef] rounded-tr-none'
             : 'bg-[#202c33] dark:bg-[#202c33] text-[#e9edef] rounded-tl-none border border-gray-700/30'
+        } ${isSelected ? 'ring-2 ring-saylo-emerald' : ''} ${
+          isSelectMode ? 'cursor-pointer' : ''
         } ${message.deletedForEveryone ? 'italic opacity-70' : ''}`}
       >
         {/* Sender name for group chats */}
@@ -562,6 +637,30 @@ const MessageItem = ({ message, onReply, onEdit, onForward, searchQuery, isHighl
             isSelf ? 'right-0' : 'left-0'
           } z-30 w-44 bg-[#202c33] border border-gray-700/80 rounded-xl shadow-2xl py-1 text-xs text-gray-200 animate-fadeIn`}
         >
+          {/* Message Info (Read & Delivered timestamps) */}
+          <button
+            onClick={() => {
+              if (onInfo) onInfo(message);
+              setShowMenu(false);
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+          >
+            <Info size={14} className="text-saylo-300" />
+            Message info
+          </button>
+
+          {/* Select message for bulk actions */}
+          <button
+            onClick={() => {
+              if (onToggleSelect) onToggleSelect(message._id);
+              setShowMenu(false);
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+          >
+            <CheckSquare size={14} />
+            Select message
+          </button>
+
           <button
             onClick={() => {
               if (onForward) onForward(message);

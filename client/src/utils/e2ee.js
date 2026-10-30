@@ -216,3 +216,4 @@ export async function decryptTextMessage(ciphertextBase64, ivBase64, sharedKey) 
     return null;
   }
 }
+
