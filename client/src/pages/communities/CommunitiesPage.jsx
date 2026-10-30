@@ -126,34 +126,65 @@ const CommunitiesPage = () => {
 
         {/* Channels Section */}
         <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">
-            Channels
-          </h2>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Channels Directory
+            </h2>
+            <span className="text-xs text-saylo-emerald font-medium">Explore & Follow</span>
+          </div>
 
           <div className="space-y-2">
-            {channels.map((chan) => (
-              <div
-                key={chan._id}
-                className="flex items-center justify-between p-3.5 bg-[#202c33] rounded-2xl border border-gray-700/60"
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar src={chan.avatar} name={chan.name} size="md" />
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-100 flex items-center gap-1.5">
-                      {chan.name}
-                      {chan.isVerified && (
-                        <span className="text-saylo-emerald font-bold text-xs" title="Verified">✓</span>
-                      )}
-                    </h4>
-                    <p className="text-xs text-gray-400">{chan.description}</p>
-                  </div>
-                </div>
+            {channels.length === 0 ? (
+              <p className="text-xs text-gray-500 py-4 text-center">No channels found</p>
+            ) : (
+              channels.map((chan) => {
+                const isFollowing = chan.followers?.some(
+                  (f) => (f._id || f) === user?._id
+                );
 
-                <span className="text-xs text-saylo-400 font-semibold px-3 py-1 bg-white/5 rounded-full">
-                  {chan.followers?.length || 0} followers
-                </span>
-              </div>
-            ))}
+                return (
+                  <div
+                    key={chan._id}
+                    className="flex items-center justify-between p-3.5 bg-[#202c33] rounded-2xl border border-gray-700/60 shadow-sm hover:border-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar src={chan.avatar} name={chan.name} size="md" />
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-100 flex items-center gap-1.5">
+                          {chan.name}
+                          {chan.isVerified && (
+                            <span className="text-saylo-emerald font-bold text-xs" title="Verified">✓</span>
+                          )}
+                        </h4>
+                        <p className="text-xs text-gray-400 line-clamp-1">{chan.description || 'Public updates channel'}</p>
+                        <span className="text-[10px] text-gray-500 font-medium">
+                          {chan.followers?.length || 0} followers
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await api.post(`/channels/${chan._id}/follow`);
+                          await fetchData();
+                        } catch (err) {
+                          console.error(err);
+                        }
+                      }}
+                      className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors shadow-sm ${
+                        isFollowing
+                          ? 'bg-white/10 hover:bg-white/15 text-gray-300'
+                          : 'bg-saylo-emerald hover:bg-saylo-600 text-white'
+                      }`}
+                    >
+                      {isFollowing ? 'Following' : 'Follow'}
+                    </button>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

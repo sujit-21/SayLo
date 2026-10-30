@@ -17,6 +17,8 @@ import {
   Clock,
   User,
   ExternalLink,
+  Video,
+  Camera,
 } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { useSocket } from '../../context/SocketContext';
@@ -40,7 +42,10 @@ const MessageInput = ({
   const [viewOnce, setViewOnce] = useState(false);
   const [isHdQuality, setIsHdQuality] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordMode, setRecordMode] = useState('audio'); // 'audio' | 'video'
   const [recordingTime, setRecordingTime] = useState(0);
+  const [videoPreviewStream, setVideoPreviewStream] = useState(null);
+  const videoPreviewRef = useRef(null);
   const [mentionQuery, setMentionQuery] = useState(null); // null or string
 
   const fileInputRef = useRef(null);
@@ -284,10 +289,23 @@ const MessageInput = ({
     );
   };
 
-  // Start Voice Recording
+  // Start Voice or Circular Video Note Recording
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const isVideoNote = recordMode === 'video';
+      const constraints = isVideoNote
+        ? { audio: true, video: { width: 320, height: 320, facingMode: 'user' } }
+        : { audio: true };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      if (isVideoNote) {
+        setVideoPreviewStream(stream);
+        if (videoPreviewRef.current) {
+          videoPreviewRef.current.srcObject = stream;
+        }
+      }
+
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
@@ -298,11 +316,13 @@ const MessageInput = ({
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioFile = new File([audioBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
+        const mimeType = isVideoNote ? 'video/webm' : 'audio/webm';
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const fileName = isVideoNote ? 'video_note.webm' : `voice_${Date.now()}.webm`;
+        const file = new File([blob], fileName, { type: mimeType });
 
         const formData = new FormData();
-        formData.append('file', audioFile);
+        formData.append('file', file);
 
         try {
           const res = await api.post('/upload', formData, {
@@ -310,17 +330,18 @@ const MessageInput = ({
           });
 
           await sendMessage({
-            type: 'voice',
+            type: isVideoNote ? 'video' : 'voice',
             mediaUrl: res.data.file.url,
-            mediaName: 'Voice Note',
-            mediaMimeType: 'audio/webm',
+            mediaName: fileName,
+            mediaMimeType: isVideoNote ? 'video/note' : 'audio/webm',
             mediaDuration: recordingTime,
           });
         } catch (e) {
-          console.error('Voice note send failed', e);
+          console.error('Recording upload failed', e);
         }
 
         stream.getTracks().forEach((track) => track.stop());
+        setVideoPreviewStream(null);
       };
 
       mediaRecorderRef.current.start();
@@ -331,8 +352,8 @@ const MessageInput = ({
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     } catch (err) {
-      console.error('Microphone access denied', err);
-      alert('Could not access microphone for voice message.');
+      console.error('Device access denied', err);
+      alert('Could not access microphone/camera for note recording.');
     }
   };
 
@@ -606,12 +627,27 @@ const MessageInput = ({
       />
 
       {/* Voice Recording View or Normal Input View */}
+      {/* Recording in progress overlay */}
       {isRecording ? (
-        <div className="flex items-center justify-between gap-4 py-1.5 px-3 bg-red-500/10 border border-red-500/20 rounded-2xl">
+        <div className="flex items-center justify-between gap-4 py-2 px-4 bg-red-500/10 border border-red-500/20 rounded-2xl relative">
+          {recordMode === 'video' && videoPreviewStream && (
+            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-red-500 bg-black shadow-lg">
+              <video
+                ref={(el) => {
+                  if (el && videoPreviewStream) el.srcObject = videoPreviewStream;
+                }}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
           <div className="flex items-center gap-3">
             <span className="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
             <span className="text-xs font-mono text-red-400 font-semibold">
-              Recording {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+              Recording {recordMode === 'video' ? 'Video Note' : 'Voice'} {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
             </span>
           </div>
 
@@ -626,7 +662,7 @@ const MessageInput = ({
             <button
               onClick={() => stopRecording(true)}
               className="p-2 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-full shadow-md"
-              title="Send voice message"
+              title="Send note"
             >
               <Send size={18} />
             </button>
@@ -704,7 +740,7 @@ const MessageInput = ({
             </button>
           </div>
 
-          {/* Voice Note or Send Button */}
+          {/* Voice / Video Note or Send Button */}
           {text.trim() ? (
             <button
               type="button"
@@ -715,14 +751,26 @@ const MessageInput = ({
               <Send size={18} />
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={startRecording}
-              className="p-2.5 bg-saylo-emerald/10 hover:bg-saylo-emerald/20 text-saylo-emerald rounded-full transition-transform active:scale-95 flex-shrink-0"
-              title="Record voice note"
-            >
-              <Mic size={20} />
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Toggle Record Mode (Voice vs Video Note) */}
+              <button
+                type="button"
+                onClick={() => setRecordMode(recordMode === 'audio' ? 'video' : 'audio')}
+                className="p-1.5 text-gray-400 hover:text-white rounded-full transition-colors"
+                title={`Switch to ${recordMode === 'audio' ? 'Video Note' : 'Voice Note'}`}
+              >
+                {recordMode === 'audio' ? <Camera size={16} /> : <Mic size={16} />}
+              </button>
+
+              <button
+                type="button"
+                onClick={startRecording}
+                className="p-2.5 bg-saylo-emerald/10 hover:bg-saylo-emerald/20 text-saylo-emerald rounded-full transition-transform active:scale-95 flex-shrink-0"
+                title={recordMode === 'audio' ? 'Record voice note' : 'Record circular video note'}
+              >
+                {recordMode === 'audio' ? <Mic size={20} /> : <Video size={20} />}
+              </button>
+            </div>
           )}
         </div>
       )}

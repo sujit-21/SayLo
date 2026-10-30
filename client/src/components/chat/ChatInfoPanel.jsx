@@ -1,17 +1,34 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, Clock, Trash2, Ban, UserPlus, LogOut, Link2, Copy, Check, Settings2, QrCode } from 'lucide-react';
+import {
+  X,
+  ShieldCheck,
+  Clock,
+  Trash2,
+  Ban,
+  UserPlus,
+  LogOut,
+  Link2,
+  Copy,
+  Check,
+  Settings2,
+  QrCode,
+  Image,
+  FileText,
+  ExternalLink,
+} from 'lucide-react';
 import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 import api from '../../services/api';
 
-const ChatInfoPanel = ({ isOpen, onClose }) => {
+const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
   const { user } = useAuth();
-  const { activeConversation, selectConversation, fetchConversations } = useChat();
+  const { activeConversation, selectConversation, fetchConversations, messages } = useChat();
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [addingMember, setAddingMember] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [mediaTab, setMediaTab] = useState('media'); // 'media', 'docs', 'links'
 
   if (!isOpen || !activeConversation) return null;
 
@@ -137,6 +154,11 @@ const ChatInfoPanel = ({ isOpen, onClose }) => {
     }
   };
 
+  // Filter media items for gallery
+  const chatMedia = (messages || []).filter((m) => m.type === 'image' || m.type === 'video');
+  const chatDocs = (messages || []).filter((m) => m.type === 'document');
+  const chatLinks = (messages || []).filter((m) => m.linkPreview || (m.text && m.text.match(/https?:\/\/[^\s]+/i)));
+
   return (
     <div className="w-80 h-full bg-[#111b21] border-l border-gray-800 flex flex-col z-30 overflow-y-auto animate-fadeIn">
       {/* Top Header */}
@@ -158,6 +180,133 @@ const ChatInfoPanel = ({ isOpen, onClose }) => {
           <Avatar src={displayAvatar} name={displayName} size="2xl" className="mb-3" />
           <h2 className="text-base font-bold text-gray-100">{displayName}</h2>
           <p className="text-xs text-gray-400 mt-1 max-w-[220px]">{displayAbout}</p>
+        </div>
+
+        {/* Media, Docs and Links Gallery Tabbed Section */}
+        <div className="p-3 bg-[#202c33] rounded-2xl border border-gray-700/40 space-y-3">
+          <div className="flex items-center justify-between pb-1 border-b border-gray-700/50">
+            <span className="text-xs font-semibold text-gray-200">Shared Content</span>
+            <span className="text-[11px] text-saylo-emerald font-semibold">
+              {chatMedia.length + chatDocs.length + chatLinks.length} items
+            </span>
+          </div>
+
+          {/* Sub-tabs */}
+          <div className="grid grid-cols-3 gap-1 bg-[#111b21] p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setMediaTab('media')}
+              className={`py-1 text-xs font-semibold rounded-lg transition-colors ${
+                mediaTab === 'media'
+                  ? 'bg-saylo-emerald text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Media ({chatMedia.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setMediaTab('docs')}
+              className={`py-1 text-xs font-semibold rounded-lg transition-colors ${
+                mediaTab === 'docs'
+                  ? 'bg-saylo-emerald text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Docs ({chatDocs.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setMediaTab('links')}
+              className={`py-1 text-xs font-semibold rounded-lg transition-colors ${
+                mediaTab === 'links'
+                  ? 'bg-saylo-emerald text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Links ({chatLinks.length})
+            </button>
+          </div>
+
+          {/* Tab Content Display */}
+          <div className="max-h-52 overflow-y-auto">
+            {mediaTab === 'media' && (
+              chatMedia.length === 0 ? (
+                <p className="text-center py-6 text-[11px] text-gray-500">No photos or videos shared yet</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-1.5">
+                  {chatMedia.map((m) => (
+                    <div
+                      key={m._id}
+                      onClick={() => onOpenMedia && onOpenMedia(m.mediaUrl, m.mediaName || 'Media', m.type)}
+                      className="aspect-square rounded-xl overflow-hidden bg-black/40 cursor-pointer hover:opacity-80 transition-opacity relative group"
+                    >
+                      {m.type === 'video' ? (
+                        <video src={m.mediaUrl} className="w-full h-full object-cover" />
+                      ) : (
+                        <img src={m.mediaUrl} alt={m.mediaName} className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+
+            {mediaTab === 'docs' && (
+              chatDocs.length === 0 ? (
+                <p className="text-center py-6 text-[11px] text-gray-500">No documents shared yet</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {chatDocs.map((m) => (
+                    <a
+                      key={m._id}
+                      href={m.mediaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-2 rounded-xl bg-black/20 hover:bg-black/40 transition-colors"
+                    >
+                      <FileText size={16} className="text-saylo-emerald flex-shrink-0" />
+                      <div className="truncate flex-1">
+                        <p className="text-xs text-gray-200 truncate font-medium">{m.mediaName || 'File'}</p>
+                        <p className="text-[10px] text-gray-400">
+                          {m.mediaSize ? `${(m.mediaSize / 1024).toFixed(1)} KB` : 'Document'}
+                        </p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )
+            )}
+
+            {mediaTab === 'links' && (
+              chatLinks.length === 0 ? (
+                <p className="text-center py-6 text-[11px] text-gray-500">No web links shared yet</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {chatLinks.map((m) => {
+                    const url = m.linkPreview?.url || m.text?.match(/https?:\/\/[^\s]+/i)?.[0];
+                    return (
+                      <a
+                        key={m._id}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 rounded-xl bg-black/20 hover:bg-black/40 transition-colors"
+                      >
+                        <ExternalLink size={16} className="text-saylo-emerald flex-shrink-0" />
+                        <div className="truncate flex-1">
+                          <p className="text-xs text-gray-200 truncate font-medium">
+                            {m.linkPreview?.title || url}
+                          </p>
+                          <p className="text-[10px] text-gray-400 truncate">{url}</p>
+                        </div>
+                      </a>
+                    );
+                  })}
+                </div>
+              )
+            )}
+          </div>
         </div>
 
         {/* Security / Verification */}

@@ -220,20 +220,52 @@ const MessageItem = ({
     }
   };
 
-  // Highlight search term helper
-  const renderHighlightedText = (text) => {
-    if (!searchQuery || !searchQuery.trim() || !text) return text;
-    const q = searchQuery.trim();
-    const parts = text.split(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
-    return parts.map((part, i) =>
-      part.toLowerCase() === q.toLowerCase() ? (
-        <mark key={i} className="bg-amber-400 text-black px-0.5 rounded font-medium">
-          {part}
-        </mark>
-      ) : (
-        part
-      )
-    );
+  // Highlight search term & parse markdown formatting (*bold*, _italic_, ~strike~, `code`)
+  const renderFormattedText = (rawText) => {
+    if (!rawText) return null;
+
+    // First handle search term highlight if query present
+    let content = rawText;
+
+    // Parse simple inline formatting safely
+    // Match code blocks or inline tokens
+    const parts = content.split(/(\*[^*\n]+\*|_[^_\n]+_|~[^~\n]+~|`[^`\n]+`)/g);
+
+    return parts.map((seg, idx) => {
+      if (seg.startsWith('*') && seg.endsWith('*') && seg.length > 2) {
+        return <strong key={idx} className="font-bold text-white">{seg.slice(1, -1)}</strong>;
+      }
+      if (seg.startsWith('_') && seg.endsWith('_') && seg.length > 2) {
+        return <em key={idx} className="italic">{seg.slice(1, -1)}</em>;
+      }
+      if (seg.startsWith('~') && seg.endsWith('~') && seg.length > 2) {
+        return <del key={idx} className="line-through opacity-75">{seg.slice(1, -1)}</del>;
+      }
+      if (seg.startsWith('`') && seg.endsWith('`') && seg.length > 2) {
+        return (
+          <code key={idx} className="px-1.5 py-0.5 rounded bg-black/40 font-mono text-xs text-saylo-emerald">
+            {seg.slice(1, -1)}
+          </code>
+        );
+      }
+
+      // Check search query highlight
+      if (searchQuery && searchQuery.trim()) {
+        const q = searchQuery.trim();
+        const subParts = seg.split(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+        return subParts.map((sub, sIdx) =>
+          sub.toLowerCase() === q.toLowerCase() ? (
+            <mark key={`${idx}-${sIdx}`} className="bg-amber-400 text-black px-0.5 rounded font-medium">
+              {sub}
+            </mark>
+          ) : (
+            sub
+          )
+        );
+      }
+
+      return seg;
+    });
   };
 
   // Render System Message
@@ -376,19 +408,43 @@ const MessageItem = ({
               </div>
             )}
 
-            {/* Video Media */}
+            {/* Video Media (Regular video or Circular Video Note Bubble) */}
             {message.type === 'video' && message.mediaUrl && (
-              <div className="my-1 rounded-xl overflow-hidden max-w-sm relative group/vid">
-                <video src={message.mediaUrl} controls className="w-full rounded-xl max-h-80" />
-                <button
-                  type="button"
-                  onClick={() => onOpenMedia && onOpenMedia(message.mediaUrl, message.mediaName || 'Video', 'video')}
-                  className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg opacity-0 group-hover/vid:opacity-100 transition-opacity"
-                  title="Fullscreen lightbox"
-                >
-                  <Eye size={16} />
-                </button>
-              </div>
+              message.mediaMimeType === 'video/note' || message.mediaName === 'video_note.webm' ? (
+                <div className="my-2 flex flex-col items-center">
+                  <div
+                    onClick={() => onOpenMedia && onOpenMedia(message.mediaUrl, 'Video Note', 'video')}
+                    className="w-48 h-48 rounded-full overflow-hidden border-4 border-saylo-emerald shadow-2xl relative cursor-pointer bg-black group"
+                  >
+                    <video
+                      src={message.mediaUrl}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Play size={28} fill="white" className="text-white" />
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-saylo-emerald font-semibold uppercase tracking-wider mt-1.5 flex items-center gap-1">
+                    <span>📹 Instant Video Note</span>
+                  </span>
+                </div>
+              ) : (
+                <div className="my-1 rounded-xl overflow-hidden max-w-sm relative group/vid">
+                  <video src={message.mediaUrl} controls className="w-full rounded-xl max-h-80" />
+                  <button
+                    type="button"
+                    onClick={() => onOpenMedia && onOpenMedia(message.mediaUrl, message.mediaName || 'Video', 'video')}
+                    className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg opacity-0 group-hover/vid:opacity-100 transition-opacity"
+                    title="Fullscreen lightbox"
+                  >
+                    <Eye size={16} />
+                  </button>
+                </div>
+              )
             )}
 
             {/* Contact Card Shared */}
@@ -610,29 +666,46 @@ const MessageItem = ({
               </div>
             )}
 
-            {/* Location Message */}
+            {/* Location Message with Interactive Map Canvas */}
             {message.type === 'location' && message.location && (
-              <div className="my-1 p-2 bg-black/20 rounded-xl">
-                <div className="flex items-center gap-2 mb-1 text-saylo-emerald">
-                  <MapPin size={18} />
+              <div className="my-1.5 p-2 bg-black/30 rounded-2xl border border-gray-700/60 overflow-hidden max-w-sm">
+                <div className="flex items-center gap-2 mb-2 px-1 text-saylo-emerald">
+                  <MapPin size={17} />
                   <span className="font-semibold text-xs">Location Shared</span>
                 </div>
-                <p className="text-xs text-gray-300 mb-2">{message.location.address || message.text}</p>
-                <a
-                  href={`https://maps.google.com/?q=${message.location.latitude},${message.location.longitude}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block text-xs bg-saylo-emerald text-white px-3 py-1 rounded-lg"
-                >
-                  View on Google Maps
-                </a>
+
+                {/* Embedded Map Visual Canvas */}
+                <div className="relative w-full h-36 rounded-xl overflow-hidden bg-[#1f2c34] mb-2 border border-gray-700/50">
+                  <iframe
+                    title="Location Map"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${message.location.longitude - 0.005}%2C${message.location.latitude - 0.005}%2C${message.location.longitude + 0.005}%2C${message.location.latitude + 0.005}&layer=mapnik&marker=${message.location.latitude}%2C${message.location.longitude}`}
+                    className="w-full h-full border-0 pointer-events-none"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-transparent cursor-pointer" onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${message.location.latitude}&mlon=${message.location.longitude}#map=16/${message.location.latitude}/${message.location.longitude}`, '_blank')} />
+                </div>
+
+                <p className="text-xs text-gray-200 font-medium px-1 mb-2 line-clamp-2">
+                  {message.location.address || message.text || `${message.location.latitude.toFixed(4)}, ${message.location.longitude.toFixed(4)}`}
+                </p>
+
+                <div className="flex items-center gap-2 px-1">
+                  <a
+                    href={`https://maps.google.com/?q=${message.location.latitude},${message.location.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 text-center py-1.5 text-xs font-semibold bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl shadow-sm transition-colors"
+                  >
+                    Open in Maps
+                  </a>
+                </div>
               </div>
             )}
 
             {/* Regular Text */}
             {message.text && message.type !== 'system' && (
               <p className="break-words leading-relaxed whitespace-pre-wrap">
-                {renderHighlightedText(message.text)}
+                {renderFormattedText(message.text)}
               </p>
             )}
           </>

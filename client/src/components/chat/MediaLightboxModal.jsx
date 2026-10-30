@@ -85,3 +85,4 @@ const MediaLightboxModal = ({ isOpen, mediaUrl, mediaName, mediaType = 'image', 
 };
 
 export default MediaLightboxModal;
+

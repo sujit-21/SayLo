@@ -76,3 +76,4 @@ const ChatThemeModal = ({ isOpen, currentTheme = 'default', onClose, onSelectThe
 };
 
 export default ChatThemeModal;
+

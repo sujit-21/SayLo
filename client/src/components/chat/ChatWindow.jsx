@@ -566,8 +566,12 @@ const ChatWindow = () => {
         )}
       </div>
 
-      {/* Slide-over Info Panel */}
-      <ChatInfoPanel isOpen={showInfoPanel} onClose={() => setShowInfoPanel(false)} />
+      {/* Slide-over Info Panel with Media Gallery */}
+      <ChatInfoPanel
+        isOpen={showInfoPanel}
+        onClose={() => setShowInfoPanel(false)}
+        onOpenMedia={(url, name, type) => setLightboxData({ url, name, type })}
+      />
 
       {/* Modals */}
       <NewPollModal isOpen={showPollModal} onClose={() => setShowPollModal(false)} />

@@ -32,6 +32,9 @@ const participantSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    mutedUntil: {
+      type: Date,
+    },
     isLocked: {
       type: Boolean,
       default: false,

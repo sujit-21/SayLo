@@ -65,3 +65,4 @@ const initMessageScheduler = (io) => {
 };
 
 module.exports = { initMessageScheduler };
+
