@@ -21,9 +21,15 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const newSocket = io(window.location.origin, {
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL ||
+      (window.location.port === '5173'
+        ? `${window.location.protocol}//${window.location.hostname}:5000`
+        : window.location.origin);
+
+    const newSocket = io(socketUrl, {
       auth: { token },
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });

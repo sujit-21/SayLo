@@ -17,6 +17,7 @@ export default defineConfig({
       '/socket.io': {
         target: 'http://localhost:5000',
         ws: true,
+        changeOrigin: true,
         configure: (proxy) => {
           proxy.on('error', (err) => {
             // Ignore normal browser tab refresh / close socket drops
