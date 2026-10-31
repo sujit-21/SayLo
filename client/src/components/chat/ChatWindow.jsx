@@ -242,9 +242,6 @@ const ChatWindow = () => {
         <p className="text-sm text-gray-400 max-w-sm mb-6 leading-relaxed">
           Send and receive messages in real time. Experience private 1-on-1 chats, group collaboration, voice notes, and HD calls.
         </p>
-        <span className="text-xs text-saylo-400 flex items-center gap-1.5 font-medium">
-          🔒 TLS Protected & Verified Messaging
-        </span>
       </div>
     );
   }

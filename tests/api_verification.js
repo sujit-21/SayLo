@@ -342,6 +342,10 @@ async function runTests() {
     }
     console.log(`✅ Bob received encrypted payload: ciphertext = "${foundE2ee.ciphertext.slice(0, 15)}...", iv = "${foundE2ee.iv}"`);
 
+    // Clean up test messages so user UI remains clean
+    await request('POST', `/messages/${messageId}/delete`, { deleteForEveryone: true }, aliceToken);
+    await request('POST', `/messages/${e2eeSendRes.data.message._id}/delete`, { deleteForEveryone: true }, aliceToken);
+
     console.log('\n🎉 ALL 20 ADVANCED VERIFICATION TESTS PASSED SUCCESSFULLY! End-to-End Encryption verified.\n');
   } catch (err) {
     console.error('❌ Test failed:', err);
