@@ -107,3 +107,127 @@ exports.createCommunityGroup = async (req, res, next) => {
   }
 };
 
+// @desc Get single community by ID
+// @route GET /api/v1/communities/:id
+exports.getCommunityById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const community = await Community.findById(id)
+      .populate('owner', 'name avatar email isOnline')
+      .populate('members', 'name avatar email isOnline')
+      .populate({
+        path: 'announcementGroup',
+        select: 'name avatar lastMessage participants',
+      })
+      .populate('groups', 'name avatar participants lastMessage');
+
+    if (!community) {
+      return res.status(404).json({ success: false, message: 'Community not found' });
+    }
+
+    res.json({ success: true, community });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Delete community
+// @route DELETE /api/v1/communities/:id
+exports.deleteCommunity = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user._id;
+
+    const community = await Community.findById(id);
+    if (!community) {
+      return res.status(404).json({ success: false, message: 'Community not found' });
+    }
+
+    if (community.owner.toString() !== currentUserId.toString()) {
+      return res.status(403).json({ success: false, message: 'Only community owner can delete the community' });
+    }
+
+    // Delete associated announcement group & sub-groups
+    if (community.groups && community.groups.length > 0) {
+      await Conversation.deleteMany({ _id: { $in: community.groups } });
+    }
+    if (community.announcementGroup) {
+      await Conversation.findByIdAndDelete(community.announcementGroup);
+    }
+
+    await Community.findByIdAndDelete(id);
+
+    res.json({ success: true, message: 'Community deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Join community
+// @route POST /api/v1/communities/:id/join
+exports.joinCommunity = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user._id;
+
+    const community = await Community.findById(id);
+    if (!community) {
+      return res.status(404).json({ success: false, message: 'Community not found' });
+    }
+
+    if (!community.members.some((m) => m.toString() === currentUserId.toString())) {
+      community.members.push(currentUserId);
+      await community.save();
+
+      // Also add to announcement group
+      if (community.announcementGroup) {
+        const annGroup = await Conversation.findById(community.announcementGroup);
+        if (annGroup && !annGroup.participants.some((p) => p.user?.toString() === currentUserId.toString())) {
+          annGroup.participants.push({ user: currentUserId, role: 'member' });
+          await annGroup.save();
+        }
+      }
+    }
+
+    res.json({ success: true, message: 'Joined community successfully', community });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Leave community
+// @route POST /api/v1/communities/:id/leave
+exports.leaveCommunity = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user._id;
+
+    const community = await Community.findById(id);
+    if (!community) {
+      return res.status(404).json({ success: false, message: 'Community not found' });
+    }
+
+    if (community.owner.toString() === currentUserId.toString()) {
+      return res.status(400).json({ success: false, message: 'Owner cannot leave community. Delete it instead.' });
+    }
+
+    community.members = community.members.filter((m) => m.toString() !== currentUserId.toString());
+    await community.save();
+
+    // Remove from announcement group
+    if (community.announcementGroup) {
+      const annGroup = await Conversation.findById(community.announcementGroup);
+      if (annGroup) {
+        annGroup.participants = annGroup.participants.filter(
+          (p) => (p.user?._id || p.user || p).toString() !== currentUserId.toString()
+        );
+        await annGroup.save();
+      }
+    }
+
+    res.json({ success: true, message: 'Left community successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+

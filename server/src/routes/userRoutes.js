@@ -18,6 +18,9 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/search', protect, searchUsers);
+router.get('/', protect, getContacts);
+router.post('/add', protect, addContact);
+router.post('/remove', protect, removeContact);
 router.get('/contacts', protect, getContacts);
 router.get('/contacts/notes', protect, getContactNotes);
 router.post('/contacts/notes', protect, updateContactNote);
