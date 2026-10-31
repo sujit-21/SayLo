@@ -7,9 +7,9 @@ const ProtectedRoute = () => {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#0c1317]">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#f0f2f5] dark:bg-[#0c1317]">
         <div className="w-10 h-10 border-2 border-saylo-emerald border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-xs text-gray-400 font-medium tracking-wider">Loading SAYLO...</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wider">Loading SAYLO...</p>
       </div>
     );
   }

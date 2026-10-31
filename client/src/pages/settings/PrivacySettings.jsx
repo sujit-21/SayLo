@@ -61,13 +61,13 @@ const PrivacySettings = () => {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
-      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
+      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
         <div className="flex items-center gap-3">
-          <Link to="/settings" className="p-1 rounded-full text-gray-400 hover:text-white">
+          <Link to="/settings" className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-xl font-bold text-gray-100">Privacy</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Privacy</h1>
         </div>
         {saved && (
           <span className="text-xs text-saylo-emerald font-semibold flex items-center gap-1">
@@ -78,10 +78,10 @@ const PrivacySettings = () => {
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-2xl w-full mx-auto space-y-6">
         {/* Last Seen & Online */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-3">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-gray-100">Who can see my Last Seen & Online</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Who can see my Last Seen & Online</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               If you don't share your Last Seen, you won't be able to see other people's Last Seen.
             </p>
           </div>
@@ -94,7 +94,7 @@ const PrivacySettings = () => {
                 className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold capitalize border transition-colors ${
                   privacy.lastSeen === opt
                     ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald'
-                    : 'border-gray-700 text-gray-400 hover:text-white'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 {opt}
@@ -104,10 +104,10 @@ const PrivacySettings = () => {
         </div>
 
         {/* Profile Photo */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-3">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-gray-100">Who can see my Profile Photo</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Control who can view your avatar.</p>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Who can see my Profile Photo</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Control who can view your avatar.</p>
           </div>
 
           <div className="flex gap-2 pt-2">
@@ -118,7 +118,7 @@ const PrivacySettings = () => {
                 className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold capitalize border transition-colors ${
                   privacy.profilePhoto === opt
                     ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald'
-                    : 'border-gray-700 text-gray-400 hover:text-white'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 {opt}
@@ -128,10 +128,10 @@ const PrivacySettings = () => {
         </div>
 
         {/* Read Receipts */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg flex items-center justify-between">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg flex items-center justify-between">
           <div className="pr-4">
-            <h3 className="text-sm font-bold text-gray-100">Read Receipts</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Read Receipts</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               If turned off, you won't send or receive Read Receipts (double blue checkmarks).
             </p>
           </div>
@@ -145,10 +145,10 @@ const PrivacySettings = () => {
         </div>
 
         {/* Silence Unknown Callers */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg flex items-center justify-between">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg flex items-center justify-between">
           <div className="pr-4">
-            <h3 className="text-sm font-bold text-gray-100">Silence Unknown Callers</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Silence Unknown Callers</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Calls from unknown numbers will be silenced. They will still be shown in the Calls tab.
             </p>
           </div>
@@ -162,10 +162,10 @@ const PrivacySettings = () => {
         </div>
 
         {/* Default Disappearing Message Timer */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-3">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-gray-100">Default message timer for new chats</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Default message timer for new chats</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Start new chats with disappearing messages enabled.
             </p>
           </div>
@@ -183,7 +183,7 @@ const PrivacySettings = () => {
                 className={`py-2 px-2 text-center rounded-xl text-xs font-semibold border transition-colors ${
                   privacy.disappearingDefaultTimer === t.val
                     ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald'
-                    : 'border-gray-700 text-gray-400 hover:text-white'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 {t.label}
@@ -195,15 +195,15 @@ const PrivacySettings = () => {
         {/* Blocked Contacts */}
         <div
           onClick={() => setShowBlockedModal(true)}
-          className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg flex items-center justify-between cursor-pointer hover:bg-[#25323a] transition-colors"
+          className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-[#25323a] transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-red-500/10 text-red-400">
+            <div className="p-2.5 rounded-2xl bg-red-500/10 text-red-500">
               <Ban size={20} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-100">Blocked contacts</h3>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Blocked contacts</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 {blockedUsers.length === 0
                   ? 'No blocked contacts'
                   : `${blockedUsers.length} blocked contact(s)`}
@@ -217,20 +217,20 @@ const PrivacySettings = () => {
       {/* Blocked Contacts Modal */}
       {showBlockedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#202c33] border border-gray-700/80 w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700/70">
-              <h3 className="text-base font-semibold text-gray-100">Blocked contacts</h3>
+          <div className="bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700/70">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Blocked contacts</h3>
               <button
                 onClick={() => setShowBlockedModal(false)}
-                className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/5"
+                className="p-1 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-gray-800 p-3">
+            <div className="flex-1 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-800 p-3">
               {blockedUsers.length === 0 ? (
-                <div className="py-12 text-center text-xs text-gray-400">
+                <div className="py-12 text-center text-xs text-gray-500 dark:text-gray-400">
                   You haven't blocked any contacts.
                 </div>
               ) : (
@@ -239,14 +239,14 @@ const PrivacySettings = () => {
                     <div className="flex items-center gap-3 truncate">
                       <Avatar src={u.avatar} name={u.name} size="sm" />
                       <div className="truncate">
-                        <h4 className="text-sm font-semibold text-gray-100 truncate">{u.name}</h4>
-                        <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{u.name}</h4>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{u.email}</p>
                       </div>
                     </div>
 
                     <button
                       onClick={() => handleUnblock(u._id)}
-                      className="px-3 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
+                      className="px-3 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
                     >
                       Unblock
                     </button>

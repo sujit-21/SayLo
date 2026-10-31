@@ -4,12 +4,12 @@ import { Home } from 'lucide-react';
 
 const NotFoundPage = () => {
   return (
-    <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#0c1317] text-white p-4 text-center select-none">
+    <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#f0f2f5] dark:bg-[#0c1317] text-gray-900 dark:text-white p-4 text-center select-none">
       <div className="w-20 h-20 rounded-3xl bg-saylo-emerald/10 border border-saylo-emerald/20 flex items-center justify-center mb-6">
         <span className="text-3xl font-black text-saylo-emerald">404</span>
       </div>
-      <h1 className="text-2xl font-bold mb-2">Page Not Found</h1>
-      <p className="text-xs text-gray-400 max-w-sm mb-6">
+      <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Page Not Found</h1>
+      <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mb-6">
         The page you are looking for does not exist or has been moved.
       </p>
       <Link

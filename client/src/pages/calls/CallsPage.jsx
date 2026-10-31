@@ -30,21 +30,21 @@ const CallsPage = () => {
   }, []);
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
       {/* Header */}
-      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
-        <h1 className="text-xl font-bold text-gray-100">Calls</h1>
+      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Calls</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-3xl w-full mx-auto space-y-6">
         {/* Create Call Link Banner */}
-        <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#202c33] border border-gray-700/60 shadow-md">
+        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/60 shadow-md">
           <div className="w-12 h-12 rounded-full bg-saylo-emerald flex items-center justify-center text-white">
             <Link size={20} />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-gray-100">Create a call link</h3>
-            <p className="text-xs text-gray-400">Share a link for your SAYLO voice or video call</p>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Create a call link</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Share a link for your SAYLO voice or video call</p>
           </div>
           <button
             onClick={() => setShowCallLinkModal(true)}
@@ -56,7 +56,7 @@ const CallsPage = () => {
 
         {/* Recent Calls */}
         <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-1">
             Recent Calls
           </h2>
 
@@ -73,7 +73,7 @@ const CallsPage = () => {
               </p>
             </div>
           ) : (
-            <div className="bg-[#202c33] rounded-2xl border border-gray-700/60 divide-y divide-gray-700/40 overflow-hidden shadow-lg">
+            <div className="bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 divide-y divide-gray-200 dark:divide-gray-700/40 overflow-hidden shadow-lg">
               {calls.map((call) => {
                 const isCaller = call.caller?._id === user?._id;
                 const contact = isCaller ? call.receiver : call.caller;
@@ -84,17 +84,17 @@ const CallsPage = () => {
                 return (
                   <div
                     key={call._id}
-                    className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+                    className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                   >
                     <div className="flex items-center gap-3.5">
                       <Avatar src={contact.avatar} name={contact.name} size="md" />
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-100">{contact.name}</h4>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{contact.name}</h4>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                           {isCaller ? (
                             <PhoneOutgoing size={13} className="text-saylo-emerald" />
                           ) : isMissed ? (
-                            <PhoneMissed size={13} className="text-red-400" />
+                            <PhoneMissed size={13} className="text-red-500 dark:text-red-400" />
                           ) : (
                             <PhoneIncoming size={13} className="text-saylo-emerald" />
                           )}
@@ -114,14 +114,14 @@ const CallsPage = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => startCall(contact, 'audio')}
-                        className="p-2.5 rounded-full hover:bg-white/10 text-saylo-emerald transition-colors"
+                        className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-saylo-emerald transition-colors"
                         title="Call with voice"
                       >
                         <Phone size={18} />
                       </button>
                       <button
                         onClick={() => startCall(contact, 'video')}
-                        className="p-2.5 rounded-full hover:bg-white/10 text-saylo-emerald transition-colors"
+                        className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-saylo-emerald transition-colors"
                         title="Call with video"
                       >
                         <Video size={18} />

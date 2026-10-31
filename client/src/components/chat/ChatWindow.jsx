@@ -46,7 +46,7 @@ const ChatWindow = () => {
     sendMessage,
     deleteMessage,
   } = useChat();
-  const { wallpaper } = useTheme();
+  const { wallpaper, theme } = useTheme();
 
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -228,7 +228,7 @@ const ChatWindow = () => {
 
   if (!activeConversation) {
     return (
-      <div className="flex-1 h-full bg-[#111b21] dark:bg-[#111b21] flex flex-col items-center justify-center p-6 text-center select-none border-l border-gray-800">
+      <div className="flex-1 h-full bg-[#f0f2f5] dark:bg-[#111b21] flex flex-col items-center justify-center p-6 text-center select-none border-l border-gray-200 dark:border-gray-800">
         <div className="w-24 h-24 mb-6 rounded-3xl bg-saylo-emerald/10 border border-saylo-emerald/20 flex items-center justify-center">
           <svg className="w-12 h-12 text-saylo-emerald" viewBox="0 0 100 100" fill="currentColor">
             <circle cx="50" cy="50" r="48" fill="#00A884" fillOpacity="0.1" />
@@ -238,8 +238,8 @@ const ChatWindow = () => {
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-100 mb-2">SAYLO for Web</h2>
-        <p className="text-sm text-gray-400 max-w-sm mb-6 leading-relaxed">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">SAYLO for Web</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mb-6 leading-relaxed">
           Send and receive messages in real time. Experience private 1-on-1 chats, group collaboration, voice notes, and HD calls.
         </p>
       </div>
@@ -292,19 +292,19 @@ const ChatWindow = () => {
 
     return (
       <div className="flex justify-center my-3 select-none">
-        <span className="bg-[#182229] border border-gray-800 text-[11px] font-medium text-gray-400 px-3 py-1 rounded-lg shadow-sm">
+        <span className="bg-white/90 dark:bg-[#182229] border border-gray-200 dark:border-gray-800 text-[11px] font-medium text-gray-700 dark:text-gray-300 px-3 py-1 rounded-lg shadow-sm">
           {label}
         </span>
       </div>
     );
   };
 
-  // Background pattern class based on selected per-chat or global wallpaper
+  // Background pattern class based on selected per-chat or global wallpaper & theme
   const effectiveWallpaper =
     (activeConversation?._id && localStorage.getItem(`saylo_wallpaper_${activeConversation._id}`)) ||
     wallpaper;
 
-  let wallpaperClass = 'bg-chat-pattern-dark';
+  let wallpaperClass = theme === 'dark' ? 'bg-chat-pattern-dark' : 'bg-chat-pattern-light';
   if (effectiveWallpaper === 'midnight') wallpaperClass = 'bg-[#0b141a]';
   else if (effectiveWallpaper === 'emerald') wallpaperClass = 'bg-[#002a22]';
   else if (effectiveWallpaper === 'navy') wallpaperClass = 'bg-[#0a192f]';
@@ -343,13 +343,13 @@ const ChatWindow = () => {
 
       {/* Uploading Spinner Overlay */}
       {isUploadingDrop && (
-        <div className="absolute top-4 right-4 z-40 bg-[#202c33] border border-gray-700/80 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3">
+        <div className="absolute top-4 right-4 z-40 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3">
           <div className="w-4 h-4 border-2 border-saylo-emerald border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-xs text-gray-200 font-medium">Sending dropped file...</span>
+          <span className="text-xs text-gray-800 dark:text-gray-200 font-medium">Sending dropped file...</span>
         </div>
       )}
 
-      <div className="flex-1 h-full flex flex-col min-w-0 bg-[#0b141a] dark:bg-[#0b141a]">
+      <div className="flex-1 h-full flex flex-col min-w-0 bg-[#efeae2] dark:bg-[#0b141a] transition-colors duration-150">
         {/* Header */}
         <ChatHeader
           onToggleSearch={() => {
@@ -388,7 +388,7 @@ const ChatWindow = () => {
 
         {/* In-Chat Message Search Bar */}
         {showSearch && (
-          <div className="bg-[#202c33] px-4 py-2.5 border-b border-gray-800 flex items-center justify-between gap-3 animate-fadeIn">
+          <div className="bg-[#f0f2f5] dark:bg-[#202c33] px-4 py-2.5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between gap-3 animate-fadeIn">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
               <Search size={16} className="text-gray-400 flex-shrink-0" />
               <input
@@ -399,7 +399,7 @@ const ChatWindow = () => {
                   setCurrentMatchIndex(0);
                 }}
                 placeholder="Search messages in this chat..."
-                className="w-full bg-transparent text-xs text-white placeholder-gray-400 focus:outline-none"
+                className="w-full bg-transparent text-xs text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none"
                 autoFocus
               />
             </div>
@@ -571,14 +571,14 @@ const ChatWindow = () => {
 
         {/* Floating Bulk Action Bar when messages are selected */}
         {isSelectMode && (
-          <div className="bg-[#202c33] border-t border-gray-700/80 px-6 py-3 flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom duration-150 z-20">
+          <div className="bg-[#f0f2f5] dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-700/80 px-6 py-3 flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom duration-150 z-20">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
                   setIsSelectMode(false);
                   setSelectedMessageIds([]);
                 }}
-                className="p-1 text-gray-400 hover:text-white rounded-full hover:bg-white/10"
+                className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-full hover:bg-black/5 dark:hover:bg-white/10"
                 title="Cancel selection"
               >
                 <X size={18} />

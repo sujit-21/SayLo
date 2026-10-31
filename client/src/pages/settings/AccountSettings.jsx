@@ -22,20 +22,20 @@ const AccountSettings = () => {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-800 bg-[#202c33]">
-        <Link to="/settings" className="p-1 rounded-full text-gray-400 hover:text-white">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
+      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <Link to="/settings" className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-xl font-bold text-gray-100">Account</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Account</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-2xl w-full mx-auto space-y-6">
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-4">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-gray-100">Export Account Data</h3>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Export Account Data</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Download a JSON copy of your SAYLO account profile and configurations.
               </p>
             </div>
@@ -49,16 +49,16 @@ const AccountSettings = () => {
           </div>
         </div>
 
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-4">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-red-400">Delete My Account</h3>
-            <p className="text-xs text-gray-400 mt-1">
+            <h3 className="text-sm font-bold text-red-500">Delete My Account</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Deleting your account will delete your message history, remove you from all groups, and erase backups.
             </p>
           </div>
           <button
             onClick={() => alert('Account deletion requested. Please contact support.')}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-xs font-semibold"
+            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-xl text-xs font-semibold"
           >
             <Trash2 size={16} />
             Delete Account

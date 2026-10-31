@@ -172,31 +172,31 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
 
   return (
     <div
-      className="w-full md:w-80 lg:w-96 h-full bg-[#111b21] dark:bg-[#111b21] border-r border-gray-800 flex flex-col flex-shrink-0 select-none relative"
+      className="w-full md:w-80 lg:w-96 h-full bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-gray-800 flex flex-col flex-shrink-0 select-none relative transition-colors duration-150"
       onClick={() => setContextMenu(null)}
     >
       {/* Top Header */}
-      <div className="h-16 px-4 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
-        <h1 className="text-xl font-bold text-gray-100 tracking-wide">Chats</h1>
+      <div className="h-16 px-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-wide">Chats</h1>
 
-        <div className="flex items-center gap-1 text-gray-300">
+        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
           <button
             onClick={() => setShowBroadcastModal(true)}
-            className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
             title="New Broadcast List"
           >
             <Megaphone size={19} />
           </button>
           <button
             onClick={onOpenNewGroup}
-            className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
             title="New Group"
           >
             <Users size={20} />
           </button>
           <button
             onClick={onOpenNewChat}
-            className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
             title="New Chat"
           >
             <Plus size={22} />
@@ -205,7 +205,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       </div>
 
       {/* Search Bar */}
-      <div className="p-3 border-b border-gray-800/80">
+      <div className="p-3 border-b border-gray-200 dark:border-gray-800/80 bg-white dark:bg-[#111b21]">
         <div className="relative">
           <Search size={16} className="absolute left-3.5 top-2.5 text-gray-400" />
           <input
@@ -213,7 +213,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search or start new chat"
-            className="w-full bg-[#202c33] border border-transparent rounded-xl pl-10 pr-4 py-2 text-xs text-gray-100 placeholder-gray-400 focus:outline-none focus:border-saylo-emerald"
+            className="w-full bg-[#f0f2f5] dark:bg-[#202c33] border border-transparent rounded-xl pl-10 pr-4 py-2 text-xs text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-saylo-emerald"
           />
         </div>
 
@@ -235,7 +235,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
               className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
                 activeTabFilter === tab.id
                   ? 'bg-saylo-emerald text-white'
-                  : 'bg-[#202c33] text-gray-400 hover:text-gray-200'
+                  : 'bg-[#f0f2f5] dark:bg-[#202c33] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
               {tab.label}
@@ -256,15 +256,15 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                 setShowPinPrompt(true);
               }
             }}
-            className="flex items-center justify-between px-4 py-3 bg-[#182229] border-b border-gray-800 cursor-pointer hover:bg-[#202c33] transition-colors"
+            className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-[#182229] border-b border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#202c33] transition-colors"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-saylo-emerald/15 text-saylo-emerald flex items-center justify-center">
                 {isLockedFolderOpen ? <Unlock size={18} /> : <Lock size={18} />}
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-100">Locked Chats</h4>
-                <p className="text-[11px] text-gray-400">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Locked Chats</h4>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
                   {isLockedFolderOpen ? 'Unlocked • Tap to hide' : `${lockedCount} chat(s) protected`}
                 </p>
               </div>
@@ -356,8 +356,10 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                   e.preventDefault();
                   setContextMenu({ x: e.clientX, y: e.clientY, conversation: c });
                 }}
-                className={`flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-gray-800/40 transition-colors ${
-                  isSelected ? 'bg-[#2a3942]' : 'hover:bg-[#202c33]'
+                className={`flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-800/40 transition-colors ${
+                  isSelected
+                    ? 'bg-[#f0f2f5] dark:bg-[#2a3942]'
+                    : 'hover:bg-[#f5f6f6] dark:hover:bg-[#202c33]'
                 }`}
               >
                 <Avatar
@@ -370,7 +372,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5 truncate mr-2">
-                      <h3 className="text-sm font-semibold text-gray-100 truncate">{chatName}</h3>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{chatName}</h3>
                       {chatLabels[c._id] && (
                         <span
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border uppercase tracking-wider flex-shrink-0 ${
@@ -383,7 +385,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                     </div>
                     <span
                       className={`text-[11px] whitespace-nowrap ${
-                        unreadCount > 0 ? 'text-saylo-emerald font-semibold' : 'text-gray-400'
+                        unreadCount > 0 ? 'text-saylo-emerald font-semibold' : 'text-gray-500 dark:text-gray-400'
                       }`}
                     >
                       {formatSidebarTime(c.lastMessageAt || c.updatedAt)}
@@ -395,26 +397,26 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                       {hasDraft ? (
                         <span className="truncate flex items-center gap-1.5 text-xs">
                           <span className="font-bold text-saylo-emerald">Draft:</span>
-                          <span className="text-gray-300 truncate">{draftText.trim()}</span>
+                          <span className="text-gray-600 dark:text-gray-300 truncate">{draftText.trim()}</span>
                         </span>
                       ) : (
                         <>
                           {isLastSelf && (
                             <span className="flex-shrink-0">
                               {lastStatus === 'read' ? (
-                                <CheckCheck size={14} className="text-saylo-300" />
+                                <CheckCheck size={14} className="text-saylo-emerald" />
                               ) : (
                                 <Check size={14} className="text-gray-400" />
                               )}
                             </span>
                           )}
-                          <span className="truncate text-gray-400">{lastText}</span>
+                          <span className="truncate text-gray-600 dark:text-gray-400">{lastText}</span>
                         </>
                       )}
                     </div>
 
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {isMuted && <VolumeX size={13} className="text-gray-500" />}
+                      {isMuted && <VolumeX size={13} className="text-gray-400 dark:text-gray-500" />}
                       {isPinned && <Pin size={13} className="text-saylo-emerald fill-saylo-emerald transform -rotate-45" />}
                       {unreadCount > 0 && (
                         <span className="bg-saylo-emerald text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
@@ -433,7 +435,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       {/* Context Menu on Right Click */}
       {contextMenu && (
         <div
-          className="fixed z-50 w-44 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl py-1 text-xs text-gray-200 animate-fadeIn"
+          className="fixed z-50 w-48 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl py-1 text-xs text-gray-800 dark:text-gray-200 animate-fadeIn"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -516,14 +518,14 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       {/* PIN Verification Modal */}
       {showPinPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#202c33] p-6 rounded-3xl max-w-xs w-full text-center border border-gray-700 shadow-2xl">
+          <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl max-w-xs w-full text-center border border-gray-200 dark:border-gray-700 shadow-2xl">
             <div className="w-12 h-12 mx-auto rounded-full bg-saylo-emerald/20 text-saylo-emerald flex items-center justify-center mb-3">
               <Lock size={22} />
             </div>
-            <h3 className="text-sm font-bold text-white mb-1">Enter Security PIN</h3>
-            <p className="text-xs text-gray-400 mb-4">Enter your 4-digit PIN to access locked chats</p>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Enter Security PIN</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Enter your 4-digit PIN to access locked chats</p>
 
-            {pinError && <p className="text-xs text-red-400 mb-3">{pinError}</p>}
+            {pinError && <p className="text-xs text-red-500 dark:text-red-400 mb-3">{pinError}</p>}
 
             <form onSubmit={handleVerifyPin} className="space-y-4">
               <input
@@ -533,7 +535,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                 onChange={(e) => setEnteredPin(e.target.value.replace(/\D/g, ''))}
                 placeholder="••••"
                 required
-                className="w-full text-center tracking-widest text-xl font-mono bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-saylo-emerald"
+                className="w-full text-center tracking-widest text-xl font-mono bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-saylo-emerald"
                 autoFocus
               />
               <div className="flex gap-2">
@@ -544,7 +546,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                     setEnteredPin('');
                     setPinError('');
                   }}
-                  className="flex-1 py-2 text-xs text-gray-400 hover:bg-white/5 rounded-xl"
+                  className="flex-1 py-2 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl"
                 >
                   Cancel
                 </button>

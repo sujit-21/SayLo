@@ -158,7 +158,7 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, sender
 
   return (
     <div className="my-1.5 flex flex-col gap-1.5 min-w-[270px]">
-      <div className="flex items-center gap-2.5 bg-black/25 p-2.5 rounded-2xl border border-gray-700/30">
+      <div className="flex items-center gap-2.5 bg-black/5 dark:bg-black/25 p-2.5 rounded-2xl border border-gray-200 dark:border-gray-700/30">
         <audio
           ref={audioRef}
           src={src}
@@ -186,7 +186,7 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, sender
                   key={idx}
                   onClick={() => handleBarClick(idx)}
                   className={`flex-1 rounded-full transition-all duration-100 ${
-                    isFilled ? 'bg-saylo-emerald' : 'bg-gray-600 hover:bg-gray-500'
+                    isFilled ? 'bg-saylo-emerald' : 'bg-gray-400 dark:bg-gray-600 hover:bg-gray-500'
                   }`}
                   style={{
                     height: `${ht}%`,
@@ -207,7 +207,7 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, sender
             className="w-full h-1 bg-transparent rounded-lg appearance-none cursor-pointer accent-saylo-emerald -mt-1 opacity-0 hover:opacity-100 transition-opacity"
           />
 
-          <div className="flex justify-between items-center text-[10px] text-gray-400 mt-0.5">
+          <div className="flex justify-between items-center text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
             <span>{formatSecs(currentTime)}</span>
             <span>{formatSecs(duration)}</span>
           </div>
@@ -216,7 +216,7 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, sender
         <button
           type="button"
           onClick={cycleSpeed}
-          className="px-2 py-1 rounded-full text-[11px] font-bold bg-white/10 hover:bg-white/20 text-saylo-300 transition-colors flex-shrink-0"
+          className="px-2 py-1 rounded-full text-[11px] font-bold bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-saylo-700 dark:text-saylo-300 transition-colors flex-shrink-0"
           title="Playback speed (1x, 1.5x, 2x)"
         >
           {speed}x
@@ -236,7 +236,7 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, sender
         <button
           type="button"
           onClick={handlePlayInBackground}
-          className="text-[10px] text-gray-400 hover:text-saylo-emerald font-semibold flex items-center gap-1 transition-colors"
+          className="text-[10px] text-gray-500 dark:text-gray-400 hover:text-saylo-emerald font-semibold flex items-center gap-1 transition-colors"
           title="Play in background while browsing other chats"
         >
           <span>🎧 Play in Background</span>
@@ -244,7 +244,7 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, sender
       </div>
 
       {showTranscription && (
-        <div className="p-2 rounded-xl bg-black/30 border border-gray-700/40 text-xs text-gray-200 italic animate-fadeIn">
+        <div className="p-2 rounded-xl bg-black/5 dark:bg-black/30 border border-gray-200 dark:border-gray-700/40 text-xs text-gray-700 dark:text-gray-200 italic animate-fadeIn">
           {isTranscribing ? 'Transcribing audio...' : transcription}
         </div>
       )}
@@ -320,7 +320,7 @@ const MessageItem = ({
 
     return parts.map((seg, idx) => {
       if (seg.startsWith('*') && seg.endsWith('*') && seg.length > 2) {
-        return <strong key={idx} className="font-bold text-white">{seg.slice(1, -1)}</strong>;
+        return <strong key={idx} className="font-bold text-inherit">{seg.slice(1, -1)}</strong>;
       }
       if (seg.startsWith('_') && seg.endsWith('_') && seg.length > 2) {
         return <em key={idx} className="italic">{seg.slice(1, -1)}</em>;
@@ -330,7 +330,7 @@ const MessageItem = ({
       }
       if (seg.startsWith('`') && seg.endsWith('`') && seg.length > 2) {
         return (
-          <code key={idx} className="px-1.5 py-0.5 rounded bg-black/40 font-mono text-xs text-saylo-emerald">
+          <code key={idx} className="px-1.5 py-0.5 rounded bg-black/10 dark:bg-black/40 font-mono text-xs text-saylo-emerald">
             {seg.slice(1, -1)}
           </code>
         );
@@ -359,7 +359,7 @@ const MessageItem = ({
             return (
               <span
                 key={`${idx}-at-${aIdx}`}
-                className="bg-saylo-emerald/30 text-saylo-300 font-bold px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5 text-xs select-none"
+                className="bg-saylo-emerald/20 text-saylo-600 dark:text-saylo-300 font-bold px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5 text-xs select-none"
               >
                 {atPart}
               </span>
@@ -377,7 +377,7 @@ const MessageItem = ({
   if (message.type === 'system') {
     return (
       <div className="flex justify-center my-3">
-        <span className="bg-[#182229] text-saylo-mutedTextDark text-xs px-3 py-1.5 rounded-lg shadow-sm border border-gray-800/40 text-center max-w-md">
+        <span className="bg-white/80 dark:bg-[#182229] text-gray-700 dark:text-saylo-mutedTextDark text-xs px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800/40 text-center max-w-md">
           {message.text}
         </span>
       </div>
@@ -388,18 +388,18 @@ const MessageItem = ({
   const getThemeClass = () => {
     switch (customTheme) {
       case 'ocean':
-        return 'bg-[#0284c7] dark:bg-[#0284c7]';
+        return 'bg-[#0284c7] text-white';
       case 'purple':
-        return 'bg-[#7c3aed] dark:bg-[#7c3aed]';
+        return 'bg-[#7c3aed] text-white';
       case 'crimson':
-        return 'bg-[#e11d48] dark:bg-[#e11d48]';
+        return 'bg-[#e11d48] text-white';
       case 'sunset':
-        return 'bg-[#d97706] dark:bg-[#d97706]';
+        return 'bg-[#d97706] text-white';
       case 'midnight':
-        return 'bg-[#334155] dark:bg-[#334155]';
+        return 'bg-[#334155] text-white';
       case 'default':
       default:
-        return 'bg-[#005c4b] dark:bg-[#005c4b]';
+        return 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef]';
     }
   };
 
@@ -437,31 +437,31 @@ const MessageItem = ({
           isSticker
             ? 'bg-transparent border-0 shadow-none p-1'
             : isSelf
-            ? `${getThemeClass()} text-[#e9edef] rounded-tr-none px-3.5 py-2 text-sm shadow-sm`
-            : 'bg-[#202c33] dark:bg-[#202c33] text-[#e9edef] rounded-tl-none border border-gray-700/30 px-3.5 py-2 text-sm shadow-sm'
+            ? `${getThemeClass()} rounded-tr-none px-3.5 py-2 text-sm shadow-sm`
+            : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-none border border-gray-200/80 dark:border-gray-700/30 px-3.5 py-2 text-sm shadow-sm'
         } transition-all ${isSelected ? 'ring-2 ring-saylo-emerald' : ''} ${
           isSelectMode ? 'cursor-pointer' : ''
         } ${message.deletedForEveryone ? 'italic opacity-70' : ''}`}
       >
         {/* Sender name for group chats */}
         {!isSelf && message.sender?.name && (
-          <p className="text-xs font-semibold text-saylo-400 mb-1">{message.sender.name}</p>
+          <p className="text-xs font-semibold text-saylo-600 dark:text-saylo-400 mb-1">{message.sender.name}</p>
         )}
 
         {/* Forwarded Tag */}
         {message.forwarded && (
-          <p className="text-[11px] text-gray-400 italic mb-1 flex items-center gap-1">
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 italic mb-1 flex items-center gap-1">
             <span>Forwarded</span>
           </p>
         )}
 
         {/* Reply Preview */}
         {message.replyTo && (
-          <div className="mb-2 p-2 rounded-lg bg-black/20 border-l-4 border-saylo-emerald text-xs">
-            <span className="font-semibold text-saylo-300 block mb-0.5">
+          <div className="mb-2 p-2 rounded-lg bg-black/5 dark:bg-black/20 border-l-4 border-saylo-emerald text-xs">
+            <span className="font-semibold text-saylo-600 dark:text-saylo-300 block mb-0.5">
               {message.replyTo.sender?.name || 'User'}
             </span>
-            <p className="line-clamp-2 text-gray-300">{message.replyTo.text || '[Attachment]'}</p>
+            <p className="line-clamp-2 text-gray-600 dark:text-gray-300">{message.replyTo.text || '[Attachment]'}</p>
           </div>
         )}
 
@@ -566,7 +566,7 @@ const MessageItem = ({
 
             {/* Contact Card Shared */}
             {message.type === 'contact' && message.contactCard && (
-              <div className="my-1.5 p-3 rounded-2xl bg-black/25 border border-gray-700/50 min-w-[240px]">
+              <div className="my-1.5 p-3 rounded-2xl bg-black/5 dark:bg-black/25 border border-gray-200 dark:border-gray-700/50 min-w-[240px]">
                 <div className="flex items-center gap-3 mb-2.5">
                   <Avatar
                     src={message.contactCard.avatar}
@@ -574,21 +574,21 @@ const MessageItem = ({
                     size="md"
                   />
                   <div className="truncate">
-                    <h4 className="text-sm font-semibold text-white truncate">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                       {message.contactCard.name}
                     </h4>
-                    <p className="text-xs text-gray-300 truncate">
+                    <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
                       {message.contactCard.phone || message.contactCard.email}
                     </p>
                   </div>
                 </div>
                 {message.contactCard.about && (
-                  <p className="text-[11px] text-gray-400 italic mb-2 line-clamp-2">
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 italic mb-2 line-clamp-2">
                     "{message.contactCard.about}"
                   </p>
                 )}
-                <div className="pt-2 border-t border-gray-700/40 flex items-center justify-between">
-                  <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40 flex items-center justify-between">
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">
                     Contact Card
                   </span>
                   <button
@@ -616,7 +616,7 @@ const MessageItem = ({
                 href={message.linkPreview.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="my-1.5 block rounded-2xl overflow-hidden bg-black/30 border border-gray-700/50 hover:border-saylo-emerald transition-colors max-w-sm"
+                className="my-1.5 block rounded-2xl overflow-hidden bg-black/5 dark:bg-black/30 border border-gray-200 dark:border-gray-700/50 hover:border-saylo-emerald transition-colors max-w-sm"
               >
                 {message.linkPreview.image && (
                   <img
@@ -633,11 +633,11 @@ const MessageItem = ({
                     <ExternalLink size={10} />
                     <span>{message.linkPreview.siteName || new URL(message.linkPreview.url).hostname}</span>
                   </p>
-                  <h4 className="text-xs font-bold text-white line-clamp-2">
+                  <h4 className="text-xs font-bold text-gray-900 dark:text-white line-clamp-2">
                     {message.linkPreview.title || message.linkPreview.url}
                   </h4>
                   {message.linkPreview.description && (
-                    <p className="text-[11px] text-gray-400 line-clamp-2 mt-1">
+                    <p className="text-[11px] text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
                       {message.linkPreview.description}
                     </p>
                   )}
@@ -666,34 +666,34 @@ const MessageItem = ({
                 : 'Document';
 
               return (
-                <div className="my-1.5 p-3 bg-black/30 rounded-2xl border border-gray-700/60 min-w-[240px] max-w-sm space-y-2">
+                <div className="my-1.5 p-3 bg-black/5 dark:bg-black/30 rounded-2xl border border-gray-200 dark:border-gray-700/60 min-w-[240px] max-w-sm space-y-2">
                   <div className="flex items-start gap-3">
                     <div className={`p-2.5 rounded-xl flex-shrink-0 flex items-center justify-center ${
-                      isPdf ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-saylo-emerald/15 text-saylo-emerald'
+                      isPdf ? 'bg-red-500/20 text-red-500 dark:text-red-400 border border-red-500/40' : 'bg-saylo-emerald/15 text-saylo-emerald'
                     }`}>
                       <FileText size={22} />
                     </div>
                     <div className="truncate flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                          isPdf ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-300'
+                          isPdf ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                         }`}>
                           {isPdf ? 'PDF' : (fileName.split('.').pop() || 'DOC').toUpperCase()}
                         </span>
-                        <span className="text-[10px] text-gray-400 font-mono">{fileSizeStr}</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 font-mono">{fileSizeStr}</span>
                       </div>
-                      <p className="text-xs font-semibold text-gray-100 truncate" title={fileName}>
+                      <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate" title={fileName}>
                         {fileName}
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-gray-700/40 flex items-center justify-end gap-2">
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40 flex items-center justify-end gap-2">
                     <a
                       href={message.mediaUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-gray-200 transition-colors"
+                      className="px-3 py-1 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors"
                     >
                       Preview
                     </a>
@@ -713,7 +713,7 @@ const MessageItem = ({
             {/* Poll Widget */}
             {message.type === 'poll' && message.poll && (
               <div className="my-2 min-w-[260px]">
-                <h4 className="font-semibold text-sm mb-3 flex items-center gap-2 text-white">
+                <h4 className="font-semibold text-sm mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
                   <span>📊</span> {message.poll.question}
                 </h4>
                 <div className="space-y-2">
@@ -733,7 +733,7 @@ const MessageItem = ({
                         className={`w-full text-left p-2.5 rounded-xl border transition-all relative overflow-hidden flex flex-col gap-1 ${
                           hasVoted
                             ? 'border-saylo-emerald bg-saylo-emerald/10'
-                            : 'border-gray-700/60 bg-black/20 hover:border-gray-600'
+                            : 'border-gray-200 dark:border-gray-700/60 bg-black/5 dark:bg-black/20 hover:border-gray-400 dark:hover:border-gray-600'
                         }`}
                       >
                         {/* Progress Fill Bar */}
@@ -743,10 +743,10 @@ const MessageItem = ({
                         ></div>
 
                         <div className="relative z-10 flex items-center justify-between text-xs">
-                          <span className="font-medium text-gray-200">{opt.text}</span>
-                          <span className="text-saylo-300 font-semibold">{percent}%</span>
+                          <span className="font-medium text-gray-800 dark:text-gray-200">{opt.text}</span>
+                          <span className="text-saylo-600 dark:text-saylo-300 font-semibold">{percent}%</span>
                         </div>
-                        <span className="relative z-10 text-[10px] text-gray-400">
+                        <span className="relative z-10 text-[10px] text-gray-500 dark:text-gray-400">
                           {optVotes} {optVotes === 1 ? 'vote' : 'votes'}
                         </span>
                       </button>
@@ -758,28 +758,28 @@ const MessageItem = ({
 
             {/* Event Widget */}
             {message.type === 'event' && message.event && (
-              <div className="my-2 min-w-[260px] p-3 rounded-xl bg-black/20 border border-gray-700/60 space-y-2.5">
+              <div className="my-2 min-w-[260px] p-3 rounded-xl bg-black/5 dark:bg-black/20 border border-gray-200 dark:border-gray-700/60 space-y-2.5">
                 <div className="flex items-start gap-2.5">
                   <div className="p-2 rounded-xl bg-saylo-emerald/20 text-saylo-emerald flex-shrink-0">
                     <Calendar size={20} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm text-white">{message.event.title}</h4>
+                    <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{message.event.title}</h4>
                     {message.event.description && (
-                      <p className="text-xs text-gray-300 mt-0.5">{message.event.description}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{message.event.description}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-1 text-xs text-gray-400 pt-1 border-t border-gray-700/40">
+                <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400 pt-1 border-t border-gray-200 dark:border-gray-700/40">
                   {message.event.startTime && (
-                    <div className="flex items-center gap-1.5 text-saylo-300 font-medium">
+                    <div className="flex items-center gap-1.5 text-saylo-600 dark:text-saylo-300 font-medium">
                       <Clock size={13} />
                       <span>{format(new Date(message.event.startTime), 'EEE, MMM d • HH:mm')}</span>
                     </div>
                   )}
                   {message.event.location && (
-                    <div className="flex items-center gap-1.5 text-gray-300">
+                    <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                       <MapPin size={13} className="text-saylo-emerald" />
                       <span>{message.event.location}</span>
                     </div>
@@ -787,8 +787,8 @@ const MessageItem = ({
                 </div>
 
                 {/* RSVP Controls */}
-                <div className="pt-2 border-t border-gray-700/40">
-                  <p className="text-[10px] text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40">
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
                     RSVP ({message.event.attendees?.filter(a => a.status === 'going').length || 0} Going)
                   </p>
                   <div className="grid grid-cols-3 gap-1.5">
@@ -805,7 +805,7 @@ const MessageItem = ({
                           className={`py-1 px-2 rounded-lg text-xs font-semibold capitalize border transition-all ${
                             isActive
                               ? 'bg-saylo-emerald text-white border-saylo-emerald'
-                              : 'bg-black/30 border-gray-700 text-gray-300 hover:border-gray-500'
+                              : 'bg-black/5 dark:bg-black/30 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
                           }`}
                         >
                           {rsvpStatus}
@@ -819,14 +819,14 @@ const MessageItem = ({
 
             {/* Location Message with Interactive Map Canvas */}
             {message.type === 'location' && message.location && (
-              <div className="my-1.5 p-2 bg-black/30 rounded-2xl border border-gray-700/60 overflow-hidden max-w-sm">
+              <div className="my-1.5 p-2 bg-black/5 dark:bg-black/30 rounded-2xl border border-gray-200 dark:border-gray-700/60 overflow-hidden max-w-sm">
                 <div className="flex items-center gap-2 mb-2 px-1 text-saylo-emerald">
                   <MapPin size={17} />
                   <span className="font-semibold text-xs">Location Shared</span>
                 </div>
 
                 {/* Embedded Map Visual Canvas */}
-                <div className="relative w-full h-36 rounded-xl overflow-hidden bg-[#1f2c34] mb-2 border border-gray-700/50">
+                <div className="relative w-full h-36 rounded-xl overflow-hidden bg-gray-100 dark:bg-[#1f2c34] mb-2 border border-gray-300 dark:border-gray-700/50">
                   <iframe
                     title="Location Map"
                     src={`https://www.openstreetmap.org/export/embed.html?bbox=${message.location.longitude - 0.005}%2C${message.location.latitude - 0.005}%2C${message.location.longitude + 0.005}%2C${message.location.latitude + 0.005}&layer=mapnik&marker=${message.location.latitude}%2C${message.location.longitude}`}
@@ -836,7 +836,7 @@ const MessageItem = ({
                   <div className="absolute inset-0 bg-transparent cursor-pointer" onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${message.location.latitude}&mlon=${message.location.longitude}#map=16/${message.location.latitude}/${message.location.longitude}`, '_blank')} />
                 </div>
 
-                <p className="text-xs text-gray-200 font-medium px-1 mb-2 line-clamp-2">
+                <p className="text-xs text-gray-800 dark:text-gray-200 font-medium px-1 mb-2 line-clamp-2">
                   {message.location.address || message.text || `${message.location.latitude.toFixed(4)}, ${message.location.longitude.toFixed(4)}`}
                 </p>
 
@@ -906,38 +906,44 @@ const MessageItem = ({
         {/* Timestamp & Status Metadata Bar */}
         <div
           className={`flex items-center justify-end gap-1.5 mt-1 select-none text-[10px] ${
-            isSticker ? 'bg-black/60 px-2 py-0.5 rounded-full text-white/90 shadow-sm self-end' : 'text-gray-400'
+            isSticker
+              ? 'bg-black/60 px-2 py-0.5 rounded-full text-white/90 shadow-sm self-end'
+              : isSelf
+              ? customTheme === 'default'
+                ? 'text-gray-600 dark:text-gray-300'
+                : 'text-white/80'
+              : 'text-gray-500 dark:text-gray-400'
           }`}
         >
           {message.isEncrypted && (
-            <Lock size={10} className="text-saylo-300 flex-shrink-0" title="End-to-End Encrypted" />
+            <Lock size={10} className="text-saylo-600 dark:text-saylo-300 flex-shrink-0" title="End-to-End Encrypted" />
           )}
           {isPinned && (
             <Pin
               size={11}
-              className="text-saylo-300 fill-saylo-300 transform -rotate-45"
+              className="text-saylo-600 dark:text-saylo-300 fill-saylo-600 dark:fill-saylo-300 transform -rotate-45"
               title="Pinned message"
             />
           )}
           {message.isKept && (
             <Bookmark
               size={11}
-              className="text-amber-400 fill-amber-400 flex-shrink-0"
+              className="text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400 flex-shrink-0"
               title="Kept in chat (exempt from disappearing expiration)"
             />
           )}
           {message.edited && <span className="italic">edited</span>}
-          {isStarred && <Star size={11} className="text-amber-400 fill-amber-400" />}
+          {isStarred && <Star size={11} className="text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400" />}
           <span>{format(new Date(message.createdAt || Date.now()), 'HH:mm')}</span>
 
           {isSelf && (
             <span className="ml-0.5">
               {message.status === 'read' ? (
-                <CheckCheck size={14} className="text-saylo-300" />
+                <CheckCheck size={14} className="text-[#53bdeb]" />
               ) : message.status === 'delivered' ? (
-                <CheckCheck size={14} className="text-gray-400" />
+                <CheckCheck size={14} className="text-gray-500 dark:text-gray-400" />
               ) : (
-                <Check size={14} className="text-gray-400" />
+                <Check size={14} className="text-gray-500 dark:text-gray-400" />
               )}
             </span>
           )}
@@ -945,14 +951,14 @@ const MessageItem = ({
 
         {/* Reaction Emojis Badges */}
         {message.reactions && message.reactions.length > 0 && (
-          <div className="absolute -bottom-3 left-3 flex items-center gap-1 bg-[#182229] border border-gray-700/60 rounded-full px-2 py-0.5 shadow-md">
+          <div className="absolute -bottom-3 left-3 flex items-center gap-1 bg-white dark:bg-[#182229] border border-gray-200 dark:border-gray-700/60 rounded-full px-2 py-0.5 shadow-md">
             {Array.from(new Set(message.reactions.map((r) => r.emoji))).map((emoji, idx) => (
               <span key={idx} className="text-xs">
                 {emoji}
               </span>
             ))}
             {message.reactions.length > 1 && (
-              <span className="text-[10px] text-gray-400 font-bold">
+              <span className="text-[10px] text-gray-600 dark:text-gray-400 font-bold">
                 {message.reactions.length}
               </span>
             )}
@@ -964,12 +970,12 @@ const MessageItem = ({
       <div
         className={`absolute top-0 ${
           isSelf ? '-left-28' : '-right-28'
-        } hidden group-hover:flex items-center gap-1 bg-[#202c33] border border-gray-700/60 rounded-xl p-1 shadow-xl z-20`}
+        } hidden group-hover:flex items-center gap-1 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/60 rounded-xl p-1 shadow-xl z-20`}
       >
         {/* Quick React Button */}
         <button
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          className="p-1 text-gray-400 hover:text-saylo-emerald rounded hover:bg-gray-700/50"
+          className="p-1 text-gray-500 dark:text-gray-400 hover:text-saylo-emerald rounded hover:bg-gray-100 dark:hover:bg-gray-700/50"
           title="React"
         >
           <Smile size={16} />
@@ -978,7 +984,7 @@ const MessageItem = ({
         {/* Reply */}
         <button
           onClick={() => onReply(message)}
-          className="p-1 text-gray-400 hover:text-saylo-emerald rounded hover:bg-gray-700/50"
+          className="p-1 text-gray-500 dark:text-gray-400 hover:text-saylo-emerald rounded hover:bg-gray-100 dark:hover:bg-gray-700/50"
           title="Reply"
         >
           <Reply size={16} />
@@ -987,7 +993,7 @@ const MessageItem = ({
         {/* Forward */}
         <button
           onClick={() => onForward && onForward(message)}
-          className="p-1 text-gray-400 hover:text-saylo-emerald rounded hover:bg-gray-700/50"
+          className="p-1 text-gray-500 dark:text-gray-400 hover:text-saylo-emerald rounded hover:bg-gray-100 dark:hover:bg-gray-700/50"
           title="Forward message"
         >
           <Share2 size={16} />
@@ -996,7 +1002,7 @@ const MessageItem = ({
         {/* More Actions Toggle */}
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-700/50"
+          className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700/50"
           title="More options"
         >
           <MoreVertical size={16} />
@@ -1008,7 +1014,7 @@ const MessageItem = ({
         <div
           className={`absolute top-7 ${
             isSelf ? 'right-0' : 'left-0'
-          } z-30 flex items-center gap-1 bg-[#202c33] border border-gray-700/70 p-2 rounded-2xl shadow-2xl animate-fadeIn`}
+          } z-30 flex items-center gap-1 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/70 p-2 rounded-2xl shadow-2xl animate-fadeIn`}
         >
           {quickEmojis.map((emoji) => (
             <button
@@ -1030,7 +1036,7 @@ const MessageItem = ({
         <div
           className={`absolute top-8 ${
             isSelf ? 'right-0' : 'left-0'
-          } z-30 w-44 bg-[#202c33] border border-gray-700/80 rounded-xl shadow-2xl py-1 text-xs text-gray-200 animate-fadeIn`}
+          } z-30 w-44 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 rounded-xl shadow-2xl py-1 text-xs text-gray-800 dark:text-gray-200 animate-fadeIn`}
         >
           {/* Message Info (Read & Delivered timestamps) */}
           <button
@@ -1038,9 +1044,9 @@ const MessageItem = ({
               if (onInfo) onInfo(message);
               setShowMenu(false);
             }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
           >
-            <Info size={14} className="text-saylo-300" />
+            <Info size={14} className="text-saylo-emerald" />
             Message info
           </button>
 
@@ -1050,7 +1056,7 @@ const MessageItem = ({
               if (onToggleSelect) onToggleSelect(message._id);
               setShowMenu(false);
             }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
           >
             <CheckSquare size={14} />
             Select message
@@ -1061,7 +1067,7 @@ const MessageItem = ({
               if (onForward) onForward(message);
               setShowMenu(false);
             }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
           >
             <Share2 size={14} />
             Forward
@@ -1072,7 +1078,7 @@ const MessageItem = ({
               togglePinMessage(message._id);
               setShowMenu(false);
             }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
           >
             <Pin size={14} className={isPinned ? 'text-saylo-emerald' : ''} />
             {isPinned ? 'Unpin message' : 'Pin message'}
@@ -1083,9 +1089,9 @@ const MessageItem = ({
               toggleStarMessage(message._id);
               setShowMenu(false);
             }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
           >
-            <Star size={14} className={isStarred ? 'text-amber-400' : ''} />
+            <Star size={14} className={isStarred ? 'text-amber-500 fill-amber-500' : ''} />
             {isStarred ? 'Unstar' : 'Star message'}
           </button>
 
@@ -1094,9 +1100,9 @@ const MessageItem = ({
               keepMessage(message._id);
               setShowMenu(false);
             }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
           >
-            <Bookmark size={14} className={message.isKept ? 'text-amber-400 fill-amber-400' : ''} />
+            <Bookmark size={14} className={message.isKept ? 'text-amber-500 fill-amber-500' : ''} />
             {message.isKept ? 'Unkeep message' : 'Keep in chat'}
           </button>
 
@@ -1106,7 +1112,7 @@ const MessageItem = ({
                 onEdit(message);
                 setShowMenu(false);
               }}
-              className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
             >
               <Edit2 size={14} />
               Edit
@@ -1118,7 +1124,7 @@ const MessageItem = ({
               deleteMessage(message._id, false);
               setShowMenu(false);
             }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2 text-red-400"
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2 text-red-500 dark:text-red-400"
           >
             <Trash2 size={14} />
             Delete for me
@@ -1130,7 +1136,7 @@ const MessageItem = ({
                 deleteMessage(message._id, true);
                 setShowMenu(false);
               }}
-              className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2 text-red-400"
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2 text-red-500 dark:text-red-400"
             >
               <Trash2 size={14} />
               Delete for everyone

@@ -56,30 +56,30 @@ const NewGroupModal = ({ isOpen, onClose }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="New Group">
       <form onSubmit={handleCreate} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5">Group Name</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Group Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Project Team, Family & Friends"
             required
-            className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+            className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5">Description (Optional)</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description (Optional)</label>
           <textarea
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="What is this group about?"
-            className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
+            className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5">
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             Add Members ({selectedIds.length} selected)
           </label>
           <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
@@ -93,14 +93,14 @@ const NewGroupModal = ({ isOpen, onClose }) => {
                     key={contact._id}
                     onClick={() => toggleSelect(contact._id)}
                     className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${
-                      isSelected ? 'bg-saylo-emerald/10 border border-saylo-emerald/40' : 'hover:bg-white/5'
+                      isSelected ? 'bg-saylo-emerald/10 border border-saylo-emerald/40' : 'hover:bg-gray-100 dark:hover:bg-white/5'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Avatar src={contact.avatar} name={contact.name} size="sm" />
                       <div>
-                        <p className="text-xs font-semibold text-gray-200">{contact.name}</p>
-                        <p className="text-[11px] text-gray-400 truncate max-w-[180px]">{contact.about}</p>
+                        <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">{contact.name}</p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[180px]">{contact.about}</p>
                       </div>
                     </div>
                     <input
@@ -116,11 +116,11 @@ const NewGroupModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-gray-300 hover:bg-white/5 rounded-xl transition-colors"
+            className="px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
           >
             Cancel
           </button>

@@ -593,19 +593,19 @@ const MessageInput = ({
     : [];
 
   return (
-    <div className="relative border-t border-gray-800 bg-[#202c33] dark:bg-[#202c33] px-4 py-2.5">
+    <div className="relative border-t border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33] px-4 py-2.5 transition-colors duration-150">
       {/* Reply Banner */}
       {replyMessage && (
-        <div className="flex items-center justify-between mb-2 p-2 bg-black/20 rounded-xl border-l-4 border-saylo-emerald">
+        <div className="flex items-center justify-between mb-2 p-2 bg-white/80 dark:bg-black/20 rounded-xl border-l-4 border-saylo-emerald shadow-sm">
           <div className="text-xs truncate mr-2">
-            <span className="font-semibold text-saylo-400 block">
+            <span className="font-semibold text-saylo-500 dark:text-saylo-400 block">
               Replying to {replyMessage.sender?.name || 'User'}
             </span>
-            <p className="text-gray-300 truncate">{replyMessage.text || '[Attachment]'}</p>
+            <p className="text-gray-700 dark:text-gray-300 truncate">{replyMessage.text || '[Attachment]'}</p>
           </div>
           <button
             onClick={() => setReplyMessage(null)}
-            className="p-1 text-gray-400 hover:text-white"
+            className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             <X size={16} />
           </button>
@@ -673,7 +673,7 @@ const MessageInput = ({
 
       {/* Quick Replies / Shortcuts Popup */}
       {text.startsWith('/') && (
-        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-2 w-[calc(100vw-1rem)] sm:w-72 max-w-sm max-h-48 overflow-y-auto animate-fadeIn">
+        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl p-2 w-[calc(100vw-1rem)] sm:w-72 max-w-sm max-h-48 overflow-y-auto animate-fadeIn">
           <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-semibold text-saylo-emerald uppercase tracking-wider">
             <Zap size={13} />
             <span>Quick Replies</span>
@@ -690,10 +690,10 @@ const MessageInput = ({
                     localStorage.setItem(`saylo_draft_${activeConversation._id}`, q.text);
                   }
                 }}
-                className="w-full text-left p-2 rounded-xl text-xs hover:bg-white/5 flex flex-col gap-0.5 text-gray-100 transition-colors"
+                className="w-full text-left p-2 rounded-xl text-xs hover:bg-gray-100 dark:hover:bg-white/5 flex flex-col gap-0.5 text-gray-800 dark:text-gray-100 transition-colors"
               >
                 <span className="font-bold text-saylo-emerald font-mono">{q.shortcut}</span>
-                <span className="text-[11px] text-gray-300 truncate">{q.text}</span>
+                <span className="text-[11px] text-gray-600 dark:text-gray-300 truncate">{q.text}</span>
               </button>
             ))}
         </div>
@@ -701,15 +701,15 @@ const MessageInput = ({
 
       {/* Mention Autocomplete Dropdown */}
       {mentionCandidates && mentionCandidates.length > 0 && (
-        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-[#202c33] border border-gray-700 rounded-2xl shadow-2xl p-2 w-[calc(100vw-1rem)] sm:w-64 max-w-sm max-h-44 overflow-y-auto animate-fadeIn">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 py-1">
+        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-2 w-[calc(100vw-1rem)] sm:w-64 max-w-sm max-h-44 overflow-y-auto animate-fadeIn">
+          <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1">
             Mention Member
           </p>
           {mentionCandidates.map((mUser) => (
             <button
               key={mUser._id}
               onClick={() => handleInsertMention(mUser.name)}
-              className="w-full text-left px-2 py-1.5 rounded-xl text-xs hover:bg-white/5 flex items-center gap-2 text-gray-100"
+              className="w-full text-left px-2 py-1.5 rounded-xl text-xs hover:bg-gray-100 dark:hover:bg-white/5 flex items-center gap-2 text-gray-800 dark:text-gray-100"
             >
               <span className="font-bold text-saylo-emerald">@</span>
               <span className="truncate">{mUser.name}</span>
@@ -720,7 +720,7 @@ const MessageInput = ({
 
       {/* Attachment Menu Popup */}
       {showAttachmentMenu && (
-        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-2.5 flex flex-col gap-1 w-52 max-w-[calc(100vw-1rem)] animate-fadeIn">
+        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl p-2.5 flex flex-col gap-1 w-52 max-w-[calc(100vw-1rem)] animate-fadeIn text-gray-800 dark:text-gray-200">
           {/* Photos & Videos */}
           <button
             onClick={() => {
@@ -826,13 +826,13 @@ const MessageInput = ({
 
       {/* Tabbed Emoji, GIF & Sticker Picker */}
       {showPicker && (
-        <div className="absolute bottom-16 left-2 sm:left-4 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-3 w-[calc(100vw-1rem)] sm:w-80 max-w-sm animate-fadeIn">
+        <div className="absolute bottom-16 left-2 sm:left-4 z-30 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl p-3 w-[calc(100vw-1rem)] sm:w-80 max-w-sm animate-fadeIn">
           {/* Picker Tabs */}
-          <div className="flex items-center justify-around border-b border-gray-700/60 pb-2 mb-3">
+          <div className="flex items-center justify-around border-b border-gray-200 dark:border-gray-700/60 pb-2 mb-3">
             <button
               onClick={() => setPickerTab('emoji')}
               className={`flex items-center gap-1.5 text-xs font-semibold pb-1 transition-colors ${
-                pickerTab === 'emoji' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-400 hover:text-white'
+                pickerTab === 'emoji' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <Smile size={15} /> Emojis
@@ -840,7 +840,7 @@ const MessageInput = ({
             <button
               onClick={() => setPickerTab('gif')}
               className={`flex items-center gap-1.5 text-xs font-semibold pb-1 transition-colors ${
-                pickerTab === 'gif' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-400 hover:text-white'
+                pickerTab === 'gif' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <Film size={15} /> GIFs
@@ -848,7 +848,7 @@ const MessageInput = ({
             <button
               onClick={() => setPickerTab('sticker')}
               className={`flex items-center gap-1.5 text-xs font-semibold pb-1 transition-colors ${
-                pickerTab === 'sticker' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-400 hover:text-white'
+                pickerTab === 'sticker' ? 'text-saylo-emerald border-b-2 border-saylo-emerald' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <Sticker size={15} /> Stickers
@@ -972,10 +972,10 @@ const MessageInput = ({
                       <button
                         key={idx}
                         onClick={() => handleSendSticker(st)}
-                        className="h-16 rounded-2xl flex flex-col items-center justify-center gap-1 bg-[#111b21] border border-gray-700/60 hover:border-saylo-emerald transition-transform hover:scale-105 p-1"
+                        className="h-16 rounded-2xl flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-[#111b21] border border-gray-200 dark:border-gray-700/60 hover:border-saylo-emerald transition-transform hover:scale-105 p-1"
                       >
                         <img src={st.url} alt={st.name} className="w-9 h-9 object-contain" />
-                        <span className="text-[9px] text-gray-300 font-medium truncate max-w-full px-1">
+                        <span className="text-[9px] text-gray-700 dark:text-gray-300 font-medium truncate max-w-full px-1">
                           {st.name}
                         </span>
                       </button>
@@ -1113,7 +1113,7 @@ const MessageInput = ({
             type="button"
             onClick={() => setShowPicker(!showPicker)}
             className={`p-2 transition-colors rounded-full ${
-              showPicker ? 'text-saylo-emerald' : 'text-gray-400 hover:text-gray-200'
+              showPicker ? 'text-saylo-emerald' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
             title="Emojis, GIFs & Stickers"
           >
@@ -1125,7 +1125,7 @@ const MessageInput = ({
             type="button"
             onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
             className={`p-2 transition-colors rounded-full ${
-              showAttachmentMenu ? 'text-saylo-emerald' : 'text-gray-400 hover:text-gray-200'
+              showAttachmentMenu ? 'text-saylo-emerald' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
             title="Attach file"
           >
@@ -1133,7 +1133,7 @@ const MessageInput = ({
           </button>
 
           {/* Text input area */}
-          <div className="flex-1 bg-[#2a3942] rounded-2xl px-4 py-2 border border-gray-700/50 focus-within:border-saylo-emerald transition-colors flex items-center gap-2">
+          <div className="flex-1 bg-white dark:bg-[#2a3942] rounded-2xl px-4 py-2 border border-gray-300 dark:border-gray-700/50 focus-within:border-saylo-emerald transition-colors flex items-center gap-2 shadow-sm">
             <textarea
               ref={textareaRef}
               rows={1}
@@ -1149,7 +1149,7 @@ const MessageInput = ({
                 }
               }}
               placeholder="Type a message or @ to mention..."
-              className="w-full bg-transparent resize-none text-sm text-gray-100 placeholder-gray-400 focus:outline-none max-h-28 overflow-y-auto"
+              className="w-full bg-transparent resize-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none max-h-28 overflow-y-auto"
             />
 
             {/* HD Media Quality Toggle */}
@@ -1159,7 +1159,7 @@ const MessageInput = ({
               className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
                 isHdQuality
                   ? 'border-saylo-emerald text-saylo-emerald bg-saylo-emerald/10'
-                  : 'border-gray-500 text-gray-400'
+                  : 'border-gray-400 dark:border-gray-500 text-gray-500 dark:text-gray-400'
               }`}
               title={isHdQuality ? 'HD Media Quality enabled' : 'Standard Quality'}
             >
@@ -1173,7 +1173,7 @@ const MessageInput = ({
               className={`w-6 h-6 rounded-full border text-xs font-bold flex items-center justify-center transition-colors ${
                 viewOnce
                   ? 'border-saylo-emerald text-saylo-emerald bg-saylo-emerald/20'
-                  : 'border-gray-500 text-gray-400 hover:border-gray-300'
+                  : 'border-gray-400 dark:border-gray-500 text-gray-500 dark:text-gray-400 hover:border-gray-600 dark:hover:border-gray-300'
               }`}
               title={viewOnce ? 'View once enabled' : 'Toggle view once'}
             >
@@ -1197,7 +1197,7 @@ const MessageInput = ({
               <button
                 type="button"
                 onClick={() => setRecordMode(recordMode === 'audio' ? 'video' : 'audio')}
-                className="p-1.5 text-gray-400 hover:text-white rounded-full transition-colors"
+                className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full transition-colors"
                 title={`Switch to ${recordMode === 'audio' ? 'Video Note' : 'Voice Note'}`}
               >
                 {recordMode === 'audio' ? <Camera size={16} /> : <Mic size={16} />}

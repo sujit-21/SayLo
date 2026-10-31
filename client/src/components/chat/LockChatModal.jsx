@@ -37,14 +37,14 @@ const LockChatModal = ({ isOpen, onClose }) => {
           <div className="w-12 h-12 rounded-full bg-saylo-emerald/20 text-saylo-emerald flex items-center justify-center mb-3">
             <Lock size={24} />
           </div>
-          <h4 className="text-sm font-semibold text-gray-100">Keep chat hidden and locked</h4>
-          <p className="text-xs text-gray-400 mt-1 max-w-xs">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Keep chat hidden and locked</h4>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-xs">
             Locked chats require your security PIN to view.
           </p>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5">Enter 4-digit PIN</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Enter 4-digit PIN</label>
           <input
             type="password"
             maxLength={6}
@@ -52,15 +52,15 @@ const LockChatModal = ({ isOpen, onClose }) => {
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
             placeholder="••••"
             required
-            className="w-full text-center tracking-widest text-lg font-mono bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-saylo-emerald"
+            className="w-full text-center tracking-widest text-lg font-mono bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-saylo-emerald"
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-gray-400 hover:bg-white/5 rounded-xl"
+            className="px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl"
           >
             Cancel
           </button>

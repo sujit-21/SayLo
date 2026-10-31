@@ -62,19 +62,19 @@ const NewPollModal = ({ isOpen, onClose }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Create Poll">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5">Question</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Question</label>
           <input
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ask a question..."
             required
-            className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+            className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5">Options</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Options</label>
           <div className="space-y-2">
             {options.map((option, idx) => (
               <div key={idx} className="flex items-center gap-2">
@@ -84,7 +84,7 @@ const NewPollModal = ({ isOpen, onClose }) => {
                   onChange={(e) => handleOptionChange(e.target.value, idx)}
                   placeholder={`Option ${idx + 1}`}
                   required
-                  className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+                  className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
                 />
                 {options.length > 2 && (
                   <button
@@ -111,7 +111,7 @@ const NewPollModal = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-2 pt-2 border-t border-gray-800">
+        <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
           <input
             type="checkbox"
             id="multipleAnswers"
@@ -119,16 +119,16 @@ const NewPollModal = ({ isOpen, onClose }) => {
             onChange={(e) => setMultipleAnswers(e.target.checked)}
             className="rounded text-saylo-emerald focus:ring-saylo-emerald"
           />
-          <label htmlFor="multipleAnswers" className="text-xs text-gray-300 select-none cursor-pointer">
+          <label htmlFor="multipleAnswers" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer">
             Allow multiple answers
           </label>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-gray-300 hover:bg-white/5 rounded-xl transition-colors"
+            className="px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
           >
             Cancel
           </button>

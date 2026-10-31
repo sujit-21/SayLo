@@ -24,7 +24,7 @@ const ChatThemeModal = ({ isOpen, currentTheme = 'default', onClose, onSelectThe
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Custom Chat Theme">
       <div className="space-y-4">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Personalize the message bubble accent color for this conversation:
         </p>
 
@@ -38,8 +38,8 @@ const ChatThemeModal = ({ isOpen, currentTheme = 'default', onClose, onSelectThe
                 onClick={() => setSelected(theme.id)}
                 className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${
                   isChosen
-                    ? 'border-saylo-emerald bg-white/5 ring-2 ring-saylo-emerald/40'
-                    : 'border-gray-700/60 bg-[#111b21] hover:border-gray-500'
+                    ? 'border-saylo-emerald bg-saylo-emerald/10 dark:bg-white/5 ring-2 ring-saylo-emerald/40'
+                    : 'border-gray-200 dark:border-gray-700/60 bg-gray-50 dark:bg-[#111b21] hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
                 <div
@@ -48,7 +48,7 @@ const ChatThemeModal = ({ isOpen, currentTheme = 'default', onClose, onSelectThe
                 >
                   {isChosen && <Check size={14} className="text-white" strokeWidth={3} />}
                 </div>
-                <span className="text-xs font-semibold text-gray-200 text-left">{theme.name}</span>
+                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 text-left">{theme.name}</span>
               </button>
             );
           })}
@@ -58,7 +58,7 @@ const ChatThemeModal = ({ isOpen, currentTheme = 'default', onClose, onSelectThe
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition-colors"
+            className="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             Cancel
           </button>

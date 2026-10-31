@@ -42,14 +42,14 @@ const StorageSettings = () => {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
       {/* Header */}
-      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
+      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
         <div className="flex items-center gap-3">
-          <Link to="/settings" className="p-1 rounded-full text-gray-400 hover:text-white">
+          <Link to="/settings" className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-xl font-bold text-gray-100">Storage and Data</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Storage and Data</h1>
         </div>
       </div>
 
@@ -61,11 +61,11 @@ const StorageSettings = () => {
         ) : (
           <>
             {/* Total Storage Card */}
-            <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-4">
+            <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-gray-100">Total Media Storage Used</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Photos, videos, audio, and documents</p>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Total Media Storage Used</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Photos, videos, audio, and documents</p>
                 </div>
                 <div className="text-xl font-bold text-saylo-emerald font-mono">
                   {formatBytes(stats?.totalSize)}
@@ -73,7 +73,7 @@ const StorageSettings = () => {
               </div>
 
               {/* Multi-colored Visual Storage Bar */}
-              <div className="h-3 w-full bg-[#111b21] rounded-full overflow-hidden flex">
+              <div className="h-3 w-full bg-gray-100 dark:bg-[#111b21] rounded-full overflow-hidden flex">
                 <div
                   style={{
                     width: stats?.totalSize
@@ -116,92 +116,92 @@ const StorageSettings = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 rounded-full bg-emerald-500 flex-shrink-0" />
-                  <span className="text-gray-300 truncate">Photos: {formatBytes(stats?.photos.size)}</span>
+                  <span className="text-gray-700 dark:text-gray-300 truncate">Photos: {formatBytes(stats?.photos.size)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 rounded-full bg-purple-500 flex-shrink-0" />
-                  <span className="text-gray-300 truncate">Videos: {formatBytes(stats?.videos.size)}</span>
+                  <span className="text-gray-700 dark:text-gray-300 truncate">Videos: {formatBytes(stats?.videos.size)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 rounded-full bg-amber-500 flex-shrink-0" />
-                  <span className="text-gray-300 truncate">Audio: {formatBytes(stats?.audio.size)}</span>
+                  <span className="text-gray-700 dark:text-gray-300 truncate">Audio: {formatBytes(stats?.audio.size)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0" />
-                  <span className="text-gray-300 truncate">Docs: {formatBytes(stats?.documents.size)}</span>
+                  <span className="text-gray-700 dark:text-gray-300 truncate">Docs: {formatBytes(stats?.documents.size)}</span>
                 </div>
               </div>
             </div>
 
             {/* Media Breakdown Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-[#202c33] rounded-2xl border border-gray-700/60 flex items-center justify-between">
+              <div className="p-4 bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500">
                     <Image size={20} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-200">Photos</h4>
-                    <p className="text-xs text-gray-400">{stats?.photos.count || 0} files</p>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-200">Photos</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{stats?.photos.count || 0} files</p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-gray-300">
+                <span className="text-xs font-mono font-bold text-gray-700 dark:text-gray-300">
                   {formatBytes(stats?.photos.size)}
                 </span>
               </div>
 
-              <div className="p-4 bg-[#202c33] rounded-2xl border border-gray-700/60 flex items-center justify-between">
+              <div className="p-4 bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                  <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500">
                     <Video size={20} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-200">Videos</h4>
-                    <p className="text-xs text-gray-400">{stats?.videos.count || 0} files</p>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-200">Videos</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{stats?.videos.count || 0} files</p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-gray-300">
+                <span className="text-xs font-mono font-bold text-gray-700 dark:text-gray-300">
                   {formatBytes(stats?.videos.size)}
                 </span>
               </div>
 
-              <div className="p-4 bg-[#202c33] rounded-2xl border border-gray-700/60 flex items-center justify-between">
+              <div className="p-4 bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
                     <Mic size={20} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-200">Voice Notes & Audio</h4>
-                    <p className="text-xs text-gray-400">{stats?.audio.count || 0} files</p>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-200">Voice Notes & Audio</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{stats?.audio.count || 0} files</p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-gray-300">
+                <span className="text-xs font-mono font-bold text-gray-700 dark:text-gray-300">
                   {formatBytes(stats?.audio.size)}
                 </span>
               </div>
 
-              <div className="p-4 bg-[#202c33] rounded-2xl border border-gray-700/60 flex items-center justify-between">
+              <div className="p-4 bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
+                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500">
                     <FileText size={20} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-200">Documents</h4>
-                    <p className="text-xs text-gray-400">{stats?.documents.count || 0} files</p>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-200">Documents</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{stats?.documents.count || 0} files</p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-gray-300">
+                <span className="text-xs font-mono font-bold text-gray-700 dark:text-gray-300">
                   {formatBytes(stats?.documents.size)}
                 </span>
               </div>
             </div>
 
             {/* Review and Free Up Storage (WhatsApp Style) */}
-            <div className="bg-[#202c33] p-5 rounded-3xl border border-gray-700/60 shadow-lg space-y-4">
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-gray-100">Review and Free Up Storage</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Review and Free Up Storage</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     Files larger than 500 KB and cached data
                   </p>
                 </div>
@@ -225,10 +225,10 @@ const StorageSettings = () => {
                   {stats.largeFiles.map((file) => (
                     <div
                       key={file.id}
-                      className="p-2.5 rounded-xl bg-[#111b21] border border-gray-800 flex items-center justify-between gap-3 text-xs"
+                      className="p-2.5 rounded-xl bg-gray-50 dark:bg-[#111b21] border border-gray-200 dark:border-gray-800 flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="flex items-center gap-2.5 truncate min-w-0">
-                        <div className="p-1.5 rounded-lg bg-gray-800 text-saylo-emerald flex-shrink-0">
+                        <div className="p-1.5 rounded-lg bg-gray-200 dark:bg-gray-800 text-saylo-emerald flex-shrink-0">
                           {file.type === 'video' ? (
                             <Video size={16} />
                           ) : file.type === 'image' ? (
@@ -240,20 +240,20 @@ const StorageSettings = () => {
                           )}
                         </div>
                         <div className="truncate">
-                          <p className="font-medium text-gray-200 truncate">{file.name}</p>
+                          <p className="font-medium text-gray-800 dark:text-gray-200 truncate">{file.name}</p>
                           <p className="text-[10px] text-gray-500 uppercase">{file.type}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3 flex-shrink-0">
-                        <span className="font-mono text-gray-300 font-semibold text-[11px]">
+                        <span className="font-mono text-gray-700 dark:text-gray-300 font-semibold text-[11px]">
                           {formatBytes(file.size)}
                         </span>
                         <a
                           href={file.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 text-[10px] font-medium"
+                          className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 text-[10px] font-medium"
                         >
                           View
                         </a>
@@ -262,25 +262,25 @@ const StorageSettings = () => {
                   ))}
                 </div>
               ) : (
-                <div className="py-6 text-center text-xs text-gray-500 bg-[#111b21] rounded-2xl">
+                <div className="py-6 text-center text-xs text-gray-500 bg-gray-50 dark:bg-[#111b21] rounded-2xl">
                   No large files found. Your storage is optimized.
                 </div>
               )}
             </div>
 
             {/* Network Auto-Download Settings Mockup */}
-            <div className="bg-[#202c33] p-5 rounded-2xl border border-gray-700/60 space-y-3">
-              <h3 className="text-sm font-bold text-gray-100">Media Auto-Download</h3>
-              <p className="text-xs text-gray-400">
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl border border-gray-200 dark:border-gray-700/60 space-y-3">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Media Auto-Download</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Voice messages are always automatically downloaded for the best chat experience.
               </p>
               <div className="space-y-2 pt-1 text-xs">
-                <label className="flex items-center justify-between p-2 rounded-xl bg-[#111b21] cursor-pointer">
-                  <span className="text-gray-300">When using mobile data</span>
+                <label className="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-[#111b21] cursor-pointer">
+                  <span className="text-gray-700 dark:text-gray-300">When using mobile data</span>
                   <span className="text-saylo-emerald font-semibold">Photos</span>
                 </label>
-                <label className="flex items-center justify-between p-2 rounded-xl bg-[#111b21] cursor-pointer">
-                  <span className="text-gray-300">When connected on Wi-Fi</span>
+                <label className="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-[#111b21] cursor-pointer">
+                  <span className="text-gray-700 dark:text-gray-300">When connected on Wi-Fi</span>
                   <span className="text-saylo-emerald font-semibold">All media</span>
                 </label>
               </div>

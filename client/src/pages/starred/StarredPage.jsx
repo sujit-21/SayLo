@@ -26,11 +26,11 @@ const StarredPage = () => {
   }, []);
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
       {/* Header */}
-      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
-        <h1 className="text-xl font-bold text-gray-100 flex items-center gap-2">
-          <Star size={20} className="text-amber-400 fill-amber-400" />
+      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <Star size={20} className="text-amber-500 fill-amber-500" />
           Starred Messages
         </h1>
       </div>
@@ -42,7 +42,7 @@ const StarredPage = () => {
           </div>
         ) : starredMessages.length === 0 ? (
           <div className="text-center py-16 text-gray-500">
-            <Star size={36} className="mx-auto mb-2 opacity-30 text-amber-400" />
+            <Star size={36} className="mx-auto mb-2 opacity-30 text-amber-500" />
             <p className="text-sm">No starred messages yet</p>
             <p className="text-xs text-gray-500 mt-1">
               Star important messages in any chat to view them here later.
@@ -58,12 +58,12 @@ const StarredPage = () => {
                   window.location.href = `/chats/${msg.conversation._id}`;
                 }
               }}
-              className="p-4 bg-[#202c33] rounded-2xl border border-gray-700/60 shadow-md hover:border-saylo-emerald cursor-pointer transition-colors space-y-2"
+              className="p-4 bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-md hover:border-saylo-emerald cursor-pointer transition-colors space-y-2"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <Avatar src={msg.sender?.avatar} name={msg.sender?.name} size="xs" />
-                  <span className="text-xs font-semibold text-gray-200">{msg.sender?.name}</span>
+                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{msg.sender?.name}</span>
                   <span className="text-xs text-gray-500">• in {msg.conversation?.name || 'Chat'}</span>
                 </div>
                 <span className="text-[10px] text-gray-400">
@@ -71,7 +71,7 @@ const StarredPage = () => {
                 </span>
               </div>
 
-              <p className="text-sm text-gray-100 bg-[#111b21] p-3 rounded-xl border border-gray-800">
+              <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-[#111b21] p-3 rounded-xl border border-gray-200 dark:border-gray-800">
                 {msg.text || `[Attachment: ${msg.type}]`}
               </p>
             </div>

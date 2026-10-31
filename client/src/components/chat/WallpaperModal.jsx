@@ -6,13 +6,15 @@ import { Check, Sparkles, Image as ImageIcon } from 'lucide-react';
 import api from '../../services/api';
 
 const WallpaperModal = ({ isOpen, onClose }) => {
-  const { wallpaper, updateWallpaper } = useTheme();
+  const { theme, wallpaper, updateWallpaper } = useTheme();
   const { activeConversation } = useChat();
+
+  const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const [applyScope, setApplyScope] = useState(activeConversation ? 'chat' : 'global');
 
   const wallpapers = [
-    { id: 'doodle', name: 'Classic Doodle', bgClass: 'bg-chat-pattern-dark', preview: '#005c4b' },
+    { id: 'doodle', name: 'Classic Doodle', bgClass: isDark ? 'bg-chat-pattern-dark' : 'bg-chat-pattern-light', preview: '#005c4b' },
     { id: 'midnight', name: 'Midnight Charcoal', bgClass: 'bg-[#0b141a]', preview: '#0b141a' },
     { id: 'emerald', name: 'Emerald Velvet', bgClass: 'bg-[#002a22]', preview: '#002a22' },
     { id: 'navy', name: 'Deep Space Navy', bgClass: 'bg-[#0a192f]', preview: '#0a192f' },
@@ -48,14 +50,14 @@ const WallpaperModal = ({ isOpen, onClose }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Chat Wallpaper Gallery">
       <div className="space-y-4 select-none">
         {activeConversation && (
-          <div className="flex items-center gap-2 p-1 bg-[#111b21] rounded-xl border border-gray-700/60 text-xs">
+          <div className="flex items-center gap-2 p-1 bg-gray-100 dark:bg-[#111b21] rounded-xl border border-gray-200 dark:border-gray-700/60 text-xs">
             <button
               type="button"
               onClick={() => setApplyScope('chat')}
               className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors ${
                 applyScope === 'chat'
                   ? 'bg-saylo-emerald text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               This Chat Only
@@ -66,7 +68,7 @@ const WallpaperModal = ({ isOpen, onClose }) => {
               className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors ${
                 applyScope === 'global'
                   ? 'bg-saylo-emerald text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               All Chats (Global)
@@ -74,7 +76,7 @@ const WallpaperModal = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           {applyScope === 'chat'
             ? `Choose a wallpaper specific to this conversation.`
             : `Choose a default background for all SAYLO conversations.`}
@@ -94,7 +96,7 @@ const WallpaperModal = ({ isOpen, onClose }) => {
                 className={`h-24 rounded-2xl cursor-pointer border-2 transition-all p-3 flex flex-col justify-between ${w.bgClass} ${
                   isSelected
                     ? 'border-saylo-emerald shadow-xl ring-2 ring-saylo-emerald/30 scale-102'
-                    : 'border-gray-700/60 hover:border-gray-500 hover:scale-101'
+                    : 'border-gray-300 dark:border-gray-700/60 hover:border-gray-400 dark:hover:border-gray-500 hover:scale-101'
                 }`}
               >
                 <div className="flex justify-end">

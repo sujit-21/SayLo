@@ -70,25 +70,25 @@ const SecuritySettings = () => {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-800 bg-[#202c33]">
-        <Link to="/settings" className="p-1 rounded-full text-gray-400 hover:text-white">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
+      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <Link to="/settings" className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-xl font-bold text-gray-100">Security & Linked Devices</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Security & Linked Devices</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-2xl w-full mx-auto space-y-6">
         {/* Two-step Verification */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-4">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-saylo-emerald/10 text-saylo-emerald flex items-center justify-center">
                 <ShieldCheck size={22} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-gray-100">Two-Step Verification</h3>
-                <p className="text-xs text-gray-400">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Two-Step Verification</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {twoFactorEnabled ? 'Enabled with PIN protection' : 'Add extra security with a 4-digit PIN'}
                 </p>
               </div>
@@ -98,7 +98,7 @@ const SecuritySettings = () => {
               onClick={handleToggleTwoFactor}
               className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
                 twoFactorEnabled
-                  ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                  ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
                   : 'bg-saylo-emerald text-white hover:bg-saylo-600'
               }`}
             >
@@ -107,8 +107,8 @@ const SecuritySettings = () => {
           </div>
 
           {showPinInput && (
-            <form onSubmit={handleSavePin} className="pt-3 border-t border-gray-700/60 space-y-3">
-              <label className="block text-xs font-medium text-gray-300">Set 4-Digit Security PIN</label>
+            <form onSubmit={handleSavePin} className="pt-3 border-t border-gray-200 dark:border-gray-700/60 space-y-3">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Set 4-Digit Security PIN</label>
               <div className="flex gap-2">
                 <input
                   type="password"
@@ -117,7 +117,7 @@ const SecuritySettings = () => {
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="••••"
                   required
-                  className="bg-[#111b21] border border-gray-700 rounded-xl px-4 py-2 text-center text-lg font-mono text-white tracking-widest focus:outline-none focus:border-saylo-emerald"
+                  className="bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 text-center text-lg font-mono text-gray-900 dark:text-white tracking-widest focus:outline-none focus:border-saylo-emerald"
                 />
                 <button
                   type="submit"
@@ -128,7 +128,7 @@ const SecuritySettings = () => {
                 <button
                   type="button"
                   onClick={() => setShowPinInput(false)}
-                  className="px-3 py-2 text-gray-400 hover:text-white text-xs"
+                  className="px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs"
                 >
                   Cancel
                 </button>
@@ -138,11 +138,11 @@ const SecuritySettings = () => {
         </div>
 
         {/* Linked Devices Section */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-4">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-gray-100">Linked Devices</h3>
-              <p className="text-xs text-gray-400 mt-0.5">Manage web sessions logged into your account</p>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Linked Devices</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage web sessions logged into your account</p>
             </div>
             <button
               onClick={() => setShowQrModal(true)}
@@ -161,15 +161,15 @@ const SecuritySettings = () => {
               sessions.map((s) => (
                 <div
                   key={s._id}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-[#111b21] border border-gray-800"
+                  className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-[#111b21] border border-gray-200 dark:border-gray-800"
                 >
                   <div className="flex items-center gap-3">
                     <Laptop size={20} className="text-saylo-emerald" />
                     <div>
-                      <h4 className="text-xs font-bold text-white">
+                      <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                         {s.deviceName} ({s.browser})
                       </h4>
-                      <p className="text-[10px] text-gray-400">
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400">
                         {s.os} • Last active {format(new Date(s.lastActive || Date.now()), 'MMM d, HH:mm')}
                       </p>
                     </div>
@@ -177,7 +177,7 @@ const SecuritySettings = () => {
 
                   <button
                     onClick={() => handleRevokeSession(s._id)}
-                    className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-white/5 rounded-lg"
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg"
                     title="Log out device"
                   >
                     <Trash2 size={16} />
@@ -192,9 +192,9 @@ const SecuritySettings = () => {
       {/* QR Code Link Modal */}
       {showQrModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#202c33] p-6 rounded-3xl max-w-sm w-full text-center border border-gray-700">
-            <h3 className="text-base font-bold text-white mb-1">Scan QR Code</h3>
-            <p className="text-xs text-gray-400 mb-4">
+          <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl max-w-sm w-full text-center border border-gray-200 dark:border-gray-700">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Scan QR Code</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
               Open SAYLO on your phone and scan this code to link this device.
             </p>
 

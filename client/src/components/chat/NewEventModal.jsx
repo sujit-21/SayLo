@@ -49,31 +49,31 @@ const NewEventModal = ({ isOpen, onClose }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Create Group Event">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5">Event Title</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Event Title</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Design Sprint Planning, Team Lunch"
             required
-            className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+            className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1.5">Description</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
           <textarea
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="What is this event about?"
-            className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
+            className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="flex items-center gap-1 text-xs font-medium text-gray-300 mb-1.5">
+            <label className="flex items-center gap-1 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               <Calendar size={13} className="text-saylo-emerald" /> Date
             </label>
             <input
@@ -81,24 +81,24 @@ const NewEventModal = ({ isOpen, onClose }) => {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-saylo-emerald"
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
             />
           </div>
           <div>
-            <label className="flex items-center gap-1 text-xs font-medium text-gray-300 mb-1.5">
+            <label className="flex items-center gap-1 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               <Clock size={13} className="text-saylo-emerald" /> Time
             </label>
             <input
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-saylo-emerald"
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
             />
           </div>
         </div>
 
         <div>
-          <label className="flex items-center gap-1 text-xs font-medium text-gray-300 mb-1.5">
+          <label className="flex items-center gap-1 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             <MapPin size={13} className="text-saylo-emerald" /> Location / Link
           </label>
           <input
@@ -106,15 +106,15 @@ const NewEventModal = ({ isOpen, onClose }) => {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="e.g. Conference Room A, or Video Call"
-            className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+            className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-gray-400 hover:bg-white/5 rounded-xl"
+            className="px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl"
           >
             Cancel
           </button>

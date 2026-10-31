@@ -100,7 +100,7 @@ const BroadcastModal = ({ isOpen, onClose }) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search contacts..."
-              className="w-full pl-9 pr-3 py-1.5 bg-[#111b21] border border-gray-700/80 rounded-xl text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+              className="w-full pl-9 pr-3 py-1.5 bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700/80 rounded-xl text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
             />
           </div>
           {filtered.length > 0 && (
@@ -115,9 +115,9 @@ const BroadcastModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Contacts Selection List */}
-        <div className="max-h-48 overflow-y-auto divide-y divide-gray-800/60 rounded-xl border border-gray-800/80 p-1 bg-[#111b21]">
+        <div className="max-h-48 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-800/80 p-1 bg-gray-50/50 dark:bg-[#111b21]">
           {loadingContacts ? (
-            <div className="py-8 text-center text-xs text-gray-400">Loading contacts...</div>
+            <div className="py-8 text-center text-xs text-gray-500 dark:text-gray-400">Loading contacts...</div>
           ) : filtered.length === 0 ? (
             <div className="py-8 text-center text-xs text-gray-500">No contacts found</div>
           ) : (
@@ -128,21 +128,21 @@ const BroadcastModal = ({ isOpen, onClose }) => {
                   key={contact._id}
                   onClick={() => toggleSelect(contact._id)}
                   className={`flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${
-                    isSelected ? 'bg-saylo-emerald/10' : 'hover:bg-white/5'
+                    isSelected ? 'bg-saylo-emerald/10' : 'hover:bg-gray-100 dark:hover:bg-white/5'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Avatar src={contact.avatar} name={contact.name} size="sm" />
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-100">{contact.name}</h4>
-                      <p className="text-[10px] text-gray-400">{contact.email}</p>
+                      <h4 className="text-xs font-semibold text-gray-900 dark:text-gray-100">{contact.name}</h4>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400">{contact.email}</p>
                     </div>
                   </div>
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                       isSelected
                         ? 'bg-saylo-emerald border-saylo-emerald text-white'
-                        : 'border-gray-600 bg-transparent'
+                        : 'border-gray-400 dark:border-gray-600 bg-transparent'
                     }`}
                   >
                     {isSelected && <Check size={12} strokeWidth={3} />}
@@ -155,7 +155,7 @@ const BroadcastModal = ({ isOpen, onClose }) => {
 
         {/* Message Input */}
         <div>
-          <label className="block text-xs font-medium text-gray-300 mb-1">
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
             Broadcast Text ({selectedIds.length} recipient{selectedIds.length === 1 ? '' : 's'})
           </label>
           <textarea
@@ -164,19 +164,19 @@ const BroadcastModal = ({ isOpen, onClose }) => {
             onChange={(e) => setText(e.target.value)}
             placeholder="Type your announcement or mass message..."
             required
-            className="w-full bg-[#111b21] border border-gray-700/80 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-saylo-emerald resize-none"
+            className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700/80 rounded-xl p-3 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-saylo-emerald resize-none"
           />
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-800">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-800">
           <div>
             {successCount !== null ? (
               <span className="text-xs text-saylo-emerald font-semibold flex items-center gap-1">
                 <Check size={14} /> Sent to {successCount} contacts!
               </span>
             ) : (
-              <span className="text-[11px] text-gray-400">
+              <span className="text-[11px] text-gray-500 dark:text-gray-400">
                 {selectedIds.length} contact{selectedIds.length === 1 ? '' : 's'} selected
               </span>
             )}
@@ -186,7 +186,7 @@ const BroadcastModal = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-xs text-gray-400 hover:text-white rounded-xl"
+              className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-xl"
             >
               Cancel
             </button>

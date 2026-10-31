@@ -28,8 +28,8 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen flex flex-col justify-center items-center bg-[#0c1317] p-4 select-none">
-      <div className="w-full max-w-md bg-[#111b21] border border-gray-800 rounded-3xl p-8 shadow-2xl">
+    <div className="min-h-screen w-screen flex flex-col justify-center items-center bg-[#f0f2f5] dark:bg-[#0c1317] p-4 select-none">
+      <div className="w-full max-w-md bg-white dark:bg-[#111b21] border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-2xl">
         <Link
           to="/login"
           className="inline-flex items-center gap-2 text-xs text-saylo-emerald hover:underline mb-6 font-semibold"
@@ -37,13 +37,13 @@ const ForgotPasswordPage = () => {
           <ArrowLeft size={16} /> Back to login
         </Link>
 
-        <h2 className="text-xl font-bold text-gray-100 mb-1">Reset Password</h2>
-        <p className="text-xs text-gray-400 mb-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Reset Password</h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
           Enter your registered email and we will send password reset instructions.
         </p>
 
         {error && (
-          <div className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+          <div className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-xs">
             {error}
           </div>
         )}
@@ -51,8 +51,8 @@ const ForgotPasswordPage = () => {
         {submitted ? (
           <div className="p-4 bg-saylo-emerald/10 border border-saylo-emerald/30 rounded-2xl text-center space-y-3">
             <CheckCircle className="mx-auto text-saylo-emerald" size={32} />
-            <h4 className="text-sm font-bold text-white">Reset Link Generated</h4>
-            <p className="text-xs text-gray-300">
+            <h4 className="text-sm font-bold text-gray-900 dark:text-white">Reset Link Generated</h4>
+            <p className="text-xs text-gray-600 dark:text-gray-300">
               For testing convenience in this development environment, you can reset your password immediately:
             </p>
             {resetToken && (
@@ -67,16 +67,16 @@ const ForgotPasswordPage = () => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5">Email Address</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3.5 top-3 text-gray-500" />
+                <Mail size={16} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="name@example.com"
-                  className="w-full bg-[#202c33] border border-gray-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+                  className="w-full bg-gray-50 dark:bg-[#202c33] border border-gray-300 dark:border-gray-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
                 />
               </div>
             </div>

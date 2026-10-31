@@ -37,7 +37,7 @@ const CallLinkModal = ({ isOpen, onClose }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create Call Link">
       <div className="space-y-4">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Anyone with SAYLO can use this link to join your call. Share it with friends or groups.
         </p>
 
@@ -52,7 +52,7 @@ const CallLinkModal = ({ isOpen, onClose }) => {
             className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
               callType === 'video'
                 ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald'
-                : 'border-gray-700 text-gray-400 hover:text-white'
+                : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <Video size={16} />
@@ -67,7 +67,7 @@ const CallLinkModal = ({ isOpen, onClose }) => {
             className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
               callType === 'audio'
                 ? 'border-saylo-emerald bg-saylo-emerald/10 text-saylo-emerald'
-                : 'border-gray-700 text-gray-400 hover:text-white'
+                : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <Phone size={16} />
@@ -88,12 +88,12 @@ const CallLinkModal = ({ isOpen, onClose }) => {
           </button>
         ) : (
           <div className="space-y-3 animate-fadeIn">
-            <div className="flex items-center gap-2 bg-[#111b21] border border-gray-700 rounded-xl p-2.5">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl p-2.5">
               <input
                 type="text"
                 readOnly
                 value={callLink}
-                className="bg-transparent text-xs text-gray-200 flex-1 focus:outline-none"
+                className="bg-transparent text-xs text-gray-800 dark:text-gray-200 flex-1 focus:outline-none"
               />
               <button
                 type="button"

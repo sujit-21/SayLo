@@ -22,10 +22,10 @@ const ArchivedPage = () => {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
       {/* Header */}
-      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
-        <h1 className="text-xl font-bold text-gray-100 flex items-center gap-2">
+      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           <Archive size={20} className="text-saylo-emerald" />
           Archived Chats
         </h1>
@@ -41,7 +41,7 @@ const ArchivedPage = () => {
             </p>
           </div>
         ) : (
-          <div className="bg-[#202c33] rounded-2xl border border-gray-700/60 divide-y divide-gray-700/40 overflow-hidden shadow-lg">
+          <div className="bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 divide-y divide-gray-200 dark:divide-gray-700/40 overflow-hidden shadow-lg">
             {archivedConversations.map((c) => (
               <div
                 key={c._id}
@@ -49,13 +49,13 @@ const ArchivedPage = () => {
                   selectConversation(c);
                   window.location.href = `/chats/${c._id}`;
                 }}
-                className="flex items-center justify-between p-4 hover:bg-white/5 cursor-pointer transition-colors"
+                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors"
               >
                 <div className="flex items-center gap-3.5">
                   <Avatar src={c.avatar} name={c.name} size="md" />
                   <div>
-                    <h4 className="text-sm font-semibold text-white">{c.name}</h4>
-                    <p className="text-xs text-gray-400 truncate max-w-xs">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{c.name}</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
                       {c.lastMessage?.text || 'Chat archived'}
                     </p>
                   </div>
@@ -63,7 +63,7 @@ const ArchivedPage = () => {
 
                 <button
                   onClick={(e) => handleUnarchive(c, e)}
-                  className="px-3 py-1.5 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-semibold"
+                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/15 text-gray-800 dark:text-white rounded-xl text-xs font-semibold transition-colors"
                 >
                   Unarchive
                 </button>

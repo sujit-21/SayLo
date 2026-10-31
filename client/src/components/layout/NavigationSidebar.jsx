@@ -51,7 +51,7 @@ const NavigationSidebar = () => {
   return (
     <>
       {/* Desktop & Laptop Vertical Navigation Strip (>= 768px) */}
-      <aside className="hidden md:flex w-16 h-full bg-[#202c33] dark:bg-[#202c33] border-r border-gray-800 flex-col items-center justify-between py-3 flex-shrink-0 z-30 select-none">
+      <aside className="hidden md:flex w-16 h-full bg-[#f0f2f5] dark:bg-[#202c33] border-r border-gray-200 dark:border-gray-800 flex-col items-center justify-between py-3 flex-shrink-0 z-30 select-none transition-colors duration-150">
         {/* Top: Logo & Navigation Links */}
         <div className="flex flex-col items-center gap-4 w-full">
           {/* SAYLO Logo */}
@@ -80,15 +80,15 @@ const NavigationSidebar = () => {
                   className={({ isActive }) =>
                     `relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
                       isActive
-                        ? 'bg-white/10 text-saylo-emerald'
-                        : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                        ? 'bg-saylo-emerald/15 dark:bg-white/10 text-saylo-emerald'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5'
                     }`
                   }
                   title={item.label}
                 >
                   <Icon size={21} />
                   {item.badge > 0 && (
-                    <span className="absolute top-2 right-2 w-4 h-4 bg-saylo-emerald text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-[#202c33]">
+                    <span className="absolute top-2 right-2 w-4 h-4 bg-saylo-emerald text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-[#f0f2f5] dark:ring-[#202c33]">
                       {item.badge > 9 ? '9+' : item.badge}
                     </span>
                   )}
@@ -103,7 +103,7 @@ const NavigationSidebar = () => {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="w-10 h-10 rounded-xl text-gray-400 hover:text-gray-200 hover:bg-white/5 flex items-center justify-center transition-colors"
+            className="w-10 h-10 rounded-xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center transition-colors"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
           >
             {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
@@ -115,8 +115,8 @@ const NavigationSidebar = () => {
             className={({ isActive }) =>
               `w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
                 isActive
-                  ? 'bg-white/10 text-saylo-emerald'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                  ? 'bg-saylo-emerald/15 dark:bg-white/10 text-saylo-emerald'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5'
               }`
             }
             title="Settings"
@@ -137,12 +137,12 @@ const NavigationSidebar = () => {
             {/* Quick Profile Popover */}
             {showProfileMenu && (
               <div
-                className="absolute left-14 bottom-0 w-48 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl py-2 z-50 text-xs text-gray-200 animate-fadeIn"
+                className="absolute left-14 bottom-0 w-48 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl py-2 z-50 text-xs text-gray-800 dark:text-gray-200 animate-fadeIn"
                 onMouseLeave={() => setShowProfileMenu(false)}
               >
-                <div className="px-3.5 py-2 border-b border-gray-700/60 mb-1">
-                  <p className="font-semibold text-white truncate">{user?.name}</p>
-                  <p className="text-[11px] text-gray-400 truncate">{user?.email}</p>
+                <div className="px-3.5 py-2 border-b border-gray-100 dark:border-gray-700/60 mb-1">
+                  <p className="font-semibold text-gray-900 dark:text-white truncate">{user?.name}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                 </div>
 
                 <button
@@ -150,7 +150,7 @@ const NavigationSidebar = () => {
                     navigate('/profile');
                     setShowProfileMenu(false);
                   }}
-                  className="w-full text-left px-3.5 py-2 hover:bg-gray-700/50 flex items-center gap-2.5"
+                  className="w-full text-left px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2.5"
                 >
                   <User size={15} />
                   My Profile
@@ -161,7 +161,7 @@ const NavigationSidebar = () => {
                     navigate('/settings');
                     setShowProfileMenu(false);
                   }}
-                  className="w-full text-left px-3.5 py-2 hover:bg-gray-700/50 flex items-center gap-2.5"
+                  className="w-full text-left px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2.5"
                 >
                   <Settings size={15} />
                   Settings
@@ -172,7 +172,7 @@ const NavigationSidebar = () => {
                     logout();
                     navigate('/login');
                   }}
-                  className="w-full text-left px-3.5 py-2 hover:bg-gray-700/50 flex items-center gap-2.5 text-red-400"
+                  className="w-full text-left px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2.5 text-red-500"
                 >
                   <LogOut size={15} />
                   Log Out
@@ -185,7 +185,7 @@ const NavigationSidebar = () => {
 
       {/* Mobile Native Bottom Navigation Bar (< 768px) */}
       <nav
-        className={`md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#202c33] border-t border-gray-800 items-center justify-around px-2 z-40 select-none shadow-2xl ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#f0f2f5] dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-800 items-center justify-around px-2 z-40 select-none shadow-2xl transition-colors duration-150 ${
           activeConversation ? 'hidden' : 'flex'
         }`}
       >
@@ -197,14 +197,14 @@ const NavigationSidebar = () => {
               to={item.to}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center flex-1 py-1.5 transition-colors ${
-                  isActive ? 'text-saylo-emerald' : 'text-gray-400 hover:text-gray-200'
+                  isActive ? 'text-saylo-emerald font-semibold' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`
               }
             >
               <div className="relative">
                 <Icon size={22} />
                 {item.badge > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-saylo-emerald text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-[#202c33]">
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-saylo-emerald text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-[#f0f2f5] dark:ring-[#202c33]">
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>
                 )}

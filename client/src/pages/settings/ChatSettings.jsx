@@ -266,13 +266,13 @@ const ChatSettings = () => {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
       {/* Header */}
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-800 bg-[#202c33]">
-        <Link to="/settings" className="p-1 rounded-full text-gray-400 hover:text-white">
+      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <Link to="/settings" className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-xl font-bold text-gray-100">Chats & Backup</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Chats & Backup</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-2xl w-full mx-auto space-y-6">
@@ -291,15 +291,15 @@ const ChatSettings = () => {
         )}
 
         {/* Section 1: Chat Backup Card */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg space-y-5">
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-5">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-saylo-emerald/15 text-saylo-emerald flex items-center justify-center">
                 <HardDrive size={24} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-100">Chat Backup</h3>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">Chat Backup</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   Export and restore your messages and media securely.
                 </p>
               </div>
@@ -312,10 +312,10 @@ const ChatSettings = () => {
           </div>
 
           {/* Last Backup Stats */}
-          <div className="p-4 bg-[#111b21] rounded-2xl border border-gray-700/50 space-y-2 text-xs text-gray-300">
+          <div className="p-4 bg-gray-50 dark:bg-[#111b21] rounded-2xl border border-gray-200 dark:border-gray-700/50 space-y-2 text-xs text-gray-700 dark:text-gray-300">
             <div className="flex items-center justify-between">
-              <span className="text-gray-400">Last local backup:</span>
-              <span className="font-medium text-gray-200">
+              <span className="text-gray-500 dark:text-gray-400">Last local backup:</span>
+              <span className="font-medium text-gray-900 dark:text-gray-200">
                 {lastBackup
                   ? format(new Date(lastBackup.date), 'MMM d, yyyy HH:mm')
                   : 'Never backed up'}
@@ -324,8 +324,8 @@ const ChatSettings = () => {
             {lastBackup && (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Total conversations:</span>
-                  <span className="font-medium text-gray-200">{lastBackup.conversationCount}</span>
+                  <span className="text-gray-500 dark:text-gray-400">Total conversations:</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-200">{lastBackup.conversationCount}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Messages archived:</span>
@@ -372,9 +372,9 @@ const ChatSettings = () => {
                   value={backupPassword}
                   onChange={(e) => setBackupPassword(e.target.value)}
                   placeholder="Set password for your backup archive..."
-                  className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+                  className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-saylo-emerald"
                 />
-                <span className="text-[10px] text-amber-300/80 block">
+                <span className="text-[10px] text-amber-500 dark:text-amber-300/80 block">
                   Remember this password. You will need it to restore this backup file.
                 </span>
               </div>
@@ -395,7 +395,7 @@ const ChatSettings = () => {
             <button
               onClick={() => restoreFileInputRef.current?.click()}
               disabled={backingUp || restoring}
-              className="w-full sm:flex-1 py-2.5 px-4 bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-200 disabled:opacity-50 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-transform active:scale-95"
+              className="w-full sm:flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 disabled:opacity-50 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-transform active:scale-95"
             >
               <Upload size={16} />
               {restoring ? 'Restoring...' : 'Restore from File'}
@@ -410,11 +410,11 @@ const ChatSettings = () => {
           </div>
 
           {/* Backup Schedule */}
-          <div className="pt-3 border-t border-gray-700/40 flex items-center justify-between text-xs">
-            <span className="text-gray-300 flex items-center gap-1.5">
-              <Clock size={15} className="text-gray-400" /> Auto-Backup Reminder
+          <div className="pt-3 border-t border-gray-200 dark:border-gray-700/40 flex items-center justify-between text-xs">
+            <span className="text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+              <Clock size={15} className="text-gray-500 dark:text-gray-400" /> Auto-Backup Reminder
             </span>
-            <div className="flex gap-1 bg-[#111b21] p-1 rounded-xl border border-gray-700">
+            <div className="flex gap-1 bg-gray-100 dark:bg-[#111b21] p-1 rounded-xl border border-gray-200 dark:border-gray-700">
               {['daily', 'weekly', 'off'].map((freq) => (
                 <button
                   key={freq}
@@ -422,7 +422,7 @@ const ChatSettings = () => {
                   className={`px-3 py-1 rounded-lg capitalize transition-colors ${
                     backupFrequency === freq
                       ? 'bg-saylo-emerald text-white font-bold'
-                      : 'text-gray-400 hover:text-white'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   {freq}
@@ -433,14 +433,14 @@ const ChatSettings = () => {
         </div>
 
         {/* Section 2: Chat Preferences */}
-        <div className="bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg divide-y divide-gray-700/40 space-y-4">
-          <h3 className="text-sm font-bold text-gray-100">Chat Settings</h3>
+        <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg divide-y divide-gray-200 dark:divide-gray-700/40 space-y-4">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Chat Settings</h3>
 
           {/* Enter is Send */}
           <div className="flex items-center justify-between pt-3">
             <div>
-              <h4 className="text-xs font-semibold text-gray-200">Enter is Send</h4>
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Enter is Send</h4>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                 Pressing Enter key sends your message directly
               </p>
             </div>
@@ -455,10 +455,10 @@ const ChatSettings = () => {
           {/* Font Size */}
           <div className="flex items-center justify-between pt-3">
             <div>
-              <h4 className="text-xs font-semibold text-gray-200">Chat Font Size</h4>
-              <p className="text-[11px] text-gray-400 mt-0.5">Select bubble reading size</p>
+              <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Chat Font Size</h4>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Select bubble reading size</p>
             </div>
-            <div className="flex gap-1 bg-[#111b21] p-1 rounded-xl border border-gray-700 text-xs">
+            <div className="flex gap-1 bg-gray-100 dark:bg-[#111b21] p-1 rounded-xl border border-gray-200 dark:border-gray-700 text-xs">
               {['small', 'medium', 'large'].map((size) => (
                 <button
                   key={size}
@@ -466,7 +466,7 @@ const ChatSettings = () => {
                   className={`px-3 py-1 rounded-lg capitalize transition-colors ${
                     fontSize === size
                       ? 'bg-saylo-emerald text-white font-bold'
-                      : 'text-gray-400 hover:text-white'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   {size}
@@ -479,7 +479,7 @@ const ChatSettings = () => {
           <div className="pt-3">
             <Link
               to="/settings/appearance"
-              className="flex items-center justify-between text-xs text-gray-200 hover:text-saylo-emerald transition-colors"
+              className="flex items-center justify-between text-xs text-gray-800 dark:text-gray-200 hover:text-saylo-emerald transition-colors"
             >
               <span>Chat Wallpaper & Bubble Colors</span>
               <ChevronRight size={16} />
@@ -495,12 +495,12 @@ const ChatSettings = () => {
         title="Decrypt Encrypted Backup"
       >
         <form onSubmit={handleDecryptAndRestore} className="space-y-4">
-          <p className="text-xs text-gray-300 leading-relaxed">
+          <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
             This backup file is protected with End-to-End Encryption. Please enter the password you specified when exporting it.
           </p>
 
           <div>
-            <label className="text-xs text-gray-300 font-medium block mb-1">Backup Password</label>
+            <label className="text-xs text-gray-700 dark:text-gray-300 font-medium block mb-1">Backup Password</label>
             <input
               type="password"
               value={enteredPassword}
@@ -510,7 +510,7 @@ const ChatSettings = () => {
               }}
               placeholder="Enter password..."
               required
-              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-saylo-emerald"
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-saylo-emerald"
             />
             {passwordError && (
               <span className="text-xs text-red-400 font-medium mt-1 block">{passwordError}</span>

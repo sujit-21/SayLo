@@ -30,21 +30,21 @@ const VerifyAccountPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen flex flex-col justify-center items-center bg-[#0c1317] p-4 select-none">
-      <div className="w-full max-w-md bg-[#111b21] border border-gray-800 rounded-3xl p-8 shadow-2xl text-center">
+    <div className="min-h-screen w-screen flex flex-col justify-center items-center bg-[#f0f2f5] dark:bg-[#0c1317] p-4 select-none">
+      <div className="w-full max-w-md bg-white dark:bg-[#111b21] border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-2xl text-center">
         <div className="w-14 h-14 mx-auto rounded-2xl bg-saylo-emerald/20 text-saylo-emerald flex items-center justify-center mb-4">
           <ShieldCheck size={28} />
         </div>
-        <h2 className="text-xl font-bold text-gray-100 mb-1">Verify Your Account</h2>
-        <p className="text-xs text-gray-400 mb-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Verify Your Account</h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
           Enter the 6-digit confirmation code sent to {user?.email || 'your email'}
         </p>
 
         {verified ? (
           <div className="p-4 bg-saylo-emerald/10 border border-saylo-emerald/30 rounded-2xl space-y-2">
             <CheckCircle className="mx-auto text-saylo-emerald" size={32} />
-            <h4 className="text-sm font-bold text-white">Account Verified!</h4>
-            <p className="text-xs text-gray-300">Taking you to chats...</p>
+            <h4 className="text-sm font-bold text-gray-900 dark:text-white">Account Verified!</h4>
+            <p className="text-xs text-gray-600 dark:text-gray-300">Taking you to chats...</p>
           </div>
         ) : (
           <form onSubmit={handleVerify} className="space-y-4">
@@ -55,7 +55,7 @@ const VerifyAccountPage = () => {
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
               placeholder="123456"
               required
-              className="w-full text-center tracking-widest text-2xl font-mono bg-[#202c33] border border-gray-700/80 rounded-xl py-3 text-white focus:outline-none focus:border-saylo-emerald"
+              className="w-full text-center tracking-widest text-2xl font-mono bg-gray-50 dark:bg-[#202c33] border border-gray-300 dark:border-gray-700/80 rounded-xl py-3 text-gray-900 dark:text-white focus:outline-none focus:border-saylo-emerald"
             />
             <button
               type="submit"

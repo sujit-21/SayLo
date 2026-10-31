@@ -83,17 +83,17 @@ const ProfilePage = () => {
   ];
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
       {/* Header with Back Navigation */}
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-800 bg-[#202c33]">
+      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
         <Link
           to="/chats"
-          className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+          className="p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           title="Back to chats"
         >
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-xl font-bold text-gray-100">Profile</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Profile</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-xl w-full mx-auto space-y-8">
@@ -133,7 +133,7 @@ const ProfilePage = () => {
             </button>
 
             {/* Presets */}
-            <p className="text-[11px] text-gray-400 mb-2">Or choose an avatar preset</p>
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2">Or choose an avatar preset</p>
             <div className="flex items-center gap-2.5">
               {avatarPresets.map((preset, idx) => (
                 <img
@@ -152,9 +152,9 @@ const ProfilePage = () => {
           </div>
 
           {/* Form Fields */}
-          <div className="space-y-4 bg-[#202c33] p-6 rounded-3xl border border-gray-700/60 shadow-lg">
+          <div className="space-y-4 bg-white dark:bg-[#202c33] p-6 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg">
             <div>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-300 mb-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 <User size={14} className="text-saylo-emerald" />
                 Your Name
               </label>
@@ -164,15 +164,15 @@ const ProfilePage = () => {
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="Your display name"
-                className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+                className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
               />
-              <span className="text-[11px] text-gray-400 mt-1 block">
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 block">
                 This is not your username or pin. This name will be visible to your SAYLO contacts.
               </span>
             </div>
 
             <div>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-300 mb-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 <Info size={14} className="text-saylo-emerald" />
                 About
               </label>
@@ -182,12 +182,12 @@ const ProfilePage = () => {
                 maxLength={139}
                 onChange={(e) => setAbout(e.target.value)}
                 placeholder="Hey there! I am using SAYLO."
-                className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+                className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
               />
             </div>
 
             <div>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-300 mb-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 <Phone size={14} className="text-saylo-emerald" />
                 Phone Number
               </label>
@@ -196,12 +196,12 @@ const ProfilePage = () => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+1 (555) 000-0000"
-                className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+                className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
               />
             </div>
 
             <div>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-300 mb-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 <Mail size={14} className="text-gray-500" />
                 Email Address
               </label>
@@ -209,7 +209,7 @@ const ProfilePage = () => {
                 type="email"
                 value={user?.email || ''}
                 disabled
-                className="w-full bg-[#111b21]/50 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-400 cursor-not-allowed"
+                className="w-full bg-gray-100 dark:bg-[#111b21]/50 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-500 dark:text-gray-400 cursor-not-allowed"
               />
             </div>
           </div>

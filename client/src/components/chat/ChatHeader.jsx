@@ -150,13 +150,13 @@ const ChatHeader = ({
   };
 
   return (
-    <div className="h-16 bg-[#202c33] dark:bg-[#202c33] border-b border-gray-800 flex items-center justify-between px-3 md:px-4 z-20 select-none">
+    <div className="h-16 bg-[#f0f2f5] dark:bg-[#202c33] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-3 md:px-4 z-20 select-none transition-colors duration-150">
       {/* Back button & Contact info */}
       <div className="flex items-center gap-2 md:gap-2.5 flex-1 min-w-0">
         <button
           type="button"
           onClick={handleBack}
-          className="p-1.5 -ml-1 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-colors flex items-center justify-center flex-shrink-0"
+          className="p-1.5 -ml-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors flex items-center justify-center flex-shrink-0"
           title="Back to chat list"
         >
           <ArrowLeft size={20} />
@@ -169,9 +169,9 @@ const ChatHeader = ({
           <Avatar src={avatar} name={name} size="md" isOnline={isOnline} />
         <div className="truncate">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-gray-100 truncate">{name}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{name}</h3>
             {isMuted && (
-              <VolumeX size={13} className="text-gray-400 flex-shrink-0" title="Notifications muted" />
+              <VolumeX size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" title="Notifications muted" />
             )}
             {activeConversation.disappearingTimer > 0 && (
               <Clock size={13} className="text-saylo-emerald flex-shrink-0" title="Disappearing messages on" />
@@ -181,7 +181,7 @@ const ChatHeader = ({
             className={`text-xs truncate ${
               statusText === 'typing...' || statusText === 'online'
                 ? 'text-saylo-emerald font-medium'
-                : 'text-gray-400'
+                : 'text-gray-500 dark:text-gray-400'
             }`}
           >
             {statusText}
@@ -191,13 +191,13 @@ const ChatHeader = ({
     </div>
 
       {/* Header action buttons */}
-      <div className="flex items-center gap-1 text-gray-400">
+      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
         {!activeConversation.isNoteToSelf && otherParticipant && (
           <>
             {/* Audio Call */}
             <button
               onClick={() => startCall(otherParticipant, 'audio', activeConversation._id)}
-              className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+              className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
               title="Voice call"
             >
               <Phone size={19} />
@@ -206,7 +206,7 @@ const ChatHeader = ({
             {/* Video Call */}
             <button
               onClick={() => startCall(otherParticipant, 'video', activeConversation._id)}
-              className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+              className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
               title="Video call"
             >
               <Video size={19} />
@@ -217,7 +217,7 @@ const ChatHeader = ({
         {/* Search within conversation */}
         <button
           onClick={onToggleSearch}
-          className="p-2 hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+          className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
           title="Search in chat"
         >
           <Search size={19} />
@@ -227,7 +227,7 @@ const ChatHeader = ({
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
-            className="p-2 hover:bg-white/5 rounded-full hover:text-white transition-colors"
+            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full hover:text-gray-900 dark:hover:text-white transition-colors"
             title="More options"
           >
             <MoreVertical size={19} />
@@ -235,7 +235,7 @@ const ChatHeader = ({
 
           {showDropdown && (
             <div
-              className="absolute right-0 top-11 w-52 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl py-2 z-40 text-xs text-gray-200 animate-fadeIn"
+              className="absolute right-0 top-11 w-52 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl py-2 z-40 text-xs text-gray-800 dark:text-gray-200 animate-fadeIn"
               onMouseLeave={() => setShowDropdown(false)}
             >
               <button
@@ -243,7 +243,7 @@ const ChatHeader = ({
                   onOpenInfoPanel();
                   setShowDropdown(false);
                 }}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-3"
               >
                 <Info size={16} />
                 Contact / Group info
@@ -253,31 +253,31 @@ const ChatHeader = ({
               {isMuted ? (
                 <button
                   onClick={() => handleToggleMute()}
-                  className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+                  className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-3"
                 >
                   <Volume2 size={16} />
                   Unmute notifications
                 </button>
               ) : (
-                <div className="py-1 border-y border-gray-700/40">
+                <div className="py-1 border-y border-gray-100 dark:border-gray-700/40">
                   <span className="px-4 text-[10px] text-gray-400 font-semibold uppercase tracking-wider block mb-1">
                     Mute Notifications
                   </span>
                   <button
                     onClick={() => handleToggleMute(8)}
-                    className="w-full text-left px-4 py-1.5 hover:bg-gray-700/50 text-[11px] text-gray-200"
+                    className="w-full text-left px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-[11px] text-gray-700 dark:text-gray-200"
                   >
                     For 8 hours
                   </button>
                   <button
                     onClick={() => handleToggleMute(168)}
-                    className="w-full text-left px-4 py-1.5 hover:bg-gray-700/50 text-[11px] text-gray-200"
+                    className="w-full text-left px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-[11px] text-gray-700 dark:text-gray-200"
                   >
                     For 1 week
                   </button>
                   <button
                     onClick={() => handleToggleMute(null)}
-                    className="w-full text-left px-4 py-1.5 hover:bg-gray-700/50 text-[11px] text-gray-200"
+                    className="w-full text-left px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-[11px] text-gray-700 dark:text-gray-200"
                   >
                     Always
                   </button>
@@ -289,7 +289,7 @@ const ChatHeader = ({
                   onOpenDisappearingModal();
                   setShowDropdown(false);
                 }}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-3"
               >
                 <Clock size={16} />
                 Disappearing messages
@@ -300,7 +300,7 @@ const ChatHeader = ({
                   onOpenWallpaperModal();
                   setShowDropdown(false);
                 }}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-3"
               >
                 <Palette size={16} />
                 Chat wallpaper
@@ -311,7 +311,7 @@ const ChatHeader = ({
                   if (onOpenThemeModal) onOpenThemeModal();
                   setShowDropdown(false);
                 }}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-3"
               >
                 <Palette size={16} className="text-saylo-emerald" />
                 Theme & bubble color
@@ -322,7 +322,7 @@ const ChatHeader = ({
                   onOpenLockModal();
                   setShowDropdown(false);
                 }}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-3"
               >
                 <Lock size={16} />
                 Lock chat
@@ -330,7 +330,7 @@ const ChatHeader = ({
 
               <button
                 onClick={handleExportChat}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-3"
               >
                 <Download size={16} />
                 Export chat
@@ -341,7 +341,7 @@ const ChatHeader = ({
                   setShowDropdown(false);
                   setShowClearModal(true);
                 }}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3 text-red-400"
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-3 text-red-500"
               >
                 <Trash2 size={16} />
                 Clear chat

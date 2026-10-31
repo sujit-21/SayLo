@@ -58,10 +58,10 @@ const CommunitiesPage = () => {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#111b21] select-none overflow-hidden">
+    <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
       {/* Header */}
-      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
-        <h1 className="text-xl font-bold text-gray-100">Communities & Channels</h1>
+      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Communities & Channels</h1>
         <button
           onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-1.5 px-3.5 py-1.5 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl text-xs font-semibold shadow-md transition-colors"
@@ -74,15 +74,15 @@ const CommunitiesPage = () => {
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-3xl w-full mx-auto space-y-8">
         {/* Communities Section */}
         <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-1">
             Your Communities
           </h2>
 
           {communities.length === 0 ? (
-            <div className="p-6 bg-[#202c33] rounded-2xl border border-gray-700/60 text-center">
+            <div className="p-6 bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 text-center">
               <Users size={32} className="mx-auto mb-2 text-saylo-emerald" />
-              <h3 className="text-sm font-bold text-white mb-1">Stay connected with a community</h3>
-              <p className="text-xs text-gray-400 max-w-sm mx-auto mb-4">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Stay connected with a community</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
                 Communities bring related groups together under one roof, with official announcement channels.
               </p>
               <button
@@ -97,13 +97,13 @@ const CommunitiesPage = () => {
               {communities.map((c) => (
                 <div
                   key={c._id}
-                  className="p-4 bg-[#202c33] rounded-2xl border border-gray-700/60 shadow-md space-y-3"
+                  className="p-4 bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-md space-y-3"
                 >
                   <div className="flex items-center gap-3.5">
                     <Avatar src={c.avatar} name={c.name} size="md" />
                     <div>
-                      <h3 className="text-sm font-bold text-gray-100">{c.name}</h3>
-                      <p className="text-xs text-gray-400">{c.description || 'Community hub'}</p>
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">{c.name}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{c.description || 'Community hub'}</p>
                     </div>
                   </div>
 
@@ -183,19 +183,19 @@ const CommunitiesPage = () => {
                 return (
                   <div
                     key={chan._id}
-                    className="flex items-center justify-between p-3.5 bg-[#202c33] rounded-2xl border border-gray-700/60 shadow-sm hover:border-gray-600 transition-colors"
+                    className="flex items-center justify-between p-3.5 bg-white dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-sm hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <Avatar src={chan.avatar} name={chan.name} size="md" />
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-100 flex items-center gap-1.5">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
                           {chan.name}
                           {chan.isVerified && (
                             <span className="text-saylo-emerald font-bold text-xs" title="Verified">✓</span>
                           )}
                         </h4>
-                        <p className="text-xs text-gray-400 line-clamp-1">{chan.description || 'Public updates channel'}</p>
-                        <span className="text-[10px] text-gray-500 font-medium">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{chan.description || 'Public updates channel'}</p>
+                        <span className="text-[10px] text-gray-400 font-medium">
                           {chan.followers?.length || 0} followers
                         </span>
                       </div>
@@ -235,25 +235,25 @@ const CommunitiesPage = () => {
       >
         <form onSubmit={handleCreateCommunity} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1.5">Community Name</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Community Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Design Enthusiasts, Neighborhood"
               required
-              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1.5">Description</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe what this community is for..."
-              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
             />
           </div>
 
@@ -317,18 +317,18 @@ const CommunitiesPage = () => {
               onChange={(e) => setSubgroupName(e.target.value)}
               placeholder="e.g. Design Critiques, Project Alpha"
               required
-              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1.5">Description (optional)</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description (optional)</label>
             <textarea
               rows={2}
               value={subgroupDesc}
               onChange={(e) => setSubgroupDesc(e.target.value)}
               placeholder="What is this sub-topic for?"
-              className="w-full bg-[#111b21] border border-gray-700 rounded-xl px-3.5 py-2 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
             />
           </div>
 

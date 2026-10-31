@@ -43,16 +43,16 @@ const ShareContactModal = ({ isOpen, onClose, onShareContact }) => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search contact to share..."
-            className="w-full pl-9 pr-4 py-2 bg-[#111b21] border border-gray-700 rounded-xl text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
           />
         </div>
 
         {/* Contacts List */}
-        <div className="max-h-64 overflow-y-auto divide-y divide-gray-800/80">
+        <div className="max-h-64 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-800/80">
           {loading ? (
-            <div className="py-8 text-center text-xs text-gray-400">Loading contacts...</div>
+            <div className="py-8 text-center text-xs text-gray-500 dark:text-gray-400">Loading contacts...</div>
           ) : filtered.length === 0 ? (
-            <div className="py-8 text-center text-xs text-gray-400">No contacts found</div>
+            <div className="py-8 text-center text-xs text-gray-500 dark:text-gray-400">No contacts found</div>
           ) : (
             filtered.map((contact) => (
               <div
@@ -67,13 +67,13 @@ const ShareContactModal = ({ isOpen, onClose, onShareContact }) => {
                   });
                   onClose();
                 }}
-                className="flex items-center justify-between p-3 hover:bg-white/5 cursor-pointer rounded-xl transition-colors"
+                className="flex items-center justify-between p-3 hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer rounded-xl transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <Avatar src={contact.avatar} name={contact.name} size="md" />
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-100">{contact.name}</h4>
-                    <p className="text-xs text-gray-400">{contact.phone || contact.email}</p>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{contact.name}</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{contact.phone || contact.email}</p>
                   </div>
                 </div>
                 <button

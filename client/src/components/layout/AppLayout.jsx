@@ -34,7 +34,7 @@ const AppLayout = () => {
   const isDisconnected = !isOnline || !socketConnected;
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0c1317] text-[#e9edef]">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#f0f2f5] dark:bg-[#0c1317] text-[#111b21] dark:text-[#e9edef] transition-colors duration-150">
       {/* Offline / Reconnecting Banner */}
       {isDisconnected && (
         <div className="bg-amber-600/90 text-white text-xs font-semibold px-4 py-1.5 flex items-center justify-center gap-2 select-none animate-fadeIn z-50">

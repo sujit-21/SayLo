@@ -32,7 +32,7 @@ const ScheduleMessageModal = ({ isOpen, onClose, onSchedule }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Schedule Message">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1">
+          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Message to send
           </label>
           <textarea
@@ -40,13 +40,13 @@ const ScheduleMessageModal = ({ isOpen, onClose, onSchedule }) => {
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="Type your scheduled message..."
-            className="w-full bg-[#111b21] border border-gray-700 rounded-xl p-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
+            className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl p-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-saylo-emerald"
             required
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1">
+          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Send automatically at
           </label>
           <div className="relative">
@@ -55,11 +55,11 @@ const ScheduleMessageModal = ({ isOpen, onClose, onSchedule }) => {
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
               min={new Date().toISOString().slice(0, 16)}
-              className="w-full bg-[#111b21] border border-gray-700 rounded-xl p-3 text-sm text-gray-100 focus:outline-none focus:border-saylo-emerald"
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl p-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
               required
             />
           </div>
-          <p className="text-[11px] text-gray-400 mt-1">
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
             SAYLO's background scheduler will deliver this message at the specified time.
           </p>
         </div>
@@ -68,7 +68,7 @@ const ScheduleMessageModal = ({ isOpen, onClose, onSchedule }) => {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+            className="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
           >
             Cancel
           </button>

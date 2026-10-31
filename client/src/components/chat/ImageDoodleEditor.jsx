@@ -96,13 +96,13 @@ const ImageDoodleEditor = ({ isOpen, imageFile, onClose, onSave }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Photo & Doodle">
       <div className="space-y-4 select-none">
         {/* Editor Canvas Toolbar */}
-        <div className="flex items-center justify-between gap-2 p-2 bg-[#111b21] rounded-2xl border border-gray-700/60">
+        <div className="flex items-center justify-between gap-2 p-2 bg-gray-100 dark:bg-[#111b21] rounded-2xl border border-gray-200 dark:border-gray-700/60">
           <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => setMode('draw')}
               className={`p-2 rounded-xl transition-colors ${
-                mode === 'draw' ? 'bg-saylo-emerald text-white' : 'text-gray-400 hover:text-white'
+                mode === 'draw' ? 'bg-saylo-emerald text-white' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
               title="Draw / Doodle"
             >
@@ -113,7 +113,7 @@ const ImageDoodleEditor = ({ isOpen, imageFile, onClose, onSave }) => {
               type="button"
               onClick={() => setMode('text')}
               className={`p-2 rounded-xl transition-colors ${
-                mode === 'text' ? 'bg-saylo-emerald text-white' : 'text-gray-400 hover:text-white'
+                mode === 'text' ? 'bg-saylo-emerald text-white' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
               title="Add text"
             >
@@ -145,7 +145,7 @@ const ImageDoodleEditor = ({ isOpen, imageFile, onClose, onSave }) => {
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
               placeholder="Type caption overlay..."
-              className="flex-1 bg-[#111b21] border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-saylo-emerald"
+              className="flex-1 bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-saylo-emerald"
             />
             <button
               type="button"
