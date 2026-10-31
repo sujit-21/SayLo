@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Phone,
   Video,
@@ -10,6 +11,7 @@ import {
   Trash2,
   Info,
   Palette,
+  ArrowLeft,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import Modal from '../common/Modal';
@@ -28,13 +30,27 @@ const ChatHeader = ({
   onOpenLockModal,
 }) => {
   const { user } = useAuth();
-  const { activeConversation, messages, deleteMessage, clearChat, getContactNickname } = useChat();
+  const {
+    activeConversation,
+    setActiveConversation,
+    messages,
+    deleteMessage,
+    clearChat,
+    getContactNickname,
+  } = useChat();
   const { onlineUsers, typingUsers } = useSocket();
   const { startCall } = useCall();
+  const navigate = useNavigate();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearing, setClearing] = useState(false);
+
+  const handleBack = (e) => {
+    e.stopPropagation();
+    setActiveConversation(null);
+    navigate('/chats', { replace: true });
+  };
 
   const handleClearChat = async () => {
     if (!activeConversation?._id) return;
@@ -106,13 +122,23 @@ const ChatHeader = ({
   };
 
   return (
-    <div className="h-16 bg-[#202c33] dark:bg-[#202c33] border-b border-gray-800 flex items-center justify-between px-4 z-20 select-none">
-      {/* Contact info click opens info panel */}
-      <div
-        onClick={onOpenInfoPanel}
-        className="flex items-center gap-3 cursor-pointer hover:opacity-90 flex-1 min-w-0"
-      >
-        <Avatar src={avatar} name={name} size="md" isOnline={isOnline} />
+    <div className="h-16 bg-[#202c33] dark:bg-[#202c33] border-b border-gray-800 flex items-center justify-between px-3 md:px-4 z-20 select-none">
+      {/* Back button & Contact info */}
+      <div className="flex items-center gap-2 md:gap-2.5 flex-1 min-w-0">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="p-1.5 -ml-1 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-colors flex items-center justify-center flex-shrink-0"
+          title="Back to chat list"
+        >
+          <ArrowLeft size={20} />
+        </button>
+
+        <div
+          onClick={onOpenInfoPanel}
+          className="flex items-center gap-3 cursor-pointer hover:opacity-90 flex-1 min-w-0"
+        >
+          <Avatar src={avatar} name={name} size="md" isOnline={isOnline} />
         <div className="truncate">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-100 truncate">{name}</h3>
@@ -131,6 +157,7 @@ const ChatHeader = ({
           </p>
         </div>
       </div>
+    </div>
 
       {/* Header action buttons */}
       <div className="flex items-center gap-1 text-gray-400">
