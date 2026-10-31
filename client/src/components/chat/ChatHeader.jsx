@@ -12,6 +12,8 @@ import {
   Info,
   Palette,
   ArrowLeft,
+  VolumeX,
+  Volume2,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import Modal from '../common/Modal';
@@ -20,6 +22,7 @@ import { useSocket } from '../../context/SocketContext';
 import { useCall } from '../../context/CallContext';
 import { useChat } from '../../context/ChatContext';
 import { format } from 'date-fns';
+import api from '../../services/api';
 
 const ChatHeader = ({
   onToggleSearch,
@@ -33,6 +36,7 @@ const ChatHeader = ({
   const {
     activeConversation,
     setActiveConversation,
+    fetchConversations,
     messages,
     deleteMessage,
     clearChat,
@@ -43,8 +47,32 @@ const ChatHeader = ({
   const navigate = useNavigate();
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMuteSubmenu, setShowMuteSubmenu] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearing, setClearing] = useState(false);
+
+  const myParticipant = activeConversation?.participants?.find(
+    (p) => (p.user?._id || p.user) === user?._id
+  );
+  const isMuted = Boolean(
+    myParticipant?.isMuted &&
+      (!myParticipant.mutedUntil || new Date(myParticipant.mutedUntil) > new Date())
+  );
+
+  const handleToggleMute = async (hours = null) => {
+    if (!activeConversation?._id) return;
+    try {
+      await api.put(`/conversations/${activeConversation._id}/preference`, {
+        isMuted: !isMuted,
+        mutedDurationHours: hours,
+      });
+      await fetchConversations();
+      setShowDropdown(false);
+      setShowMuteSubmenu(false);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleBack = (e) => {
     e.stopPropagation();
@@ -142,6 +170,9 @@ const ChatHeader = ({
         <div className="truncate">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-100 truncate">{name}</h3>
+            {isMuted && (
+              <VolumeX size={13} className="text-gray-400 flex-shrink-0" title="Notifications muted" />
+            )}
             {activeConversation.disappearingTimer > 0 && (
               <Clock size={13} className="text-saylo-emerald flex-shrink-0" title="Disappearing messages on" />
             )}
@@ -217,6 +248,41 @@ const ChatHeader = ({
                 <Info size={16} />
                 Contact / Group info
               </button>
+
+              {/* Mute / Unmute Notifications */}
+              {isMuted ? (
+                <button
+                  onClick={() => handleToggleMute()}
+                  className="w-full text-left px-4 py-2.5 hover:bg-gray-700/50 flex items-center gap-3"
+                >
+                  <Volume2 size={16} />
+                  Unmute notifications
+                </button>
+              ) : (
+                <div className="py-1 border-y border-gray-700/40">
+                  <span className="px-4 text-[10px] text-gray-400 font-semibold uppercase tracking-wider block mb-1">
+                    Mute Notifications
+                  </span>
+                  <button
+                    onClick={() => handleToggleMute(8)}
+                    className="w-full text-left px-4 py-1.5 hover:bg-gray-700/50 text-[11px] text-gray-200"
+                  >
+                    For 8 hours
+                  </button>
+                  <button
+                    onClick={() => handleToggleMute(168)}
+                    className="w-full text-left px-4 py-1.5 hover:bg-gray-700/50 text-[11px] text-gray-200"
+                  >
+                    For 1 week
+                  </button>
+                  <button
+                    onClick={() => handleToggleMute(null)}
+                    className="w-full text-left px-4 py-1.5 hover:bg-gray-700/50 text-[11px] text-gray-200"
+                  >
+                    Always
+                  </button>
+                </div>
+              )}
 
               <button
                 onClick={() => {

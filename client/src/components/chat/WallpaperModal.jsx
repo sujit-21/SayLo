@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import Modal from '../common/Modal';
 import { useTheme } from '../../context/ThemeContext';
+import { useChat } from '../../context/ChatContext';
 import { Check, Sparkles, Image as ImageIcon } from 'lucide-react';
+import api from '../../services/api';
 
 const WallpaperModal = ({ isOpen, onClose }) => {
   const { wallpaper, updateWallpaper } = useTheme();
+  const { activeConversation } = useChat();
+
+  const [applyScope, setApplyScope] = useState(activeConversation ? 'chat' : 'global');
 
   const wallpapers = [
     { id: 'doodle', name: 'Classic Doodle', bgClass: 'bg-chat-pattern-dark', preview: '#005c4b' },
@@ -17,23 +22,75 @@ const WallpaperModal = ({ isOpen, onClose }) => {
     { id: 'slate', name: 'Geometric Slate', bgClass: 'bg-[#1e293b]', preview: '#1e293b' },
   ];
 
+  const handleSelect = async (wId) => {
+    if (applyScope === 'chat' && activeConversation?._id) {
+      localStorage.setItem(`saylo_wallpaper_${activeConversation._id}`, wId);
+      try {
+        await api.put(`/conversations/${activeConversation._id}/preference`, {
+          customWallpaper: wId,
+        });
+      } catch (e) {
+        // Fallback saved locally
+      }
+    } else {
+      updateWallpaper(wId);
+      if (activeConversation?._id) {
+        localStorage.removeItem(`saylo_wallpaper_${activeConversation._id}`);
+      }
+    }
+    onClose();
+  };
+
+  const currentChatWallpaper =
+    activeConversation && localStorage.getItem(`saylo_wallpaper_${activeConversation._id}`);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Chat Wallpaper Gallery">
       <div className="space-y-4 select-none">
+        {activeConversation && (
+          <div className="flex items-center gap-2 p-1 bg-[#111b21] rounded-xl border border-gray-700/60 text-xs">
+            <button
+              type="button"
+              onClick={() => setApplyScope('chat')}
+              className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors ${
+                applyScope === 'chat'
+                  ? 'bg-saylo-emerald text-white shadow-sm'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              This Chat Only
+            </button>
+            <button
+              type="button"
+              onClick={() => setApplyScope('global')}
+              className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors ${
+                applyScope === 'global'
+                  ? 'bg-saylo-emerald text-white shadow-sm'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              All Chats (Global)
+            </button>
+          </div>
+        )}
+
         <p className="text-xs text-gray-400">
-          Choose a wallpaper preset for your chat conversations.
+          {applyScope === 'chat'
+            ? `Choose a wallpaper specific to this conversation.`
+            : `Choose a default background for all SAYLO conversations.`}
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {wallpapers.map((w) => {
-            const isSelected = wallpaper === w.id;
+            const isSelected =
+              applyScope === 'chat'
+                ? (currentChatWallpaper || wallpaper) === w.id
+                : wallpaper === w.id;
+
             return (
               <div
                 key={w.id}
-                onClick={() => {
-                  updateWallpaper(w.id);
-                  onClose();
-                }}
+                onClick={() => handleSelect(w.id)}
                 className={`h-24 rounded-2xl cursor-pointer border-2 transition-all p-3 flex flex-col justify-between ${w.bgClass} ${
                   isSelected
                     ? 'border-saylo-emerald shadow-xl ring-2 ring-saylo-emerald/30 scale-102'

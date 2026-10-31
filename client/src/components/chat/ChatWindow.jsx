@@ -299,15 +299,19 @@ const ChatWindow = () => {
     );
   };
 
-  // Background pattern class based on selected wallpaper
+  // Background pattern class based on selected per-chat or global wallpaper
+  const effectiveWallpaper =
+    (activeConversation?._id && localStorage.getItem(`saylo_wallpaper_${activeConversation._id}`)) ||
+    wallpaper;
+
   let wallpaperClass = 'bg-chat-pattern-dark';
-  if (wallpaper === 'midnight') wallpaperClass = 'bg-[#0b141a]';
-  else if (wallpaper === 'emerald') wallpaperClass = 'bg-[#002a22]';
-  else if (wallpaper === 'navy') wallpaperClass = 'bg-[#0a192f]';
-  else if (wallpaper === 'charcoal') wallpaperClass = 'bg-[#18181b]';
-  else if (wallpaper === 'nebula') wallpaperClass = 'bg-gradient-to-br from-[#1e1b4b] via-[#31104b] to-[#0b141a]';
-  else if (wallpaper === 'sunset') wallpaperClass = 'bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#0f172a]';
-  else if (wallpaper === 'slate') wallpaperClass = 'bg-[#1e293b]';
+  if (effectiveWallpaper === 'midnight') wallpaperClass = 'bg-[#0b141a]';
+  else if (effectiveWallpaper === 'emerald') wallpaperClass = 'bg-[#002a22]';
+  else if (effectiveWallpaper === 'navy') wallpaperClass = 'bg-[#0a192f]';
+  else if (effectiveWallpaper === 'charcoal') wallpaperClass = 'bg-[#18181b]';
+  else if (effectiveWallpaper === 'nebula') wallpaperClass = 'bg-gradient-to-br from-[#1e1b4b] via-[#31104b] to-[#0b141a]';
+  else if (effectiveWallpaper === 'sunset') wallpaperClass = 'bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#0f172a]';
+  else if (effectiveWallpaper === 'slate') wallpaperClass = 'bg-[#1e293b]';
 
   return (
     <div

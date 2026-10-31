@@ -31,8 +31,9 @@ import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 
-// Voice Message Player with Animated Waveform Bars, Speed Controls & Live Audio Transcription
-const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
+// Voice Message Player with Animated Waveform Bars, Speed Controls, Global Background Audio & Transcription
+const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, senderAvatar }) => {
+  const { setActiveAudioTrack } = useChat();
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
@@ -41,6 +42,20 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
   const [transcription, setTranscription] = useState('');
   const [isTranscribing, setIsTranscribing] = useState(false);
   const audioRef = useRef(null);
+
+  const handlePlayInBackground = (e) => {
+    e.stopPropagation();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+    setActiveAudioTrack({
+      url: src,
+      senderName: senderName || 'Voice Note',
+      avatar: senderAvatar,
+      duration: duration || initialDuration || 0,
+    });
+  };
 
   // Generate a consistent pseudo waveform bar pattern
   const barHeights = [35, 60, 40, 85, 95, 50, 75, 40, 65, 80, 55, 90, 70, 45, 60, 85, 40, 75, 50, 65];
@@ -208,14 +223,23 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration }) => {
         </button>
       </div>
 
-      {/* Transcription toggle */}
+      {/* Transcription toggle & Global Background Play */}
       <div className="flex items-center justify-between px-1">
         <button
           type="button"
           onClick={handleTranscribe}
           className="text-[10px] text-saylo-emerald hover:underline font-semibold flex items-center gap-1"
         >
-          <span>💬 {showTranscription ? 'Hide transcript' : 'Transcribe voice'}</span>
+          <span>💬 {showTranscription ? 'Hide transcript' : 'Transcribe'}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handlePlayInBackground}
+          className="text-[10px] text-gray-400 hover:text-saylo-emerald font-semibold flex items-center gap-1 transition-colors"
+          title="Play in background while browsing other chats"
+        >
+          <span>🎧 Play in Background</span>
         </button>
       </div>
 
@@ -623,34 +647,68 @@ const MessageItem = ({
 
             {/* Audio / Voice Message */}
             {(message.type === 'audio' || message.type === 'voice') && message.mediaUrl && (
-              <VoiceMessagePlayer src={message.mediaUrl} duration={message.mediaDuration} />
+              <VoiceMessagePlayer
+                src={message.mediaUrl}
+                duration={message.mediaDuration}
+                senderName={message.sender?.name}
+                senderAvatar={message.sender?.avatar}
+              />
             )}
 
-            {/* Document Media */}
-            {message.type === 'document' && message.mediaUrl && (
-              <div className="my-1 flex items-center justify-between gap-3 p-3 bg-black/20 rounded-xl min-w-[220px]">
-                <div className="flex items-center gap-2.5 truncate">
-                  <FileText className="text-saylo-emerald flex-shrink-0" size={24} />
-                  <div className="truncate">
-                    <span className="text-xs font-medium block truncate">
-                      {message.mediaName || 'Document'}
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      {message.mediaSize ? `${(message.mediaSize / 1024).toFixed(1)} KB` : 'File'}
-                    </span>
+            {/* Document Media with Rich PDF / File Preview Card */}
+            {message.type === 'document' && message.mediaUrl && (() => {
+              const fileName = message.mediaName || 'Document';
+              const isPdf = fileName.toLowerCase().endsWith('.pdf') || message.mediaMimeType?.includes('pdf');
+              const fileSizeStr = message.mediaSize
+                ? message.mediaSize > 1024 * 1024
+                  ? `${(message.mediaSize / (1024 * 1024)).toFixed(1)} MB`
+                  : `${(message.mediaSize / 1024).toFixed(0)} KB`
+                : 'Document';
+
+              return (
+                <div className="my-1.5 p-3 bg-black/30 rounded-2xl border border-gray-700/60 min-w-[240px] max-w-sm space-y-2">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2.5 rounded-xl flex-shrink-0 flex items-center justify-center ${
+                      isPdf ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-saylo-emerald/15 text-saylo-emerald'
+                    }`}>
+                      <FileText size={22} />
+                    </div>
+                    <div className="truncate flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                          isPdf ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-300'
+                        }`}>
+                          {isPdf ? 'PDF' : (fileName.split('.').pop() || 'DOC').toUpperCase()}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-mono">{fileSizeStr}</span>
+                      </div>
+                      <p className="text-xs font-semibold text-gray-100 truncate" title={fileName}>
+                        {fileName}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-700/40 flex items-center justify-end gap-2">
+                    <a
+                      href={message.mediaUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-gray-200 transition-colors"
+                    >
+                      Preview
+                    </a>
+                    <a
+                      href={message.mediaUrl}
+                      download={fileName}
+                      className="px-3 py-1 rounded-lg bg-saylo-emerald hover:bg-saylo-600 text-xs font-semibold text-white transition-colors flex items-center gap-1 shadow-sm"
+                    >
+                      <Download size={13} />
+                      Download
+                    </a>
                   </div>
                 </div>
-                <a
-                  href={message.mediaUrl}
-                  download={message.mediaName}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1.5 hover:bg-white/10 rounded-full text-saylo-emerald"
-                >
-                  <Download size={18} />
-                </a>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Poll Widget */}
             {message.type === 'poll' && message.poll && (

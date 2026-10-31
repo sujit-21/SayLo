@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import NavigationSidebar from './NavigationSidebar';
 import CallOverlay from '../calls/CallOverlay';
+import GlobalAudioPlayer from '../common/GlobalAudioPlayer';
 import { useSocket } from '../../context/SocketContext';
 import { useChat } from '../../context/ChatContext';
 import { WifiOff, RefreshCw } from 'lucide-react';
@@ -58,6 +59,9 @@ const AppLayout = () => {
 
         {/* WebRTC Audio & Video Calling Modal Overlay */}
         <CallOverlay />
+
+        {/* Global Floating Background Audio Player */}
+        <GlobalAudioPlayer />
       </div>
     </div>
   );

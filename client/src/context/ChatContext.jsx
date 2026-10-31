@@ -19,6 +19,7 @@ export const ChatProvider = ({ children }) => {
   const [activeTabFilter, setActiveTabFilter] = useState('all'); // 'all', 'unread', 'favorites', 'groups'
   const [searchQuery, setSearchQuery] = useState('');
   const [contactNotes, setContactNotes] = useState({});
+  const [activeAudioTrack, setActiveAudioTrack] = useState(null); // { id, url, name, avatar, isPlaying, duration, currentTime, speed }
   const activeConversationRef = useRef(activeConversation);
 
   useEffect(() => {
@@ -500,19 +501,57 @@ export const ChatProvider = ({ children }) => {
 
     // Incoming message
     const handleNewMessage = async ({ conversationId, message }) => {
-      if (message.sender?._id !== user?._id && message.sender !== user?._id) {
-        const chatTone =
-          localStorage.getItem(`saylo_tone_${conversationId}`) ||
-          localStorage.getItem('saylo_notification_tone') ||
-          'chime';
-        sound.playMessageIncoming(chatTone);
-      }
-
       let processedMessage = message;
       const targetConv =
         activeConversationRef.current?._id === conversationId
           ? activeConversationRef.current
           : conversations.find((c) => c._id === conversationId);
+
+      const myParticipant = targetConv?.participants?.find(
+        (p) => (p.user?._id || p.user) === user?._id
+      );
+      const isMuted = Boolean(
+        myParticipant?.isMuted &&
+          (!myParticipant.mutedUntil || new Date(myParticipant.mutedUntil) > new Date())
+      );
+
+      if (message.sender?._id !== user?._id && message.sender !== user?._id) {
+        if (!isMuted) {
+          const chatTone =
+            localStorage.getItem(`saylo_tone_${conversationId}`) ||
+            localStorage.getItem('saylo_notification_tone') ||
+            'chime';
+          sound.playMessageIncoming(chatTone);
+        }
+
+        // Web Push / Desktop Notification when tab is backgrounded
+        if ('Notification' in window && Notification.permission === 'granted' && !document.hasFocus() && !isMuted) {
+          try {
+            const senderName = message.sender?.name || 'Someone on SAYLO';
+            const notifTitle = targetConv?.isGroup ? `${senderName} (${targetConv.name})` : senderName;
+            const notifBody =
+              message.text ||
+              (message.type === 'image'
+                ? '📷 Photo'
+                : message.type === 'video'
+                ? '📹 Video'
+                : message.type === 'audio'
+                ? '🎤 Voice note'
+                : '📎 Attachment');
+
+            const notif = new Notification(notifTitle, {
+              body: notifBody,
+              icon: '/saylo-icon.svg',
+            });
+            notif.onclick = () => {
+              window.focus();
+              selectConversation(conversationId);
+            };
+          } catch (e) {
+            // Notification failed silently
+          }
+        }
+      }
 
       if (message.isEncrypted && targetConv) {
         processedMessage = await decryptSingleMessage(message, targetConv);
@@ -662,6 +701,8 @@ export const ChatProvider = ({ children }) => {
         fetchContactNotes,
         updateContactNote,
         getContactNickname,
+        activeAudioTrack,
+        setActiveAudioTrack,
       }}
     >
       {children}

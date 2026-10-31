@@ -244,6 +244,9 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
   const chatMedia = (messages || []).filter((m) => m.type === 'image' || m.type === 'video');
   const chatDocs = (messages || []).filter((m) => m.type === 'document');
   const chatLinks = (messages || []).filter((m) => m.linkPreview || (m.text && m.text.match(/https?:\/\/[^\s]+/i)));
+  const chatStarred = (messages || []).filter(
+    (m) => m.isStarred || (m.starredBy && m.starredBy.some((id) => (id._id || id) === user?._id))
+  );
 
   if (!isOpen) return null;
 
@@ -280,21 +283,21 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
           <p className="text-xs text-gray-400 mt-1 max-w-[220px]">{displayAbout}</p>
         </div>
 
-        {/* Media, Docs and Links Gallery Tabbed Section */}
+        {/* Media, Docs, Links & Starred Gallery Section */}
         <div className="p-3 bg-[#202c33] rounded-2xl border border-gray-700/40 space-y-3">
           <div className="flex items-center justify-between pb-1 border-b border-gray-700/50">
             <span className="text-xs font-semibold text-gray-200">Shared Content</span>
             <span className="text-[11px] text-saylo-emerald font-semibold">
-              {chatMedia.length + chatDocs.length + chatLinks.length} items
+              {chatMedia.length + chatDocs.length + chatLinks.length + chatStarred.length} items
             </span>
           </div>
 
           {/* Sub-tabs */}
-          <div className="grid grid-cols-3 gap-1 bg-[#111b21] p-1 rounded-xl">
+          <div className="grid grid-cols-4 gap-1 bg-[#111b21] p-1 rounded-xl">
             <button
               type="button"
               onClick={() => setMediaTab('media')}
-              className={`py-1 text-xs font-semibold rounded-lg transition-colors ${
+              className={`py-1 text-[11px] font-semibold rounded-lg transition-colors truncate ${
                 mediaTab === 'media'
                   ? 'bg-saylo-emerald text-white'
                   : 'text-gray-400 hover:text-white'
@@ -305,7 +308,7 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
             <button
               type="button"
               onClick={() => setMediaTab('docs')}
-              className={`py-1 text-xs font-semibold rounded-lg transition-colors ${
+              className={`py-1 text-[11px] font-semibold rounded-lg transition-colors truncate ${
                 mediaTab === 'docs'
                   ? 'bg-saylo-emerald text-white'
                   : 'text-gray-400 hover:text-white'
@@ -316,13 +319,24 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
             <button
               type="button"
               onClick={() => setMediaTab('links')}
-              className={`py-1 text-xs font-semibold rounded-lg transition-colors ${
+              className={`py-1 text-[11px] font-semibold rounded-lg transition-colors truncate ${
                 mediaTab === 'links'
                   ? 'bg-saylo-emerald text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
               Links ({chatLinks.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setMediaTab('starred')}
+              className={`py-1 text-[11px] font-semibold rounded-lg transition-colors truncate ${
+                mediaTab === 'starred'
+                  ? 'bg-saylo-emerald text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              ⭐ Starred ({chatStarred.length})
             </button>
           </div>
 
@@ -401,6 +415,34 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
                       </a>
                     );
                   })}
+                </div>
+              )
+            )}
+
+            {mediaTab === 'starred' && (
+              chatStarred.length === 0 ? (
+                <p className="text-center py-6 text-[11px] text-gray-500">No starred messages in this chat</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {chatStarred.map((m) => (
+                    <div
+                      key={m._id}
+                      className="p-2.5 rounded-xl bg-black/25 hover:bg-black/40 border border-amber-500/20 text-xs space-y-1 transition-colors"
+                    >
+                      <div className="flex items-center justify-between text-[10px] text-amber-400 font-semibold">
+                        <span className="flex items-center gap-1">
+                          <Star size={11} className="fill-amber-400" />
+                          {m.sender?.name || 'Message'}
+                        </span>
+                        <span className="text-gray-400 font-normal">
+                          {format(new Date(m.createdAt), 'MMM d, HH:mm')}
+                        </span>
+                      </div>
+                      <p className="text-gray-200 line-clamp-2">
+                        {m.text || `[Attachment: ${m.type || 'Media'}]`}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )
             )}
