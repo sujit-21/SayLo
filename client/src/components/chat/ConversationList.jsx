@@ -172,7 +172,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
 
   return (
     <div
-      className="w-full md:w-96 h-full bg-[#111b21] dark:bg-[#111b21] border-r border-gray-800 flex flex-col flex-shrink-0 select-none relative"
+      className="w-full md:w-80 lg:w-96 h-full bg-[#111b21] dark:bg-[#111b21] border-r border-gray-800 flex flex-col flex-shrink-0 select-none relative"
       onClick={() => setContextMenu(null)}
     >
       {/* Top Header */}

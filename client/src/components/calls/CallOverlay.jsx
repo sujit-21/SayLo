@@ -80,14 +80,16 @@ const CallOverlay = () => {
   const activeUser = targetUser || caller;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-      <div className="relative w-full max-w-4xl h-[85vh] bg-[#111b21] rounded-3xl overflow-hidden border border-gray-800 shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-0 md:p-4 animate-fadeIn">
+      <div className="relative w-full h-full md:max-w-4xl md:h-[85vh] bg-[#111b21] rounded-none md:rounded-3xl overflow-hidden border-0 md:border md:border-gray-800 shadow-2xl flex flex-col">
         {/* Top bar info */}
-        <div className="absolute top-4 left-6 z-20 flex items-center gap-3 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+        <div className="absolute top-4 left-4 sm:left-6 z-20 flex items-center gap-3 bg-black/50 backdrop-blur-md px-3.5 sm:px-4 py-2 rounded-full border border-white/10 shadow-lg">
           <Avatar src={activeUser?.avatar} name={activeUser?.name || 'User'} size="sm" />
           <div>
-            <h4 className="text-sm font-semibold text-white leading-tight">{activeUser?.name}</h4>
-            <p className="text-xs text-saylo-400 font-mono">
+            <h4 className="text-xs sm:text-sm font-semibold text-white leading-tight truncate max-w-[140px] sm:max-w-[200px]">
+              {activeUser?.name}
+            </h4>
+            <p className="text-[11px] sm:text-xs text-saylo-400 font-mono">
               {callState === 'calling' ? 'Calling...' : formatDuration(callDuration)}
             </p>
           </div>
@@ -105,7 +107,7 @@ const CallOverlay = () => {
                 className="w-full h-full object-cover"
               />
               {/* Local Video PiP */}
-              <div className="absolute bottom-24 right-6 w-48 h-36 bg-black rounded-2xl overflow-hidden border-2 border-saylo-emerald shadow-2xl">
+              <div className="absolute bottom-24 right-3 sm:right-6 w-24 h-32 sm:w-48 sm:h-36 bg-black rounded-xl sm:rounded-2xl overflow-hidden border-2 border-saylo-emerald shadow-2xl">
                 <video
                   ref={localVideoRef}
                   autoPlay
@@ -116,15 +118,15 @@ const CallOverlay = () => {
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-center p-6 text-center">
               <div className="relative mb-6">
                 {callState === 'connected' && (
                   <div className="absolute inset-0 rounded-full animate-pulse bg-saylo-emerald/20 scale-150"></div>
                 )}
                 <Avatar src={activeUser?.avatar} name={activeUser?.name || 'User'} size="2xl" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">{activeUser?.name}</h3>
-              <p className="text-saylo-emerald text-sm font-mono tracking-wider">
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">{activeUser?.name}</h3>
+              <p className="text-saylo-emerald text-xs sm:text-sm font-mono tracking-wider">
                 {callState === 'calling' ? 'Calling...' : `Connected (${formatDuration(callDuration)})`}
               </p>
             </div>
@@ -132,7 +134,7 @@ const CallOverlay = () => {
         </div>
 
         {/* Call Controls Toolbar */}
-        <div className="h-20 bg-[#202c33] border-t border-gray-800 flex items-center justify-center gap-6 px-6 z-20">
+        <div className="h-20 bg-[#202c33] border-t border-gray-800 flex items-center justify-center gap-3 sm:gap-6 px-3 sm:px-6 z-20">
           {/* Mute Mic */}
           <button
             onClick={toggleMute}

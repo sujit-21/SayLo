@@ -240,7 +240,11 @@ const StatusPage = () => {
   return (
     <div className="flex-1 h-full flex overflow-hidden select-none bg-[#111b21]">
       {/* Left List of Statuses */}
-      <div className="w-full md:w-96 h-full bg-[#111b21] border-r border-gray-800 flex flex-col flex-shrink-0">
+      <div
+        className={`w-full md:w-80 lg:w-96 h-full bg-[#111b21] border-r border-gray-800 flex flex-col flex-shrink-0 ${
+          selectedGroup ? 'hidden md:flex' : 'flex'
+        }`}
+      >
         <div className="h-16 px-4 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
           <h1 className="text-xl font-bold text-gray-100">Status</h1>
           <button
@@ -326,9 +330,13 @@ const StatusPage = () => {
       </div>
 
       {/* Right / Main Story Viewer Area */}
-      <div className="hidden md:flex flex-1 h-full items-center justify-center bg-[#0b141a] p-6 relative">
+      <div
+        className={`${
+          selectedGroup ? 'flex fixed inset-0 z-50 md:relative md:inset-auto md:z-auto' : 'hidden md:flex'
+        } flex-1 h-full items-center justify-center bg-[#0b141a] p-0 md:p-6 relative`}
+      >
         {selectedGroup ? (
-          <div className="w-full max-w-sm h-[85vh] rounded-3xl overflow-hidden shadow-2xl relative flex flex-col border border-gray-800 animate-fadeIn">
+          <div className="w-full h-full md:max-w-sm md:h-[85vh] md:rounded-3xl overflow-hidden shadow-2xl relative flex flex-col border-0 md:border md:border-gray-800 animate-fadeIn bg-black">
             {/* Story Top Progress Bars */}
             <div className="absolute top-3 inset-x-3 z-30 flex items-center gap-1.5">
               {selectedGroup.items.map((item, idx) => (
@@ -348,14 +356,22 @@ const StatusPage = () => {
 
             {/* Top Bar (Author info & close) */}
             <div className="absolute top-6 inset-x-4 z-30 flex items-center justify-between text-white">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedGroup(null)}
+                  className="md:hidden p-1.5 -ml-1 text-white hover:bg-white/20 rounded-full transition-colors"
+                  title="Back to status list"
+                >
+                  <ChevronLeft size={22} />
+                </button>
                 <Avatar
                   src={selectedGroup.user?.avatar}
                   name={selectedGroup.user?.name}
                   size="sm"
                 />
                 <div>
-                  <h4 className="text-xs font-bold leading-tight">
+                  <h4 className="text-xs font-bold leading-tight truncate max-w-[130px] sm:max-w-[160px]">
                     {selectedGroup.isSelf ? 'My Status' : selectedGroup.user?.name}
                   </h4>
                   <span className="text-[10px] text-white/70">

@@ -3,10 +3,12 @@ import { Outlet } from 'react-router-dom';
 import NavigationSidebar from './NavigationSidebar';
 import CallOverlay from '../calls/CallOverlay';
 import { useSocket } from '../../context/SocketContext';
+import { useChat } from '../../context/ChatContext';
 import { WifiOff, RefreshCw } from 'lucide-react';
 
 const AppLayout = () => {
   const { socket } = useSocket();
+  const { activeConversation } = useChat();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [socketConnected, setSocketConnected] = useState(true);
 
@@ -41,12 +43,16 @@ const AppLayout = () => {
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Primary Left Navigation Strip */}
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Navigation (Vertical sidebar on desktop, bottom navigation on mobile) */}
         <NavigationSidebar />
 
         {/* Main Content (Chats, Status, Calls, Settings, etc.) */}
-        <main className="flex-1 h-full flex overflow-hidden">
+        <main
+          className={`flex-1 h-full flex overflow-hidden ${
+            !activeConversation ? 'pb-16 md:pb-0' : ''
+          }`}
+        >
           <Outlet />
         </main>
 

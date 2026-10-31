@@ -673,7 +673,7 @@ const MessageInput = ({
 
       {/* Quick Replies / Shortcuts Popup */}
       {text.startsWith('/') && (
-        <div className="absolute bottom-16 left-12 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-2 w-72 max-h-48 overflow-y-auto animate-fadeIn">
+        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-2 w-[calc(100vw-1rem)] sm:w-72 max-w-sm max-h-48 overflow-y-auto animate-fadeIn">
           <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-semibold text-saylo-emerald uppercase tracking-wider">
             <Zap size={13} />
             <span>Quick Replies</span>
@@ -701,7 +701,7 @@ const MessageInput = ({
 
       {/* Mention Autocomplete Dropdown */}
       {mentionCandidates && mentionCandidates.length > 0 && (
-        <div className="absolute bottom-16 left-12 z-30 bg-[#202c33] border border-gray-700 rounded-2xl shadow-2xl p-2 w-64 max-h-44 overflow-y-auto animate-fadeIn">
+        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-[#202c33] border border-gray-700 rounded-2xl shadow-2xl p-2 w-[calc(100vw-1rem)] sm:w-64 max-w-sm max-h-44 overflow-y-auto animate-fadeIn">
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 py-1">
             Mention Member
           </p>
@@ -720,7 +720,7 @@ const MessageInput = ({
 
       {/* Attachment Menu Popup */}
       {showAttachmentMenu && (
-        <div className="absolute bottom-16 left-12 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-2.5 flex flex-col gap-1 w-52 animate-fadeIn">
+        <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-2.5 flex flex-col gap-1 w-52 max-w-[calc(100vw-1rem)] animate-fadeIn">
           {/* Photos & Videos */}
           <button
             onClick={() => {
@@ -826,7 +826,7 @@ const MessageInput = ({
 
       {/* Tabbed Emoji, GIF & Sticker Picker */}
       {showPicker && (
-        <div className="absolute bottom-16 left-4 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-3 w-80 animate-fadeIn">
+        <div className="absolute bottom-16 left-2 sm:left-4 z-30 bg-[#202c33] border border-gray-700/80 rounded-2xl shadow-2xl p-3 w-[calc(100vw-1rem)] sm:w-80 max-w-sm animate-fadeIn">
           {/* Picker Tabs */}
           <div className="flex items-center justify-around border-b border-gray-700/60 pb-2 mb-3">
             <button

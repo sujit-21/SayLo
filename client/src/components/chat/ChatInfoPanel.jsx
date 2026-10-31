@@ -245,16 +245,28 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
   const chatDocs = (messages || []).filter((m) => m.type === 'document');
   const chatLinks = (messages || []).filter((m) => m.linkPreview || (m.text && m.text.match(/https?:\/\/[^\s]+/i)));
 
+  if (!isOpen) return null;
+
   return (
-    <div className="w-80 h-full bg-[#111b21] border-l border-gray-800 flex flex-col z-30 overflow-y-auto animate-fadeIn">
+    <div className="fixed md:relative inset-y-0 right-0 w-full sm:w-80 lg:w-96 h-full bg-[#111b21] border-l border-gray-800 flex flex-col z-40 md:z-30 overflow-y-auto animate-fadeIn shadow-2xl md:shadow-none">
       {/* Top Header */}
-      <div className="h-16 px-4 flex items-center justify-between border-b border-gray-800">
-        <h3 className="text-sm font-semibold text-gray-200">
-          {isGroup ? 'Group info' : 'Contact info'}
-        </h3>
+      <div className="h-16 px-4 flex items-center justify-between border-b border-gray-800 bg-[#202c33]">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onClose}
+            className="md:hidden p-1.5 -ml-1 rounded-full text-gray-400 hover:text-white hover:bg-white/5"
+            title="Close info"
+          >
+            <X size={20} />
+          </button>
+          <h3 className="text-sm font-semibold text-gray-200">
+            {isGroup ? 'Group info' : 'Contact info'}
+          </h3>
+        </div>
         <button
           onClick={onClose}
-          className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/5"
+          className="hidden md:flex p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/5"
+          title="Close panel"
         >
           <X size={20} />
         </button>
