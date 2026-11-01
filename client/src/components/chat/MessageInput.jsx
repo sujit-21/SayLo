@@ -646,7 +646,7 @@ const MessageInput = ({
           : []),
         ...(activeConversation.participants
             ?.map((p) => p.user)
-            ?.filter((u) => u && u.name?.toLowerCase().includes(mentionQuery.toLowerCase())) || []),
+            ?.filter((u) => u && typeof u.name === 'string' && u.name.toLowerCase().includes(mentionQuery.toLowerCase())) || []),
       ]
     : [];
 

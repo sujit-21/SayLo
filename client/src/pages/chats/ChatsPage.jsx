@@ -4,6 +4,7 @@ import ConversationList from '../../components/chat/ConversationList';
 import ChatWindow from '../../components/chat/ChatWindow';
 import NewChatModal from '../../components/chat/NewChatModal';
 import NewGroupModal from '../../components/chat/NewGroupModal';
+import ErrorBoundary from '../../components/common/ErrorBoundary';
 import { useChat } from '../../context/ChatContext';
 import api from '../../services/api';
 
@@ -43,10 +44,12 @@ const ChatsPage = () => {
   }, []);
 
   useEffect(() => {
-    if (currentTargetId && activeConversation?._id !== currentTargetId) {
-      selectConversation(currentTargetId);
+    if (currentTargetId) {
+      if (activeConversation?._id !== currentTargetId) {
+        selectConversation(currentTargetId);
+      }
     }
-  }, [currentTargetId]);
+  }, [currentTargetId, activeConversation?._id, selectConversation]);
 
   return (
     <div className="flex-1 h-full flex overflow-hidden">
@@ -59,8 +62,10 @@ const ChatsPage = () => {
       </div>
 
       {/* Main Chat Window (Full width on mobile when chat is active) */}
-      <div className={`flex-1 h-full ${!activeConversation ? 'hidden md:flex' : 'flex'}`}>
-        <ChatWindow />
+      <div className={`flex-1 h-full ${!activeConversation ? 'hidden md:flex' : 'flex w-full min-w-0'}`}>
+        <ErrorBoundary onReset={() => currentTargetId && selectConversation(currentTargetId)}>
+          <ChatWindow />
+        </ErrorBoundary>
       </div>
 
       {/* Modals */}

@@ -616,8 +616,12 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
               <div
                 key={c._id}
                 onClick={() => {
-                  selectConversation(c);
-                  navigate(`/chats/${c._id}`);
+                  try {
+                    selectConversation(c);
+                    navigate(`/chats/${c._id}`);
+                  } catch (err) {
+                    console.error('Failed to select conversation:', err);
+                  }
                 }}
                 onContextMenu={(e) => {
                   e.preventDefault();

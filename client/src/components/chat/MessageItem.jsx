@@ -1036,7 +1036,7 @@ const MessageItem = ({
                 <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40 space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">
-                      RSVP ({message.event.attendees?.filter(a => a.status === 'going').length || 0} Going)
+                      RSVP ({message.event.attendees?.filter(a => a && a.status === 'going').length || 0} Going)
                     </p>
                     <button
                       type="button"
@@ -1051,7 +1051,7 @@ const MessageItem = ({
                   <div className="grid grid-cols-3 gap-1.5">
                     {['going', 'maybe', 'declined'].map((rsvpStatus) => {
                       const myStatus = message.event.attendees?.find(
-                        (a) => (a.user?._id || a.user) === user?._id
+                        (a) => a && (a.user?._id || a.user) === user?._id
                       )?.status;
                       const isActive = myStatus === rsvpStatus;
 

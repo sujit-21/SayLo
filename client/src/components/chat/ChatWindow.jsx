@@ -254,7 +254,7 @@ const ChatWindow = () => {
   // Find all messages matching the search filter
   const matchingMessages = searchFilter.trim()
     ? messages.filter((m) =>
-        m.text?.toLowerCase().includes(searchFilter.toLowerCase().trim())
+        Boolean(m?.text && typeof m.text === 'string' && m.text.toLowerCase().includes(searchFilter.toLowerCase().trim()))
       )
     : [];
 
@@ -569,9 +569,12 @@ const ChatWindow = () => {
                 }
               }
 
-              const isMatch =
+              const isMatch = Boolean(
                 searchFilter.trim() &&
-                msg.text?.toLowerCase().includes(searchFilter.toLowerCase().trim());
+                msg?.text &&
+                typeof msg.text === 'string' &&
+                msg.text.toLowerCase().includes(searchFilter.toLowerCase().trim())
+              );
 
               const isCurrentActiveMatch =
                 isMatch &&
