@@ -77,6 +77,13 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     return !!p?.isArchived;
   }).length;
 
+  const unreadChatsCount = conversations.filter((c) => {
+    const p = c.participants?.find((part) => (part.user?._id || part.user) === user?._id);
+    return (p?.unreadCount || 0) > 0;
+  }).length;
+
+  const groupsCount = conversations.filter((c) => c.isGroup).length;
+
   const filteredConversations = conversations.filter((c) => {
     const participant = c.participants?.find(
       (p) => (p.user?._id || p.user) === user?._id
@@ -226,9 +233,9 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
         <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto no-scrollbar">
           {[
             { id: 'all', label: 'All' },
-            { id: 'unread', label: 'Unread' },
+            { id: 'unread', label: unreadChatsCount > 0 ? `Unread (${unreadChatsCount})` : 'Unread' },
             { id: 'favorites', label: 'Favorites' },
-            { id: 'groups', label: 'Groups' },
+            { id: 'groups', label: groupsCount > 0 ? `Groups (${groupsCount})` : 'Groups' },
             { id: 'work', label: '💼 Work' },
             { id: 'personal', label: '🌿 Personal' },
             { id: 'vip', label: '⭐ VIP' },
