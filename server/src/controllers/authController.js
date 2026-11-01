@@ -50,6 +50,7 @@ exports.register = async (req, res, next) => {
       user: {
         _id: user._id,
         name: user.name,
+        username: user.username,
         email: user.email,
         phone: user.phone,
         avatar: user.avatar,
@@ -122,6 +123,7 @@ exports.login = async (req, res, next) => {
       user: {
         _id: user._id,
         name: user.name,
+        username: user.username,
         email: user.email,
         phone: user.phone,
         avatar: user.avatar,
@@ -149,6 +151,7 @@ exports.getMe = async (req, res, next) => {
       user: {
         _id: user._id,
         name: user.name,
+        username: user.username,
         email: user.email,
         phone: user.phone,
         avatar: user.avatar,
@@ -172,7 +175,7 @@ exports.getMe = async (req, res, next) => {
 // @route PUT /api/v1/auth/profile
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, about, avatar, phone, theme, wallpaper } = req.body;
+    const { name, about, avatar, phone, username, theme, wallpaper } = req.body;
     const user = await User.findById(req.user._id);
 
     if (name) user.name = name;
@@ -182,6 +185,29 @@ exports.updateProfile = async (req, res, next) => {
     if (theme) user.theme = theme;
     if (wallpaper) user.wallpaper = wallpaper;
 
+    if (username !== undefined) {
+      const cleanUsername = username.trim().toLowerCase().replace(/^@/, '');
+      if (cleanUsername) {
+        if (!/^[a-z0-9_]{3,30}$/.test(cleanUsername)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Username must be 3-30 characters and contain only lowercase letters, numbers, and underscores',
+          });
+        }
+        // Check uniqueness
+        const existing = await User.findOne({ username: cleanUsername, _id: { $ne: user._id } });
+        if (existing) {
+          return res.status(400).json({
+            success: false,
+            message: 'This username is already taken. Please choose another one.',
+          });
+        }
+        user.username = cleanUsername;
+      } else {
+        user.username = undefined;
+      }
+    }
+
     await user.save();
 
     res.json({
@@ -189,6 +215,7 @@ exports.updateProfile = async (req, res, next) => {
       user: {
         _id: user._id,
         name: user.name,
+        username: user.username,
         email: user.email,
         phone: user.phone,
         avatar: user.avatar,

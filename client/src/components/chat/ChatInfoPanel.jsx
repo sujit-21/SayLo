@@ -324,6 +324,11 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
         <div className="flex flex-col items-center text-center p-4 bg-[#f0f2f5] dark:bg-[#202c33] rounded-2xl border border-gray-200 dark:border-gray-700/40">
           <Avatar src={displayAvatar} name={displayName} size="2xl" className="mb-3" />
           <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">{displayName}</h2>
+          {otherUser?.username && (
+            <p className="text-xs text-saylo-emerald dark:text-saylo-400 font-mono font-medium mt-0.5">
+              @{otherUser.username}
+            </p>
+          )}
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[220px]">{displayAbout}</p>
         </div>
 

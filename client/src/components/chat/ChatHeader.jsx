@@ -172,6 +172,11 @@ const ChatHeader = ({
         <div className="truncate">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{name}</h3>
+            {otherParticipant?.username && (
+              <span className="text-[11px] font-mono text-saylo-emerald/90 dark:text-saylo-400 font-normal">
+                @{otherParticipant.username}
+              </span>
+            )}
             {isMuted && (
               <VolumeX size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" title="Notifications muted" />
             )}

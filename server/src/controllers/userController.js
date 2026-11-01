@@ -10,16 +10,18 @@ exports.searchUsers = async (req, res, next) => {
       return res.json({ success: true, users: [] });
     }
 
+    const cleanQ = query.trim().replace(/^@/, '');
     const currentUserId = req.user._id;
     const users = await User.find({
       _id: { $ne: currentUserId },
       $or: [
+        { username: { $regex: cleanQ, $options: 'i' } },
         { name: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } },
         { phone: { $regex: query, $options: 'i' } },
       ],
     })
-      .select('name email phone avatar about isOnline lastSeen publicKey')
+      .select('name username email phone avatar about isOnline lastSeen publicKey')
       .limit(20);
 
     res.json({ success: true, users });

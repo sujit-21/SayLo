@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Camera, Check, User, Info, Phone, Mail, ArrowLeft, Upload, QrCode, Share2, Copy, X } from 'lucide-react';
+import { Camera, Check, User, Info, Phone, Mail, ArrowLeft, Upload, QrCode, Share2, Copy, X, AtSign } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -9,6 +9,7 @@ import api from '../../services/api';
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const [name, setName] = useState(user?.name || '');
+  const [username, setUsername] = useState(user?.username || '');
   const [about, setAbout] = useState(user?.about || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
@@ -17,6 +18,7 @@ const ProfilePage = () => {
   const [uploading, setUploading] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
 
   const fileInputRef = useRef(null);
 
@@ -24,6 +26,7 @@ const ProfilePage = () => {
   useEffect(() => {
     if (user) {
       setName(user.name || '');
+      setUsername(user.username || '');
       setAbout(user.about || '');
       setPhone(user.phone || '');
       setAvatar(user.avatar || '');
@@ -33,12 +36,21 @@ const ProfilePage = () => {
   // Handle Save Profile
   const handleSave = async (e) => {
     e.preventDefault();
+    setUsernameError('');
+
+    const cleanUsername = username.trim().toLowerCase().replace(/^@/, '');
+    if (cleanUsername && !/^[a-z0-9_]{3,30}$/.test(cleanUsername)) {
+      setUsernameError('Username must be 3-30 lowercase characters, numbers or underscores');
+      return;
+    }
+
     setLoading(true);
     setSaved(false);
 
     try {
       const res = await api.put('/auth/profile', {
         name: name.trim(),
+        username: cleanUsername,
         about: about.trim(),
         phone: phone.trim(),
         avatar: avatar.trim(),
@@ -48,7 +60,12 @@ const ProfilePage = () => {
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error(err);
-      alert('Failed to update profile');
+      const msg = err.response?.data?.message || 'Failed to update profile';
+      if (msg.toLowerCase().includes('username')) {
+        setUsernameError(msg);
+      } else {
+        alert(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -186,6 +203,42 @@ const ProfilePage = () => {
               </span>
             </div>
 
+            {/* WhatsApp Profile Username */}
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <AtSign size={14} className="text-saylo-emerald" />
+                Username
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 text-sm font-semibold font-mono text-gray-400 select-none">
+                  @
+                </span>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                    setUsername(val);
+                    setUsernameError('');
+                  }}
+                  maxLength={30}
+                  placeholder="username"
+                  className={`w-full bg-white dark:bg-[#111b21] border ${
+                    usernameError ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
+                  } rounded-xl pl-8 pr-4 py-2.5 text-sm font-mono text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald`}
+                />
+              </div>
+              {usernameError ? (
+                <span className="text-[11px] text-red-500 mt-1 block font-medium">
+                  {usernameError}
+                </span>
+              ) : (
+                <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 block">
+                  Usernames are unique. People can find and start chats with you on SAYLO using @{username || 'username'} without seeing your phone number.
+                </span>
+              )}
+            </div>
+
             <div>
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 <Info size={14} className="text-saylo-emerald" />
@@ -264,9 +317,15 @@ const ProfilePage = () => {
             <div className="flex flex-col items-center mb-4">
               <Avatar src={avatar} name={name || 'User'} size="lg" />
               <h3 className="text-base font-bold text-gray-900 dark:text-white mt-2">{name || 'Your Name'}</h3>
-              <p className="text-xs text-saylo-emerald dark:text-saylo-400 font-mono font-medium">
-                {phone || user?.email || 'SAYLO Contact'}
-              </p>
+              {username ? (
+                <p className="text-xs text-saylo-emerald font-mono font-semibold">
+                  @{username}
+                </p>
+              ) : (
+                <p className="text-xs text-saylo-emerald dark:text-saylo-400 font-mono font-medium">
+                  {phone || user?.email || 'SAYLO Contact'}
+                </p>
+              )}
             </div>
 
             {/* High-Contrast SVG QR Code with Emerald Accent */}
