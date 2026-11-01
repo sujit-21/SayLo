@@ -16,6 +16,7 @@ import ScheduleMessageModal from './ScheduleMessageModal';
 import ShareContactModal from './ShareContactModal';
 import ChatThemeModal from './ChatThemeModal';
 import ImageDoodleEditor from './ImageDoodleEditor';
+import WhatsAppCameraModal from './WhatsAppCameraModal';
 import { useChat } from '../../context/ChatContext';
 import { useTheme } from '../../context/ThemeContext';
 import api from '../../services/api';
@@ -63,6 +64,7 @@ const ChatWindow = () => {
   const [showShareContactModal, setShowShareContactModal] = useState(false);
   const [lightboxData, setLightboxData] = useState(null); // { url, name, type }
   const [doodleImageFile, setDoodleImageFile] = useState(null);
+  const [showCameraModal, setShowCameraModal] = useState(false);
   const [customTheme, setCustomTheme] = useState('default');
 
   const [forwardingMessage, setForwardingMessage] = useState(null);
@@ -97,7 +99,7 @@ const ChatWindow = () => {
   }, [messages.length]);
 
   // Handle Drag & Drop / Clipboard file upload
-  const uploadAndSendFile = async (file) => {
+  const uploadAndSendFile = async (file, caption = '', isViewOnce = false, isHd = true) => {
     if (!file || !activeConversation) return;
     setIsUploadingDrop(true);
     const formData = new FormData();
@@ -120,6 +122,9 @@ const ChatWindow = () => {
         mediaName: name,
         mediaMimeType: mimeType,
         mediaSize: size,
+        text: caption || undefined,
+        viewOnce: isViewOnce,
+        isHdQuality: isHd,
       });
     } catch (err) {
       console.error('File drop/paste failed', err);
@@ -620,6 +625,7 @@ const ChatWindow = () => {
             onOpenScheduleModal={() => setShowScheduleModal(true)}
             onOpenShareContactModal={() => setShowShareContactModal(true)}
             onOpenDoodleEditor={(file) => setDoodleImageFile(file)}
+            onOpenCamera={() => setShowCameraModal(true)}
           />
         )}
       </div>
@@ -709,6 +715,15 @@ const ChatWindow = () => {
         onSave={(editedFile) => {
           uploadAndSendFile(editedFile);
           setDoodleImageFile(null);
+        }}
+      />
+
+      {/* WhatsApp Live Camera, Filters, Editor & Instant Send Modal */}
+      <WhatsAppCameraModal
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onSendPhoto={({ file, caption, viewOnce, isHd }) => {
+          uploadAndSendFile(file, caption, viewOnce, isHd);
         }}
       />
 

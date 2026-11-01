@@ -39,6 +39,7 @@ const MessageInput = ({
   onOpenScheduleModal,
   onOpenShareContactModal,
   onOpenDoodleEditor,
+  onOpenCamera,
 }) => {
   const { activeConversation, sendMessage, replyMessage, setReplyMessage } = useChat();
   const { socket } = useSocket();
@@ -721,6 +722,22 @@ const MessageInput = ({
       {/* Attachment Menu Popup */}
       {showAttachmentMenu && (
         <div className="absolute bottom-16 left-2 sm:left-12 z-30 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl p-2.5 flex flex-col gap-1 w-52 max-w-[calc(100vw-1rem)] animate-fadeIn text-gray-800 dark:text-gray-200">
+          {/* Camera (WhatsApp Live Camera, Filters & Editor) */}
+          {onOpenCamera && (
+            <button
+              onClick={() => {
+                onOpenCamera();
+                setShowAttachmentMenu(false);
+              }}
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs hover:bg-gray-700/50 text-gray-200 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-pink-500/20 text-pink-400 flex items-center justify-center">
+                <Camera size={18} />
+              </div>
+              Camera & Filters
+            </button>
+          )}
+
           {/* Photos & Videos */}
           <button
             onClick={() => {
@@ -1131,6 +1148,18 @@ const MessageInput = ({
           >
             <Paperclip size={22} />
           </button>
+
+          {/* WhatsApp Camera Button (Direct Access) */}
+          {onOpenCamera && (
+            <button
+              type="button"
+              onClick={onOpenCamera}
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-saylo-emerald dark:hover:text-saylo-emerald transition-colors rounded-full"
+              title="Camera (Take photo, filters & edit)"
+            >
+              <Camera size={22} />
+            </button>
+          )}
 
           {/* Text input area */}
           <div className="flex-1 bg-white dark:bg-[#2a3942] rounded-2xl px-4 py-2 border border-gray-300 dark:border-gray-700/50 focus-within:border-saylo-emerald transition-colors flex items-center gap-2 shadow-sm">
