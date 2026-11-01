@@ -282,6 +282,48 @@ const MessageItem = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [viewOnceRevealed, setViewOnceRevealed] = useState(false);
 
+  // WhatsApp Mobile Touch Swipe-to-Reply
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+  const isSwipingRef = useRef(false);
+
+  // Dynamic Font Size
+  const fontSizeSetting = localStorage.getItem('saylo_font_size') || 'medium';
+  const fontSizeClass =
+    fontSizeSetting === 'small'
+      ? 'text-xs'
+      : fontSizeSetting === 'large'
+      ? 'text-base'
+      : 'text-sm';
+
+  const handleTouchStart = (e) => {
+    if (isSelectMode) return;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+    isSwipingRef.current = false;
+  };
+
+  const handleTouchMove = (e) => {
+    if (isSelectMode) return;
+    const deltaX = e.touches[0].clientX - touchStartXRef.current;
+    const deltaY = e.touches[0].clientY - touchStartYRef.current;
+    if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+    if (deltaX > 5) {
+      isSwipingRef.current = true;
+      setSwipeOffset(Math.min(deltaX * 0.6, 60));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isSelectMode) return;
+    if (swipeOffset >= 35 && onReply) {
+      onReply(message);
+    }
+    setSwipeOffset(0);
+    isSwipingRef.current = false;
+  };
+
   const isSelf = message.sender?._id === user?._id || message.sender === user?._id;
   const isStarred = message.starredBy?.includes(user?._id);
   const isPinned = !!message.pinned;
@@ -427,7 +469,27 @@ const MessageItem = ({
         </button>
       )}
 
+      {/* WhatsApp Mobile Swipe to Reply Indicator */}
+      {swipeOffset > 8 && (
+        <div
+          className="absolute -left-2 sm:left-0 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-[#00a884] text-white shadow-lg pointer-events-none transition-all duration-100"
+          style={{
+            opacity: Math.min(swipeOffset / 35, 1),
+            transform: `scale(${Math.min(0.6 + (swipeOffset / 35) * 0.4, 1.1)})`,
+          }}
+        >
+          <Reply size={16} />
+        </div>
+      )}
+
       <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          transform: swipeOffset > 0 ? `translateX(${swipeOffset}px)` : undefined,
+          transition: swipeOffset === 0 ? 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none',
+        }}
         onClick={() => {
           if (isSelectMode && onToggleSelect) {
             onToggleSelect(message._id);
@@ -437,8 +499,8 @@ const MessageItem = ({
           isSticker
             ? 'bg-transparent border-0 shadow-none p-1'
             : isSelf
-            ? `${getThemeClass()} rounded-tr-none px-3.5 py-2 text-sm shadow-sm`
-            : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-none border border-gray-200/80 dark:border-gray-700/30 px-3.5 py-2 text-sm shadow-sm'
+            ? `${getThemeClass()} rounded-tr-none px-3.5 py-2 ${fontSizeClass} shadow-sm`
+            : `bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-none border border-gray-200/80 dark:border-gray-700/30 px-3.5 py-2 ${fontSizeClass} shadow-sm`
         } transition-all ${isSelected ? 'ring-2 ring-saylo-emerald' : ''} ${
           isSelectMode ? 'cursor-pointer' : ''
         } ${message.deletedForEveryone ? 'italic opacity-70' : ''}`}
@@ -896,7 +958,7 @@ const MessageItem = ({
 
             {/* Regular Text */}
             {message.text && message.type !== 'system' && message.type !== 'sticker' && (message.type !== 'gif' || message.text !== 'GIF') && (
-              <p className="break-words leading-relaxed whitespace-pre-wrap">
+              <p className={`break-words leading-relaxed whitespace-pre-wrap ${fontSizeClass}`}>
                 {renderFormattedText(message.text)}
               </p>
             )}

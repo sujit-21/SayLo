@@ -611,16 +611,16 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       />
 
       {/* WhatsApp Floating Action Button (New Chat / Contacts with Phone Numbers) */}
-      <div className="absolute bottom-5 right-5 md:bottom-6 md:right-6 z-30 pointer-events-auto">
+      <div className="fixed md:absolute bottom-20 md:bottom-6 right-5 md:right-6 z-40 pointer-events-auto">
         <button
           onClick={onOpenNewChat}
-          className="w-[56px] h-[56px] md:w-[60px] md:h-[60px] rounded-full bg-[#00a884] hover:bg-[#029071] active:bg-[#008266] active:scale-90 text-white shadow-[0_6px_22px_rgba(0,168,132,0.55)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.8)] flex items-center justify-center transition-all duration-200 border-2 border-white/50 dark:border-white/20 ring-2 ring-black/10 dark:ring-white/10 group focus:outline-none"
+          className="w-[56px] h-[56px] md:w-[60px] md:h-[60px] rounded-full bg-[#00a884] hover:bg-[#029071] active:bg-[#008266] active:scale-90 text-white shadow-[0_6px_22px_rgba(0,168,132,0.6)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.85)] flex items-center justify-center transition-all duration-200 border-2 border-white/50 dark:border-white/20 ring-2 ring-black/10 dark:ring-white/10 group focus:outline-none"
           title="New Chat / Contacts"
           aria-label="New Chat / Contacts"
         >
           <MessageSquarePlus
             size={28}
-            strokeWidth={2.4}
+            strokeWidth={2.5}
             className="text-white drop-shadow-sm group-hover:scale-110 transition-transform"
           />
         </button>

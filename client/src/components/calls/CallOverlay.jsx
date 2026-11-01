@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCall } from '../../context/CallContext';
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, Volume2 } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, Volume2, Lock } from 'lucide-react';
 import Avatar from '../common/Avatar';
 
 const CallOverlay = () => {
@@ -93,6 +93,12 @@ const CallOverlay = () => {
               {callState === 'calling' ? 'Calling...' : formatDuration(callDuration)}
             </p>
           </div>
+        </div>
+
+        {/* WhatsApp Call Security Badge */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-[11px] text-gray-300 shadow-md">
+          <Lock size={12} className="text-saylo-emerald" />
+          <span>End-to-end encrypted</span>
         </div>
 
         {/* Video / Audio Stage */}
