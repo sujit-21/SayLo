@@ -170,21 +170,35 @@ const ChatHeader = ({
     }
   }
 
-  // Export chat transcript to .txt file
+  // Export chat transcript to formatted .txt file (WhatsApp style)
   const handleExportChat = () => {
-    let transcript = `SAYLO Chat Export: ${name}\nGenerated: ${new Date().toLocaleString()}\n----------------------------------------\n\n`;
+    let transcript = `SAYLO Chat Export: ${name}\nGenerated: ${new Date().toLocaleString()}\nMessages and calls are end-to-end encrypted on SAYLO.\n----------------------------------------\n\n`;
     messages.forEach((m) => {
-      const senderName = m.sender?.name || 'User';
-      const time = format(new Date(m.createdAt || Date.now()), 'yyyy-MM-dd HH:mm');
-      transcript += `[${time}] ${senderName}: ${m.text || `[Attachment: ${m.type}]`}\n`;
+      const senderName =
+        m.sender?._id === user?._id || m.sender === user?._id
+          ? 'You'
+          : m.sender?.name || 'User';
+      const time = format(new Date(m.createdAt || Date.now()), 'dd/MM/yyyy, HH:mm:ss');
+      let content = m.text || '';
+      if (m.type === 'image') content = `[Image: ${m.fileUrl || 'Photo'}] ${m.caption || ''}`.trim();
+      else if (m.type === 'video') content = `[Video: ${m.fileUrl || 'Video'}] ${m.caption || ''}`.trim();
+      else if (m.type === 'audio') content = `[Voice Note: ${m.duration ? m.duration + 's' : 'Audio'}]`;
+      else if (m.type === 'document') content = `[Document: ${m.fileName || 'File'}]`;
+      else if (m.type === 'location') content = `[Location: ${m.location?.address || 'Pinned Location'}]`;
+      else if (m.type === 'contact') content = `[Contact Card: ${m.contact?.name || 'Contact'}]`;
+      else if (!content && m.fileUrl) content = `[Attachment: ${m.fileUrl}]`;
+
+      transcript += `[${time}] ${senderName}: ${content}\n`;
     });
 
     const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `SAYLO_chat_${name.replace(/\s+/g, '_')}.txt`;
+    a.download = `SAYLO_chat_${name.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     setShowDropdown(false);
   };

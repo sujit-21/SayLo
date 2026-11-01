@@ -27,6 +27,8 @@ import {
   Volume2,
   VolumeX,
   Zap,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 import { useChat } from '../../context/ChatContext';
 import { useSocket } from '../../context/SocketContext';
@@ -60,6 +62,7 @@ const MessageInput = ({
   const [viewOnce, setViewOnce] = useState(false);
   const [isHdQuality, setIsHdQuality] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
+  const [isHandsFreeLocked, setIsHandsFreeLocked] = useState(false);
   const [isRecordingPaused, setIsRecordingPaused] = useState(false);
   const [draftAudioUrl, setDraftAudioUrl] = useState(null);
   const [isPlayingDraft, setIsPlayingDraft] = useState(false);
@@ -537,6 +540,7 @@ const MessageInput = ({
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
+      setIsHandsFreeLocked(false);
       setRecordingTime(0);
 
       recordingTimerRef.current = setInterval(() => {
@@ -604,6 +608,7 @@ const MessageInput = ({
   const stopRecording = (shouldSend = true) => {
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     setIsRecording(false);
+    setIsHandsFreeLocked(false);
     setIsRecordingPaused(false);
     setIsPlayingDraft(false);
     if (draftAudioUrl) {
@@ -1111,6 +1116,13 @@ const MessageInput = ({
               {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
             </span>
 
+            {/* WhatsApp Hands-Free Lock Status Badge */}
+            {isHandsFreeLocked && (
+              <span className="text-[10px] bg-saylo-emerald/15 text-saylo-emerald dark:text-saylo-400 font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 border border-saylo-emerald/30 shadow-sm animate-fadeIn">
+                <Lock size={10} /> Hands-Free
+              </span>
+            )}
+
             {/* Hidden draft audio player for preview */}
             {draftAudioUrl && (
               <audio
@@ -1122,7 +1134,22 @@ const MessageInput = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2">
+            {/* WhatsApp Hands-Free Lock Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsHandsFreeLocked((prev) => !prev)}
+              className={`p-1.5 md:px-2.5 md:py-1 rounded-full transition-all flex items-center gap-1 text-[11px] font-medium ${
+                isHandsFreeLocked
+                  ? 'bg-saylo-emerald text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-saylo-emerald hover:bg-saylo-emerald/10'
+              }`}
+              title={isHandsFreeLocked ? 'Hands-Free Locked (Tap to unlock)' : 'Lock Hands-Free'}
+            >
+              {isHandsFreeLocked ? <Lock size={14} /> : <Unlock size={14} />}
+              <span className="hidden sm:inline">{isHandsFreeLocked ? 'Locked' : 'Lock'}</span>
+            </button>
+
             {/* Play draft preview button when paused */}
             {isRecordingPaused && draftAudioUrl && (
               <button

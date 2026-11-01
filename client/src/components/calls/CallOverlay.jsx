@@ -13,6 +13,7 @@ const CallOverlay = () => {
     isMuted,
     isCameraOff,
     isScreenSharing,
+    isLowDataMode,
     localVideoRef,
     remoteVideoRef,
     acceptCall,
@@ -206,6 +207,17 @@ const CallOverlay = () => {
           <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-saylo-emerald/90 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-white shadow-xl border border-white/20 animate-fadeIn">
             <ScreenShare size={13} />
             <span>Sharing screen & audio</span>
+          </div>
+        )}
+
+        {/* WhatsApp Low Data Usage Mode Badge */}
+        {isLowDataMode && (
+          <div
+            className={`absolute ${
+              isScreenSharing ? 'top-20' : 'top-12'
+            } left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-emerald-950/85 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-saylo-emerald shadow-xl border border-saylo-emerald/30 animate-fadeIn`}
+          >
+            <span>🍃 Low Data Usage Active</span>
           </div>
         )}
 

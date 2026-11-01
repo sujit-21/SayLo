@@ -17,6 +17,17 @@ const StorageSettings = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cleaned, setCleaned] = useState(false);
+  const [lowDataCalls, setLowDataCalls] = useState(() => {
+    return localStorage.getItem('saylo_low_data_calls') === 'true';
+  });
+
+  const handleToggleLowData = (val) => {
+    setLowDataCalls(val);
+    localStorage.setItem('saylo_low_data_calls', val ? 'true' : 'false');
+    window.dispatchEvent(
+      new CustomEvent('saylo_low_data_changed', { detail: { lowData: val } })
+    );
+  };
 
   const fetchStats = async () => {
     try {
@@ -266,6 +277,31 @@ const StorageSettings = () => {
                   No large files found. Your storage is optimized.
                 </div>
               )}
+            </div>
+
+            {/* WhatsApp Low Data Usage for Calls */}
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="pr-4">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Use less data for calls</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Reduces bandwidth and network data usage during voice and video calls
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleToggleLowData(!lowDataCalls)}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-0.5 flex-shrink-0 ${
+                    lowDataCalls ? 'bg-saylo-emerald' : 'bg-gray-300 dark:bg-gray-700'
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full bg-white transition-transform shadow-md ${
+                      lowDataCalls ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
             {/* Network Auto-Download Settings Mockup */}

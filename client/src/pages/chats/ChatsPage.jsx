@@ -27,6 +27,18 @@ const ChatsPage = () => {
         })
         .catch(console.error);
     }
+
+    const startUser = params.get('start');
+    if (startUser) {
+      api.post('/conversations/direct', { recipientId: startUser })
+        .then(async (res) => {
+          if (res.data?.conversation) {
+            await fetchConversations();
+            selectConversation(res.data.conversation);
+          }
+        })
+        .catch(console.error);
+    }
   }, []);
 
   useEffect(() => {

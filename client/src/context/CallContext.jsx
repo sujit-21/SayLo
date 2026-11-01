@@ -27,6 +27,32 @@ export const CallProvider = ({ children }) => {
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  const [isLowDataMode, setIsLowDataMode] = useState(() => {
+    return localStorage.getItem('saylo_low_data_calls') === 'true';
+  });
+
+  useEffect(() => {
+    const handleLowDataChange = (e) => {
+      setIsLowDataMode(Boolean(e.detail?.lowData));
+    };
+    window.addEventListener('saylo_low_data_changed', handleLowDataChange);
+    return () => window.removeEventListener('saylo_low_data_changed', handleLowDataChange);
+  }, []);
+
+  const getMediaConstraints = (type) => {
+    const lowData = localStorage.getItem('saylo_low_data_calls') === 'true';
+    return {
+      audio: lowData
+        ? { echoCancellation: true, noiseSuppression: true, sampleRate: 16000 }
+        : true,
+      video:
+        type === 'video'
+          ? lowData
+            ? { width: { max: 640, ideal: 480 }, height: { max: 360, ideal: 270 }, frameRate: { max: 15 } }
+            : true
+          : false,
+    };
+  };
 
   const localStreamRef = useRef(null);
   const remoteStreamRef = useRef(null);
@@ -108,10 +134,7 @@ export const CallProvider = ({ children }) => {
       setTargetUser(receiver);
       setCallState('calling');
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: type === 'video',
-      });
+      const stream = await navigator.mediaDevices.getUserMedia(getMediaConstraints(type));
       localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
@@ -143,10 +166,7 @@ export const CallProvider = ({ children }) => {
       setCallState('connected');
       startTimer();
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: callType === 'video',
-      });
+      const stream = await navigator.mediaDevices.getUserMedia(getMediaConstraints(callType));
       localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
@@ -282,7 +302,9 @@ export const CallProvider = ({ children }) => {
   // Seamless Voice to Video Switch
   const switchToVideo = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: getMediaConstraints('video').video,
+      });
       const videoTrack = stream.getVideoTracks()[0];
 
       if (localStreamRef.current) {
@@ -392,6 +414,7 @@ export const CallProvider = ({ children }) => {
         isMuted,
         isCameraOff,
         isScreenSharing,
+        isLowDataMode,
         localVideoRef,
         remoteVideoRef,
         startCall,
