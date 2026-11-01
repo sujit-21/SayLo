@@ -133,6 +133,57 @@ class SoundManager {
       osc.stop(now + 0.08);
     } catch (e) {}
   }
+
+  // Play ringtone pulse
+  playRingtonePulse() {
+    if (this.muted) return;
+    try {
+      this.init();
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime;
+      const duration = 1.6;
+
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(440, now);
+      osc2.frequency.setValueAtTime(480, now);
+
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.setValueAtTime(0.18, now + duration);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration + 0.1);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + duration + 0.1);
+      osc2.stop(now + duration + 0.1);
+    } catch (e) {}
+  }
+
+  // Start continuous incoming call ringtone
+  startRingtone() {
+    this.stopRingtone();
+    this.playRingtonePulse();
+    this.ringInterval = setInterval(() => {
+      this.playRingtonePulse();
+    }, 3500);
+  }
+
+  // Stop incoming call ringtone
+  stopRingtone() {
+    if (this.ringInterval) {
+      clearInterval(this.ringInterval);
+      this.ringInterval = null;
+    }
+  }
 }
 
 export const sound = new SoundManager();

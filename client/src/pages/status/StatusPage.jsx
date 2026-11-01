@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw } from 'lucide-react';
+import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw, Send } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -13,6 +13,7 @@ const StatusPage = () => {
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewersSheet, setShowViewersSheet] = useState(false);
+  const [replyText, setReplyText] = useState('');
 
   // Create status state
   const [createMode, setCreateMode] = useState('text'); // 'text' | 'media' | 'voice'
@@ -127,6 +128,34 @@ const StatusPage = () => {
     setShowViewersSheet(false);
     if (activeStoryIndex > 0) {
       setActiveStoryIndex(activeStoryIndex - 1);
+    }
+  };
+
+  // Reply to status story directly into DM chat
+  const handleSendStatusReply = async (messageText) => {
+    if (!messageText || !selectedGroup?.user?._id) return;
+    const currentItem = selectedGroup.items[activeStoryIndex];
+    const storyPreview =
+      currentItem?.type === 'text'
+        ? currentItem.content
+        : currentItem?.caption || (currentItem?.type === 'voice' ? 'Voice note status' : 'Photo/Video status');
+
+    try {
+      const directRes = await api.post('/conversations/direct', {
+        recipientId: selectedGroup.user._id,
+      });
+      const convId = directRes.data?.conversation?._id;
+      if (convId) {
+        await api.post('/messages', {
+          conversationId: convId,
+          text: `${messageText}\n\n↳ 📷 Replying to status: "${storyPreview.slice(0, 50)}${storyPreview.length > 50 ? '...' : ''}"`,
+        });
+        alert('Reply sent to chat!');
+        setReplyText('');
+      }
+    } catch (err) {
+      console.error('Failed to reply to status', err);
+      alert('Could not send reply');
     }
   };
 
@@ -499,6 +528,51 @@ const StatusPage = () => {
                   {selectedGroup.items[activeStoryIndex]?.viewers?.length || 0} views
                 </span>
                 <span className="text-[10px] text-gray-300 ml-1">▲ View list</span>
+              </div>
+            )}
+
+            {/* Bottom Reply Bar & Quick Reactions (If contact's status) */}
+            {!selectedGroup.isSelf && (
+              <div className="absolute bottom-4 inset-x-3 z-30 flex flex-col gap-2 max-w-sm mx-auto animate-in slide-in-from-bottom duration-200">
+                {/* Quick Emoji Reactions */}
+                <div className="flex items-center justify-around bg-black/60 backdrop-blur-md py-1.5 px-3 rounded-full border border-white/10 shadow-xl">
+                  {['👍', '❤️', '😂', '😮', '😢', '🙏'].map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => handleSendStatusReply(emoji)}
+                      className="text-xl hover:scale-130 transition-transform active:scale-95 p-1"
+                      title={`React with ${emoji}`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Text Reply Form */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendStatusReply(replyText);
+                  }}
+                  className="flex items-center gap-2 bg-black/75 backdrop-blur-md p-1.5 pl-4 rounded-full border border-white/20 shadow-2xl"
+                >
+                  <input
+                    type="text"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder={`Reply to ${selectedGroup.user?.name || 'status'}...`}
+                    className="flex-1 bg-transparent text-xs text-white placeholder-white/50 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!replyText.trim()}
+                    className="w-8 h-8 rounded-full bg-saylo-emerald hover:bg-saylo-600 disabled:opacity-30 text-white flex items-center justify-center transition-all shadow-md active:scale-95 flex-shrink-0"
+                    title="Send reply"
+                  >
+                    <Send size={14} />
+                  </button>
+                </form>
               </div>
             )}
 

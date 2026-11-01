@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Bell, Volume2, Shield, Play } from 'lucide-react';
+import { sound } from '../../utils/sound';
 
 const NotificationSettings = () => {
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(
+    localStorage.getItem('saylo_sound_enabled') !== 'false'
+  );
   const [selectedTone, setSelectedTone] = useState(
     localStorage.getItem('saylo_notification_tone') || 'chime'
   );
@@ -70,7 +73,13 @@ const NotificationSettings = () => {
             <input
               type="checkbox"
               checked={soundEnabled}
-              onChange={(e) => setSoundEnabled(e.target.checked)}
+              onChange={(e) => {
+                const val = e.target.checked;
+                setSoundEnabled(val);
+                localStorage.setItem('saylo_sound_enabled', val ? 'true' : 'false');
+                sound.muted = !val;
+                if (val) sound.playMessageSent();
+              }}
               className="w-5 h-5 rounded text-saylo-emerald focus:ring-saylo-emerald"
             />
           </div>

@@ -557,6 +557,16 @@ export const ChatProvider = ({ children }) => {
         processedMessage = await decryptSingleMessage(message, targetConv);
       }
 
+      // Audio notification chime for incoming messages if not muted
+      if (senderId !== user?._id?.toString()) {
+        const isMuted = targetConv?.participants?.some(
+          (p) => (p.user?._id || p.user) === user?._id && p.mutedUntil && new Date(p.mutedUntil) > new Date()
+        );
+        if (!isMuted) {
+          sound.playMessageIncoming();
+        }
+      }
+
       // If we are currently inside this conversation
       if (activeConversationRef.current && activeConversationRef.current._id === conversationId) {
         setMessages((prev) => {

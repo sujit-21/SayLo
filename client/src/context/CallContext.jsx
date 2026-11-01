@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
+import { sound } from '../utils/sound';
 import api from '../services/api';
 
 const CallContext = createContext();
@@ -36,6 +37,7 @@ export const CallProvider = ({ children }) => {
 
   // Clean up WebRTC peer connection
   const cleanupCall = () => {
+    sound.stopRingtone();
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;
@@ -134,6 +136,7 @@ export const CallProvider = ({ children }) => {
 
   // Accept incoming call
   const acceptCall = async () => {
+    sound.stopRingtone();
     if (!socket || !caller || !incomingOffer) return;
 
     try {
@@ -305,6 +308,7 @@ export const CallProvider = ({ children }) => {
       setCallType(callType);
       setIncomingOffer(offer);
       setCallState('incoming');
+      sound.startRingtone();
     };
 
     // Call Accepted

@@ -21,6 +21,7 @@ import {
   Music,
   Volume2,
   Play,
+  Download,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import Modal from '../common/Modal';
@@ -238,6 +239,49 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Export full chat history
+  const handleExportChat = (fileType = 'txt') => {
+    if (!messages || messages.length === 0) {
+      alert('No messages to export in this conversation.');
+      return;
+    }
+
+    let fileContent = '';
+    let mimeType = 'text/plain;charset=utf-8';
+    let extension = 'txt';
+
+    if (fileType === 'json') {
+      fileContent = JSON.stringify(messages, null, 2);
+      mimeType = 'application/json';
+      extension = 'json';
+    } else {
+      fileContent =
+        `========================================\nSAYLO CHAT EXPORT: ${displayName}\nDate of Export: ${new Date().toLocaleString()}\nMessages Count: ${messages.length}\n========================================\n\n` +
+        messages
+          .map((m) => {
+            const time = new Date(m.createdAt || Date.now()).toLocaleString();
+            const senderName =
+              m.sender?.name ||
+              ((m.sender?._id || m.sender) === user?._id ? user?.name : 'Participant');
+            const msgBody = m.deletedForEveryone
+              ? '[This message was deleted]'
+              : m.text || (m.mediaUrl ? `[Attachment: ${m.type || 'Media'}]` : '');
+            return `[${time}] ${senderName}: ${msgBody}`;
+          })
+          .join('\n');
+    }
+
+    const blob = new Blob([fileContent], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SAYLO_${displayName.replace(/[^a-zA-Z0-9]/g, '_')}_chat.${extension}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // Filter media items for gallery
@@ -841,8 +885,27 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
           </div>
         </div>
 
-        {/* Action Buttons: Clear Chat, Leave Group or Block User */}
+        {/* Action Buttons: Export Chat, Clear Chat, Leave Group or Block User */}
         <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700/40">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => handleExportChat('txt')}
+              className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-gray-100 dark:bg-white/5 hover:bg-saylo-emerald/15 hover:text-saylo-emerald text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition-colors border border-gray-200 dark:border-gray-700/60"
+              title="Export as formatted text file"
+            >
+              <Download size={15} />
+              <span>Export (.txt)</span>
+            </button>
+            <button
+              onClick={() => handleExportChat('json')}
+              className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-gray-100 dark:bg-white/5 hover:bg-saylo-emerald/15 hover:text-saylo-emerald text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition-colors border border-gray-200 dark:border-gray-700/60"
+              title="Export as structured JSON data"
+            >
+              <FileText size={15} />
+              <span>Export (.json)</span>
+            </button>
+          </div>
+
           <button
             onClick={() => setShowClearModal(true)}
             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 text-xs font-semibold rounded-xl transition-colors"
