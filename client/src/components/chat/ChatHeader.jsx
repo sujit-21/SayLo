@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import Modal from '../common/Modal';
+import CallLinkModal from './CallLinkModal';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import { useCall } from '../../context/CallContext';
@@ -49,6 +50,7 @@ const ChatHeader = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMuteSubmenu, setShowMuteSubmenu] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
+  const [showCallLinkModal, setShowCallLinkModal] = useState(false);
   const [clearing, setClearing] = useState(false);
 
   const myParticipant = activeConversation?.participants?.find(
@@ -212,6 +214,17 @@ const ChatHeader = ({
               <Video size={19} />
             </button>
           </>
+        )}
+
+        {/* Group Call Button */}
+        {activeConversation.isGroup && (
+          <button
+            onClick={() => setShowCallLinkModal(true)}
+            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full hover:text-saylo-emerald transition-colors"
+            title="Start group voice or video call"
+          >
+            <Phone size={19} />
+          </button>
         )}
 
         {/* Search within conversation */}
@@ -380,6 +393,12 @@ const ChatHeader = ({
           </div>
         </div>
       </Modal>
+
+      {/* Group Call Link Modal */}
+      <CallLinkModal
+        isOpen={showCallLinkModal}
+        onClose={() => setShowCallLinkModal(false)}
+      />
     </div>
   );
 };
