@@ -72,6 +72,11 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     return !!p?.isLocked;
   }).length;
 
+  const archivedCount = conversations.filter((c) => {
+    const p = c.participants?.find((part) => (part.user?._id || part.user) === user?._id);
+    return !!p?.isArchived;
+  }).length;
+
   const filteredConversations = conversations.filter((c) => {
     const participant = c.participants?.find(
       (p) => (p.user?._id || p.user) === user?._id
@@ -274,6 +279,33 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                 Active
               </span>
             )}
+          </div>
+        )}
+
+        {/* WhatsApp Top Archived Chats Row */}
+        {archivedCount > 0 && (
+          <div
+            onClick={() => setActiveTabFilter(activeTabFilter === 'archived' ? 'all' : 'archived')}
+            className={`flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 cursor-pointer transition-colors ${
+              activeTabFilter === 'archived'
+                ? 'bg-saylo-emerald/10 dark:bg-saylo-emerald/15'
+                : 'bg-white dark:bg-[#111b21] hover:bg-gray-50 dark:hover:bg-[#202c33]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-saylo-emerald/15 text-saylo-emerald flex items-center justify-center">
+                <Archive size={18} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Archived</h4>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  {activeTabFilter === 'archived' ? 'Viewing archived • Tap to exit' : `${archivedCount} chat(s) archived`}
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-saylo-emerald px-2 py-0.5 rounded-full bg-saylo-emerald/15">
+              {archivedCount}
+            </span>
           </div>
         )}
 

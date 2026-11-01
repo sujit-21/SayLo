@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Camera, Check, User, Info, Phone, Mail, ArrowLeft, Upload } from 'lucide-react';
+import { Camera, Check, User, Info, Phone, Mail, ArrowLeft, Upload, QrCode, Share2, Copy, X } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
+import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -14,6 +15,8 @@ const ProfilePage = () => {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -84,16 +87,28 @@ const ProfilePage = () => {
 
   return (
     <div className="flex-1 h-full flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] select-none overflow-hidden">
-      {/* Header with Back Navigation */}
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
-        <Link
-          to="/chats"
-          className="p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-          title="Back to chats"
+      {/* Header with Back Navigation & WhatsApp QR Code */}
+      <div className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/chats"
+            className="p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            title="Back to chats"
+          >
+            <ArrowLeft size={20} />
+          </Link>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Profile</h1>
+        </div>
+
+        {/* WhatsApp QR Code Icon */}
+        <button
+          type="button"
+          onClick={() => setShowQrModal(true)}
+          className="p-2 text-saylo-emerald hover:bg-saylo-emerald/15 rounded-full transition-colors flex items-center gap-1.5"
+          title="My Contact QR Code"
         >
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Profile</h1>
+          <QrCode size={22} />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-xl w-full mx-auto space-y-8">
@@ -233,6 +248,103 @@ const ProfilePage = () => {
           </div>
         </form>
       </div>
+
+      {/* WhatsApp Personal Contact QR Code Modal */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-[#202c33] p-6 rounded-3xl max-w-sm w-full text-center border border-gray-200 dark:border-gray-700 shadow-2xl relative">
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Profile Avatar & Info */}
+            <div className="flex flex-col items-center mb-4">
+              <Avatar src={avatar} name={name || 'User'} size="lg" />
+              <h3 className="text-base font-bold text-gray-900 dark:text-white mt-2">{name || 'Your Name'}</h3>
+              <p className="text-xs text-saylo-emerald dark:text-saylo-400 font-mono font-medium">
+                {phone || user?.email || 'SAYLO Contact'}
+              </p>
+            </div>
+
+            {/* High-Contrast SVG QR Code with Emerald Accent */}
+            <div className="w-56 h-56 mx-auto bg-white p-4 rounded-3xl mb-4 flex items-center justify-center shadow-md border-4 border-saylo-emerald/30">
+              <svg viewBox="0 0 100 100" className="w-full h-full">
+                {/* Outer Markers */}
+                <rect x="5" y="5" width="28" height="28" rx="4" fill="#111827" />
+                <rect x="10" y="10" width="18" height="18" rx="2" fill="white" />
+                <rect x="14" y="14" width="10" height="10" rx="2" fill="#00a884" />
+
+                <rect x="67" y="5" width="28" height="28" rx="4" fill="#111827" />
+                <rect x="72" y="10" width="18" height="18" rx="2" fill="white" />
+                <rect x="76" y="14" width="10" height="10" rx="2" fill="#00a884" />
+
+                <rect x="5" y="67" width="28" height="28" rx="4" fill="#111827" />
+                <rect x="10" y="72" width="18" height="18" rx="2" fill="white" />
+                <rect x="14" y="76" width="10" height="10" rx="2" fill="#00a884" />
+
+                {/* Grid Pattern Modules */}
+                <rect x="40" y="10" width="8" height="8" fill="#111827" />
+                <rect x="52" y="10" width="8" height="8" fill="#111827" />
+                <rect x="44" y="22" width="12" height="8" fill="#111827" />
+
+                <rect x="10" y="40" width="8" height="8" fill="#111827" />
+                <rect x="22" y="48" width="8" height="12" fill="#111827" />
+                <rect x="40" y="40" width="20" height="20" rx="4" fill="#00a884" />
+                <rect x="68" y="44" width="12" height="8" fill="#111827" />
+                <rect x="84" y="40" width="8" height="16" fill="#111827" />
+
+                <rect x="40" y="68" width="12" height="8" fill="#111827" />
+                <rect x="56" y="76" width="8" height="14" fill="#111827" />
+                <rect x="68" y="68" width="12" height="12" fill="#111827" />
+                <rect x="84" y="72" width="8" height="8" fill="#111827" />
+              </svg>
+            </div>
+
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-4 px-2 leading-relaxed">
+              Your QR code is private. When people scan it, they can immediately chat with you on SAYLO.
+            </p>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const link = `${window.location.origin}/chats?start=${user?._id}`;
+                  navigator.clipboard.writeText(link);
+                  setCopiedCode(true);
+                  setTimeout(() => setCopiedCode(false), 2500);
+                }}
+                className="flex-1 py-2 px-3 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/15 text-gray-800 dark:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                {copiedCode ? <Check size={14} className="text-saylo-emerald" /> : <Copy size={14} />}
+                <span>{copiedCode ? 'Link Copied!' : 'Copy Link'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: `Message ${name} on SAYLO`,
+                      text: `Scan my SAYLO QR code to start a conversation:`,
+                      url: window.location.origin,
+                    }).catch(() => {});
+                  } else {
+                    alert('Sharing not supported on this browser. Link copied to clipboard!');
+                    navigator.clipboard.writeText(window.location.origin);
+                  }
+                }}
+                className="flex-1 py-2 px-3 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-md"
+              >
+                <Share2 size={14} />
+                <span>Share Code</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
