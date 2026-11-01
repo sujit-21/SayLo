@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X, Megaphone } from 'lucide-react';
+import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X, Megaphone, MessageSquarePlus } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import BroadcastModal from './BroadcastModal';
 import { useChat } from '../../context/ChatContext';
@@ -245,7 +245,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-24 md:pb-20">
         {/* Locked Chats Folder */}
         {lockedCount > 0 && (
           <div
@@ -567,6 +567,18 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
         isOpen={showBroadcastModal}
         onClose={() => setShowBroadcastModal(false)}
       />
+
+      {/* WhatsApp Floating Action Button (New Chat / Contacts with Phone Numbers) */}
+      <div className="absolute bottom-20 right-5 md:bottom-6 md:right-6 z-20 pointer-events-auto">
+        <button
+          onClick={onOpenNewChat}
+          className="w-13 h-13 md:w-14 md:h-14 rounded-full bg-saylo-emerald hover:bg-saylo-600 active:scale-95 text-white shadow-xl hover:shadow-2xl flex items-center justify-center transition-all duration-200 border-2 border-white/20 dark:border-white/10 group focus:outline-none"
+          title="New Chat / Contacts"
+          aria-label="New Chat / Contacts"
+        >
+          <MessageSquarePlus className="w-6 h-6 transform group-hover:scale-110 transition-transform" />
+        </button>
+      </div>
     </div>
   );
 };

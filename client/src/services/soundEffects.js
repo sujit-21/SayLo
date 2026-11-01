@@ -148,3 +148,4 @@ class SoundEffectsManager {
 
 export const sounds = new SoundEffectsManager();
 export default sounds;
+

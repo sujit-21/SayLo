@@ -80,7 +80,7 @@ exports.addContact = async (req, res, next) => {
       await user.save();
     }
 
-    const updatedUser = await User.findById(req.user._id).populate('contacts', 'name email avatar about isOnline lastSeen');
+    const updatedUser = await User.findById(req.user._id).populate('contacts', 'name email phone avatar about isOnline lastSeen');
     res.json({ success: true, contacts: updatedUser.contacts });
   } catch (error) {
     next(error);
@@ -96,7 +96,7 @@ exports.removeContact = async (req, res, next) => {
     user.contacts = user.contacts.filter((c) => c.toString() !== contactId);
     await user.save();
 
-    const updatedUser = await User.findById(req.user._id).populate('contacts', 'name email avatar about isOnline lastSeen');
+    const updatedUser = await User.findById(req.user._id).populate('contacts', 'name email phone avatar about isOnline lastSeen');
     res.json({ success: true, contacts: updatedUser.contacts });
   } catch (error) {
     next(error);

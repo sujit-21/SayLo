@@ -5,6 +5,7 @@ import {
   CircleDashed,
   Phone,
   Users,
+  Contact,
   Star,
   Archive,
   Settings,
@@ -36,6 +37,7 @@ const NavigationSidebar = () => {
     { to: '/status', icon: CircleDashed, label: 'Status' },
     { to: '/calls', icon: Phone, label: 'Calls' },
     { to: '/communities', icon: Users, label: 'Communities' },
+    { to: '/contacts', icon: Contact, label: 'Contacts' },
     { to: '/starred', icon: Star, label: 'Starred' },
     { to: '/archived', icon: Archive, label: 'Archived' },
   ];
@@ -44,6 +46,7 @@ const NavigationSidebar = () => {
     { to: '/chats', icon: MessageSquare, label: 'Chats', badge: totalUnread },
     { to: '/status', icon: CircleDashed, label: 'Updates' },
     { to: '/calls', icon: Phone, label: 'Calls' },
+    { to: '/contacts', icon: Contact, label: 'Contacts' },
     { to: '/communities', icon: Users, label: 'Communities' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
