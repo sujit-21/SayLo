@@ -83,6 +83,13 @@ const ChatWindow = () => {
   const messagesEndRef = useRef(null);
   const chatStreamRef = useRef(null);
 
+  // WhatsApp 2024 Media Lightbox Gallery List (Hook called unconditionally at top)
+  const conversationMedia = useMemo(() => {
+    return (messages || []).filter(
+      (m) => (m.type === 'image' || m.type === 'video') && m.mediaUrl
+    );
+  }, [messages]);
+
   // Auto-scroll to bottom on chat change or new message
   const scrollToBottom = (behavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -261,12 +268,6 @@ const ChatWindow = () => {
   // Pinned messages in this conversation
   const pinnedMessages = messages.filter((m) => !!m.pinned);
 
-  // WhatsApp 2024 Media Lightbox Gallery List
-  const conversationMedia = useMemo(() => {
-    return messages.filter(
-      (m) => (m.type === 'image' || m.type === 'video') && m.mediaUrl
-    );
-  }, [messages]);
 
   // Jump to active matched message
   const jumpToMatch = (idx) => {
