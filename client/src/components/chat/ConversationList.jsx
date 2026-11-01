@@ -569,14 +569,18 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       />
 
       {/* WhatsApp Floating Action Button (New Chat / Contacts with Phone Numbers) */}
-      <div className="absolute bottom-20 right-5 md:bottom-6 md:right-6 z-20 pointer-events-auto">
+      <div className="absolute bottom-5 right-5 md:bottom-6 md:right-6 z-30 pointer-events-auto">
         <button
           onClick={onOpenNewChat}
-          className="w-13 h-13 md:w-14 md:h-14 rounded-full bg-saylo-emerald hover:bg-saylo-600 active:scale-95 text-white shadow-xl hover:shadow-2xl flex items-center justify-center transition-all duration-200 border-2 border-white/20 dark:border-white/10 group focus:outline-none"
+          className="w-[56px] h-[56px] md:w-[60px] md:h-[60px] rounded-full bg-[#00a884] hover:bg-[#029071] active:bg-[#008266] active:scale-90 text-white shadow-[0_6px_22px_rgba(0,168,132,0.55)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.8)] flex items-center justify-center transition-all duration-200 border-2 border-white/50 dark:border-white/20 ring-2 ring-black/10 dark:ring-white/10 group focus:outline-none"
           title="New Chat / Contacts"
           aria-label="New Chat / Contacts"
         >
-          <MessageSquarePlus className="w-6 h-6 transform group-hover:scale-110 transition-transform" />
+          <MessageSquarePlus
+            size={28}
+            strokeWidth={2.4}
+            className="text-white drop-shadow-sm group-hover:scale-110 transition-transform"
+          />
         </button>
       </div>
     </div>
