@@ -13,6 +13,7 @@ import {
   Mail,
   ArrowRight,
   ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 
 const NewChatModal = ({ isOpen, onClose, onOpenNewGroup }) => {
@@ -94,6 +95,26 @@ const NewChatModal = ({ isOpen, onClose, onOpenNewGroup }) => {
 
         {/* WhatsApp-Style Top Action Rows */}
         <div className="space-y-1 border-b border-gray-200 dark:border-gray-800 pb-3">
+          {/* Ask SAYLO AI (WhatsApp Meta AI Parity) */}
+          <div
+            onClick={handleNoteToSelf}
+            className="flex items-center gap-3.5 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer transition-colors group"
+          >
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-emerald-400 p-[2px] flex items-center justify-center flex-shrink-0">
+              <div className="w-full h-full rounded-full bg-white dark:bg-[#202c33] flex items-center justify-center">
+                <Sparkles size={18} className="text-saylo-emerald group-hover:rotate-12 transition-transform" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold text-gray-900 dark:text-gray-100">SAYLO AI Assistant</h4>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 bg-saylo-emerald/15 text-saylo-emerald rounded-full">AI</span>
+              </div>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">Ask questions, brainstorm, or draft messages</p>
+            </div>
+            <ArrowRight size={14} className="text-gray-400" />
+          </div>
+
           {/* New Group */}
           <div
             onClick={() => {

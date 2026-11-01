@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X, Megaphone, MessageSquarePlus } from 'lucide-react';
+import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X, Megaphone, MessageSquarePlus, Sparkles } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import BroadcastModal from './BroadcastModal';
 import { useChat } from '../../context/ChatContext';
@@ -182,6 +182,19 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     }
   };
 
+  // WhatsApp Meta AI Parity: Start/Open SAYLO AI Assistant
+  const handleOpenSayloAi = async () => {
+    try {
+      const res = await api.post('/conversations/note-to-self');
+      if (res.data.conversation) {
+        await fetchConversations();
+        selectConversation(res.data.conversation);
+      }
+    } catch (err) {
+      console.error('Error starting SAYLO AI', err);
+    }
+  };
+
   return (
     <div
       className="w-full md:w-80 lg:w-96 h-full bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-gray-800 flex flex-col flex-shrink-0 select-none relative transition-colors duration-150"
@@ -216,17 +229,31 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {/* Search Bar & WhatsApp Meta AI Ring */}
       <div className="p-3 border-b border-gray-200 dark:border-gray-800/80 bg-white dark:bg-[#111b21]">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-2.5 text-gray-400" />
+        <div className="relative flex items-center">
+          <Search size={16} className="absolute left-3.5 text-gray-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search or start new chat"
-            className="w-full bg-[#f0f2f5] dark:bg-[#202c33] border border-transparent rounded-xl pl-10 pr-4 py-2 text-xs text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-saylo-emerald"
+            placeholder="Ask SAYLO AI or Search"
+            className="w-full bg-[#f0f2f5] dark:bg-[#202c33] border border-transparent rounded-xl pl-10 pr-10 py-2 text-xs text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-saylo-emerald"
           />
+          {/* Animated WhatsApp Meta AI Gradient Ring */}
+          <button
+            type="button"
+            onClick={handleOpenSayloAi}
+            className="absolute right-2.5 p-1 rounded-full hover:scale-110 active:scale-95 transition-transform group"
+            title="Ask SAYLO AI Assistant"
+            aria-label="Ask SAYLO AI Assistant"
+          >
+            <div className="w-5 h-5 rounded-full p-[1.5px] bg-gradient-to-tr from-blue-500 via-purple-500 to-emerald-400 shadow-sm flex items-center justify-center">
+              <div className="w-full h-full rounded-full bg-white dark:bg-[#202c33] flex items-center justify-center">
+                <Sparkles size={11} className="text-saylo-emerald group-hover:rotate-12 transition-transform" />
+              </div>
+            </div>
+          </button>
         </div>
 
         {/* Filter Pills */}

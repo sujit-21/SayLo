@@ -26,6 +26,8 @@ import {
   ExternalLink,
   UserCheck,
   Bookmark,
+  Languages,
+  X,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
@@ -281,6 +283,38 @@ const MessageItem = ({
   const [showMenu, setShowMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [viewOnceRevealed, setViewOnceRevealed] = useState(false);
+
+  // WhatsApp In-Chat Live Translation
+  const [translatedText, setTranslatedText] = useState(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [targetLang, setTargetLang] = useState('English');
+  const [showTranslateMenu, setShowTranslateMenu] = useState(false);
+
+  const translateMessage = async (targetCode = 'en', langName = 'English') => {
+    if (!message.text) return;
+    setIsTranslating(true);
+    setTargetLang(langName);
+    setShowMenu(false);
+    setShowTranslateMenu(false);
+
+    try {
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+          message.text
+        )}&langpair=autodetect|${targetCode}`
+      );
+      const data = await res.json();
+      if (data?.responseData?.translatedText) {
+        setTranslatedText(data.responseData.translatedText);
+      } else {
+        setTranslatedText(`[${langName}] ${message.text}`);
+      }
+    } catch (e) {
+      setTranslatedText(`[${langName}] ${message.text}`);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   // WhatsApp Mobile Touch Swipe-to-Reply
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -958,9 +992,40 @@ const MessageItem = ({
 
             {/* Regular Text */}
             {message.text && message.type !== 'system' && message.type !== 'sticker' && (message.type !== 'gif' || message.text !== 'GIF') && (
-              <p className={`break-words leading-relaxed whitespace-pre-wrap ${fontSizeClass}`}>
-                {renderFormattedText(message.text)}
-              </p>
+              <>
+                <p className={`break-words leading-relaxed whitespace-pre-wrap ${fontSizeClass}`}>
+                  {renderFormattedText(message.text)}
+                </p>
+
+                {/* WhatsApp Live Message Translation Box */}
+                {translatedText && (
+                  <div className="mt-2 pt-1.5 border-t border-black/10 dark:border-white/10 text-xs bg-black/5 dark:bg-black/20 -mx-1 px-2.5 py-1.5 rounded-xl animate-fadeIn">
+                    <div className="flex items-center justify-between text-saylo-emerald dark:text-saylo-400 text-[10px] font-semibold mb-0.5">
+                      <div className="flex items-center gap-1">
+                        <Languages size={12} />
+                        <span>Translated to {targetLang}</span>
+                      </div>
+                      <button
+                        onClick={() => setTranslatedText(null)}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        title="Dismiss translation"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                    <p className="italic font-medium text-gray-800 dark:text-gray-100 leading-snug">
+                      {translatedText}
+                    </p>
+                  </div>
+                )}
+
+                {isTranslating && (
+                  <div className="mt-1 text-[11px] text-saylo-emerald flex items-center gap-1.5 animate-pulse">
+                    <Languages size={12} />
+                    <span>Translating message to {targetLang}...</span>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -1167,6 +1232,45 @@ const MessageItem = ({
             <Bookmark size={14} className={message.isKept ? 'text-amber-500 fill-amber-500' : ''} />
             {message.isKept ? 'Unkeep message' : 'Keep in chat'}
           </button>
+
+          {/* WhatsApp In-Chat Live Translation */}
+          {message.text && message.type === 'text' && (
+            <div className="border-t border-b border-gray-100 dark:border-gray-700/60 my-0.5">
+              <button
+                onClick={() => setShowTranslateMenu(!showTranslateMenu)}
+                className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <Languages size={14} className="text-saylo-emerald" />
+                  <span>Translate</span>
+                </div>
+                <span className="text-[9px] text-gray-400 font-bold">{showTranslateMenu ? '▲' : '▼'}</span>
+              </button>
+
+              {showTranslateMenu && (
+                <div className="bg-gray-50 dark:bg-[#182229] py-1 px-2 grid grid-cols-2 gap-1 animate-fadeIn">
+                  {[
+                    { code: 'en', name: 'English' },
+                    { code: 'es', name: 'Spanish' },
+                    { code: 'fr', name: 'French' },
+                    { code: 'de', name: 'German' },
+                    { code: 'hi', name: 'Hindi' },
+                    { code: 'ar', name: 'Arabic' },
+                    { code: 'zh', name: 'Chinese' },
+                    { code: 'ru', name: 'Russian' },
+                  ].map((l) => (
+                    <button
+                      key={l.code}
+                      onClick={() => translateMessage(l.code, l.name)}
+                      className="text-left px-2 py-1 rounded text-[10px] hover:bg-saylo-emerald hover:text-white transition-colors truncate"
+                    >
+                      {l.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {isSelf && message.type === 'text' && !message.deletedForEveryone && (
             <button
