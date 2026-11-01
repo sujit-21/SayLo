@@ -13,6 +13,12 @@ const StatusPage = () => {
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewersSheet, setShowViewersSheet] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [statusPrivacySetting, setStatusPrivacySetting] = useState(() => {
+    return localStorage.getItem('saylo_status_privacy_type') || 'contacts';
+  });
+  const [allContactsList, setAllContactsList] = useState([]);
+  const [selectedPrivacyContacts, setSelectedPrivacyContacts] = useState([]);
   const [replyText, setReplyText] = useState('');
 
   // Create status state
@@ -95,6 +101,14 @@ const StatusPage = () => {
   useEffect(() => {
     fetchStatuses();
   }, []);
+
+  useEffect(() => {
+    if (showPrivacyModal && allContactsList.length === 0) {
+      api.get('/contacts')
+        .then((res) => setAllContactsList(res.data.contacts || []))
+        .catch(console.error);
+    }
+  }, [showPrivacyModal, allContactsList.length]);
 
   // Open story group viewer
   const handleOpenGroup = (group) => {
@@ -276,13 +290,22 @@ const StatusPage = () => {
       >
         <div className="h-16 px-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Status</h1>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="p-2 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-full transition-transform active:scale-95 shadow-md"
-            title="Add Status"
-          >
-            <Plus size={20} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setShowPrivacyModal(true)}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-saylo-emerald hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
+              title="Status Privacy Settings"
+            >
+              <ShieldCheck size={20} />
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="p-2 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-full transition-transform active:scale-95 shadow-md"
+              title="Add Status"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-4">
@@ -971,6 +994,63 @@ const StatusPage = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Global Status Privacy Modal */}
+      <Modal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+        title="Status Privacy"
+      >
+        <div className="space-y-4 select-none">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Who can see your new status updates. Changes won't affect status updates that you've already sent.
+          </p>
+
+          <div className="space-y-2">
+            {[
+              { id: 'contacts', title: 'My Contacts', desc: 'Share with all contacts in your address book' },
+              { id: 'everyone', title: 'Everyone', desc: 'Allow anyone on SAYLO to view your updates' },
+              { id: 'nobody', title: 'Only Me', desc: 'Keep your status updates private to yourself' },
+            ].map((opt) => (
+              <label
+                key={opt.id}
+                onClick={() => {
+                  setStatusPrivacySetting(opt.id);
+                  setPrivacy(opt.id);
+                  localStorage.setItem('saylo_status_privacy_type', opt.id);
+                }}
+                className={`flex items-start gap-3 p-3 rounded-2xl cursor-pointer border transition-all ${
+                  statusPrivacySetting === opt.id
+                    ? 'border-saylo-emerald bg-saylo-emerald/10'
+                    : 'border-gray-200 dark:border-gray-700/60 hover:bg-gray-50 dark:hover:bg-white/5'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="status_privacy"
+                  checked={statusPrivacySetting === opt.id}
+                  onChange={() => {}}
+                  className="mt-0.5 accent-saylo-emerald"
+                />
+                <div className="flex-1">
+                  <h4 className="text-xs font-semibold text-gray-900 dark:text-gray-100">{opt.title}</h4>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{opt.desc}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setShowPrivacyModal(false)}
+              className="px-5 py-2 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl text-xs font-semibold shadow-md"
+            >
+              Done
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

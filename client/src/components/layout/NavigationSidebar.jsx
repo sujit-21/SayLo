@@ -13,6 +13,7 @@ import {
   Moon,
   LogOut,
   User,
+  Laptop,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
@@ -157,6 +158,17 @@ const NavigationSidebar = () => {
                 >
                   <User size={15} />
                   My Profile
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate('/settings/security');
+                    setShowProfileMenu(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2.5"
+                >
+                  <Laptop size={15} />
+                  Linked Devices
                 </button>
 
                 <button

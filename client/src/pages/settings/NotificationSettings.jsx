@@ -10,7 +10,9 @@ const NotificationSettings = () => {
   const [selectedTone, setSelectedTone] = useState(
     localStorage.getItem('saylo_notification_tone') || 'chime'
   );
-  const [desktopNotifications, setDesktopNotifications] = useState(false);
+  const [desktopNotifications, setDesktopNotifications] = useState(
+    () => typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted'
+  );
   const [showPreviews, setShowPreviews] = useState(true);
 
   const notificationTones = [

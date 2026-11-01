@@ -748,3 +748,4 @@ const WhatsAppCameraModal = ({ isOpen, onClose, onSendPhoto }) => {
 };
 
 export default WhatsAppCameraModal;
+
