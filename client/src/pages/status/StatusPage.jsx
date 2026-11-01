@@ -1,10 +1,89 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw, Send, Heart, Repeat } from 'lucide-react';
+import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw, Send, Heart, Repeat, Radio, BadgeCheck, BellOff, Bell, Compass, Share2 } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { format } from 'date-fns';
+
+// WhatsApp Channels Directory (2024 / 2025 Updates Tab)
+const initialChannels = [
+  {
+    id: 'chan_saylo',
+    name: 'SAYLO Updates',
+    handle: '@saylo',
+    avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+    description: 'The official broadcast channel for SAYLO product updates, security notices, and features.',
+    verified: true,
+    followersCount: 248000,
+    posts: [
+      {
+        id: 'p1',
+        text: '🚀 Welcome to SAYLO Channels! Receive broadcast updates from creators, news organizations, and public communities directly in your Updates tab with complete end-to-end privacy.',
+        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+        reactions: { '❤️': 3420, '🔥': 2100, '👏': 1480, '🚀': 920 },
+      },
+      {
+        id: 'p2',
+        text: '🔒 Channel privacy guarantee: Your phone number, email, and personal profile are never visible to channel admins or other followers.',
+        createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+        reactions: { '👍': 4890, '❤️': 3120, '🛡️': 1750 },
+      },
+    ],
+  },
+  {
+    id: 'chan_tech',
+    name: 'Tech & AI Insider',
+    handle: '@techinsider',
+    avatar: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=150&auto=format&fit=crop&q=80',
+    description: 'Daily developments in Artificial Intelligence, developer tools, robotics, and tech breakthroughs.',
+    verified: true,
+    followersCount: 182000,
+    posts: [
+      {
+        id: 't1',
+        text: '💡 Next-generation generative models are achieving 10x faster inference with multimodal spatial reasoning and real-time audio interaction.',
+        createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+        reactions: { '🔥': 2340, '💡': 1890, '👏': 980 },
+      },
+    ],
+  },
+  {
+    id: 'chan_sports',
+    name: 'Global Sports Club',
+    handle: '@globalsports',
+    avatar: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150&auto=format&fit=crop&q=80',
+    description: 'Live tournament scores, transfer alerts, Champions League highlights, and sports news.',
+    verified: true,
+    followersCount: 395000,
+    posts: [
+      {
+        id: 's1',
+        text: '⚽ An incredible weekend of football! The league table is tighter than ever going into the knockout rounds.',
+        createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+        reactions: { '⚽': 5400, '🔥': 3200, '🏆': 2100 },
+      },
+    ],
+  },
+  {
+    id: 'chan_travel',
+    name: 'Travel & Nature World',
+    handle: '@travelworld',
+    avatar: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=150&auto=format&fit=crop&q=80',
+    description: 'Breathtaking landscapes, hidden travel destinations, and scenic photo guides across the globe.',
+    verified: true,
+    followersCount: 124000,
+    posts: [
+      {
+        id: 'w1',
+        text: '🏔️ The morning mist drifting over the Swiss Alps in late autumn. Tag someone who loves the mountains!',
+        imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=80',
+        createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
+        reactions: { '❤️': 4120, '✨': 1840, '😍': 2300 },
+      },
+    ],
+  },
+];
 
 const StatusPage = () => {
   const { user } = useAuth();
@@ -92,6 +171,148 @@ const StatusPage = () => {
     if (voiceRecorderRef.current && voiceRecorderRef.current.state !== 'inactive') {
       voiceRecorderRef.current.stop();
     }
+  };
+
+  // WhatsApp Channels Feature (2024 / 2025 Updates Tab)
+  const [activeChannel, setActiveChannel] = useState(null);
+  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [newChannelName, setNewChannelName] = useState('');
+  const [newChannelDesc, setNewChannelDesc] = useState('');
+  const [followedChannels, setFollowedChannels] = useState(() => {
+    try {
+      return (
+        JSON.parse(localStorage.getItem('saylo_followed_channels')) || ['chan_saylo']
+      );
+    } catch {
+      return ['chan_saylo'];
+    }
+  });
+  const [channelsList, setChannelsList] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('saylo_custom_channels')) || [];
+      return [...initialChannels, ...saved];
+    } catch {
+      return initialChannels;
+    }
+  });
+  const [newBroadcastText, setNewBroadcastText] = useState('');
+
+  const handleToggleFollowChannel = (channelId, e) => {
+    if (e) e.stopPropagation();
+    let updated;
+    if (followedChannels.includes(channelId)) {
+      updated = followedChannels.filter((id) => id !== channelId);
+    } else {
+      updated = [...followedChannels, channelId];
+    }
+    setFollowedChannels(updated);
+    localStorage.setItem('saylo_followed_channels', JSON.stringify(updated));
+  };
+
+  const handleChannelReact = (channelId, postId, emoji) => {
+    setChannelsList((prev) =>
+      prev.map((c) => {
+        if (c.id !== channelId) return c;
+        return {
+          ...c,
+          posts: c.posts.map((p) => {
+            if (p.id !== postId) return p;
+            const currentCount = p.reactions?.[emoji] || 0;
+            return {
+              ...p,
+              reactions: {
+                ...p.reactions,
+                [emoji]: currentCount + 1,
+              },
+            };
+          }),
+        };
+      })
+    );
+    if (activeChannel && activeChannel.id === channelId) {
+      setActiveChannel((prev) => ({
+        ...prev,
+        posts: prev.posts.map((p) => {
+          if (p.id !== postId) return p;
+          const currentCount = p.reactions?.[emoji] || 0;
+          return {
+            ...p,
+            reactions: {
+              ...p.reactions,
+              [emoji]: currentCount + 1,
+            },
+          };
+        }),
+      }));
+    }
+  };
+
+  const handleCreateChannel = (e) => {
+    e.preventDefault();
+    if (!newChannelName.trim()) return;
+    const newChan = {
+      id: `chan_${Date.now()}`,
+      name: newChannelName.trim(),
+      handle: `@${newChannelName.trim().toLowerCase().replace(/\s+/g, '_')}`,
+      avatar:
+        user?.avatar ||
+        'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+      description:
+        newChannelDesc.trim() ||
+        'Welcome to my public broadcast channel on SAYLO.',
+      verified: false,
+      isOwner: true,
+      followersCount: 1,
+      posts: [
+        {
+          id: `p_${Date.now()}`,
+          text: `Welcome to ${newChannelName.trim()}! Follow this channel for regular updates and announcements.`,
+          createdAt: new Date().toISOString(),
+          reactions: { '❤️': 1, '🔥': 1 },
+        },
+      ],
+    };
+
+    const updated = [newChan, ...channelsList];
+    setChannelsList(updated);
+    try {
+      const saved =
+        JSON.parse(localStorage.getItem('saylo_custom_channels')) || [];
+      localStorage.setItem(
+        'saylo_custom_channels',
+        JSON.stringify([newChan, ...saved])
+      );
+    } catch {}
+
+    setFollowedChannels((prev) => [...prev, newChan.id]);
+    setActiveChannel(newChan);
+    setSelectedGroup(null);
+    setShowCreateChannelModal(false);
+    setNewChannelName('');
+    setNewChannelDesc('');
+  };
+
+  const handlePostChannelBroadcast = (e) => {
+    e.preventDefault();
+    if (!newBroadcastText.trim() || !activeChannel) return;
+
+    const newPost = {
+      id: `post_${Date.now()}`,
+      text: newBroadcastText.trim(),
+      createdAt: new Date().toISOString(),
+      reactions: { '❤️': 1, '👍': 1 },
+    };
+
+    setChannelsList((prev) =>
+      prev.map((c) =>
+        c.id === activeChannel.id ? { ...c, posts: [newPost, ...c.posts] } : c
+      )
+    );
+    setActiveChannel((prev) => ({
+      ...prev,
+      posts: [newPost, ...prev.posts],
+    }));
+    setNewBroadcastText('');
   };
 
   const bgColors = ['#005c4b', '#128c7e', '#7c3aed', '#b91c1c', '#b45309', '#1e293b'];
@@ -367,7 +588,10 @@ const StatusPage = () => {
         }`}
       >
         <div className="h-16 px-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f0f2f5] dark:bg-[#202c33]">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Status</h1>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Updates</h1>
+            <p className="text-[10px] text-gray-500 font-medium">Status & Channels</p>
+          </div>
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setShowPrivacyModal(true)}
@@ -455,6 +679,122 @@ const StatusPage = () => {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* WhatsApp 2024 / 2025 Channels Section */}
+          <div className="pt-3 border-t border-gray-200 dark:border-gray-800 space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <div>
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Channels
+                </h4>
+                <p className="text-[11px] text-gray-400">Stay updated on topics you care about</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCreateChannelModal(true)}
+                className="p-1.5 text-saylo-emerald hover:bg-saylo-emerald/10 rounded-full transition-colors flex items-center gap-1 text-xs font-semibold"
+                title="Create Channel"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+
+            {/* Followed Channels List */}
+            {channelsList.filter((c) => followedChannels.includes(c.id)).length > 0 && (
+              <div className="space-y-1">
+                {channelsList
+                  .filter((c) => followedChannels.includes(c.id))
+                  .map((chan) => (
+                    <div
+                      key={chan.id}
+                      onClick={() => {
+                        setSelectedGroup(null);
+                        setActiveChannel(chan);
+                      }}
+                      className={`flex items-center gap-3 p-2.5 rounded-2xl cursor-pointer transition-colors ${
+                        activeChannel?.id === chan.id
+                          ? 'bg-saylo-emerald/10 dark:bg-saylo-emerald/15 border border-saylo-emerald/30'
+                          : 'hover:bg-[#f0f2f5] dark:hover:bg-[#202c33]'
+                      }`}
+                    >
+                      <img
+                        src={chan.avatar}
+                        alt={chan.name}
+                        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <h4 className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">
+                            {chan.name}
+                          </h4>
+                          {chan.verified && (
+                            <BadgeCheck size={13} className="text-saylo-emerald flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                          {chan.posts?.[0]?.text || 'Tap to view updates'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* Find Channels / Explore Directory */}
+            <div className="pt-2">
+              <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-2 px-1">
+                Find Channels
+              </span>
+              <div className="space-y-2">
+                {channelsList.map((chan) => {
+                  const isFollowed = followedChannels.includes(chan.id);
+                  return (
+                    <div
+                      key={chan.id}
+                      onClick={() => {
+                        setSelectedGroup(null);
+                        setActiveChannel(chan);
+                      }}
+                      className="p-2.5 rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#182229] hover:border-saylo-emerald transition-colors flex items-center justify-between gap-2.5 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <img
+                          src={chan.avatar}
+                          alt={chan.name}
+                          className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                        />
+                        <div className="truncate">
+                          <div className="flex items-center gap-1">
+                            <h5 className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">
+                              {chan.name}
+                            </h5>
+                            {chan.verified && (
+                              <BadgeCheck size={12} className="text-saylo-emerald flex-shrink-0" />
+                            )}
+                          </div>
+                          <span className="text-[10px] text-gray-500 font-mono">
+                            {(chan.followersCount / 1000).toFixed(0)}K followers
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleFollowChannel(chan.id, e)}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors flex-shrink-0 ${
+                          isFollowed
+                            ? 'bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-200 hover:bg-red-500/10 hover:text-red-500'
+                            : 'bg-saylo-emerald hover:bg-saylo-600 text-white shadow-sm'
+                        }`}
+                      >
+                        {isFollowed ? 'Following' : 'Follow'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -796,9 +1136,133 @@ const StatusPage = () => {
               </div>
             )}
           </div>
+        ) : activeChannel ? (
+          <div className="w-full h-full flex flex-col bg-white dark:bg-[#111b21] max-w-2xl mx-auto rounded-none md:rounded-3xl border-0 md:border md:border-gray-200 dark:md:border-gray-800 shadow-xl overflow-hidden animate-fadeIn">
+            {/* Channel Top Header */}
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-[#f0f2f5] dark:bg-[#202c33]">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveChannel(null)}
+                  className="md:hidden p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <img
+                  src={activeChannel.avatar}
+                  alt={activeChannel.name}
+                  className="w-11 h-11 rounded-full object-cover shadow-sm"
+                />
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                      {activeChannel.name}
+                    </h3>
+                    {activeChannel.verified && (
+                      <BadgeCheck size={15} className="text-saylo-emerald" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                    {(activeChannel.followersCount / 1000).toFixed(0)}K followers · {activeChannel.handle}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => handleToggleFollowChannel(activeChannel.id, e)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    followedChannels.includes(activeChannel.id)
+                      ? 'bg-gray-200 dark:bg-white/10 text-gray-800 dark:text-white'
+                      : 'bg-saylo-emerald text-white hover:bg-saylo-600 shadow-md'
+                  }`}
+                >
+                  {followedChannels.includes(activeChannel.id) ? 'Following' : 'Follow'}
+                </button>
+              </div>
+            </div>
+
+            {/* Channel Description Banner */}
+            <div className="px-5 py-2.5 bg-gray-50 dark:bg-[#182229] border-b border-gray-100 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-300">
+              <p>{activeChannel.description}</p>
+            </div>
+
+            {/* Channel Feed Posts */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#efeae2] dark:bg-[#0b141a]">
+              {activeChannel.posts?.map((post) => (
+                <div
+                  key={post.id}
+                  className="p-4 rounded-2xl bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-700/60 shadow-md space-y-3 max-w-xl mx-auto"
+                >
+                  {post.imageUrl && (
+                    <div className="rounded-xl overflow-hidden max-h-72">
+                      <img
+                        src={post.imageUrl}
+                        alt="Broadcast media"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
+                    {post.text}
+                  </p>
+
+                  {/* Emoji Reactions Pill Bar */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700/40">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {['❤️', '🔥', '👍', '👏', '🚀'].map((em) => {
+                        const count = post.reactions?.[em] || 0;
+                        return (
+                          <button
+                            key={em}
+                            type="button"
+                            onClick={() => handleChannelReact(activeChannel.id, post.id, em)}
+                            className="px-2 py-1 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-saylo-emerald/15 hover:text-saylo-emerald text-xs font-medium flex items-center gap-1 transition-transform active:scale-95"
+                          >
+                            <span>{em}</span>
+                            {count > 0 && <span className="text-[10px] text-gray-500">{count}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-mono">
+                      {format(new Date(post.createdAt), 'HH:mm')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Channel Broadcast Post Composer */}
+            <form
+              onSubmit={handlePostChannelBroadcast}
+              className="p-3 bg-[#f0f2f5] dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-800 flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={newBroadcastText}
+                onChange={(e) => setNewBroadcastText(e.target.value)}
+                placeholder={`Send broadcast update to ${activeChannel.name}...`}
+                className="flex-1 bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2 text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
+              />
+              <button
+                type="submit"
+                disabled={!newBroadcastText.trim()}
+                className="p-2 bg-saylo-emerald hover:bg-saylo-600 disabled:opacity-40 text-white rounded-xl shadow-md transition-colors"
+                title="Send broadcast"
+              >
+                <Send size={16} />
+              </button>
+            </form>
+          </div>
         ) : (
-          <div className="text-center text-gray-500">
-            <p className="text-sm">Select a contact to view their status update</p>
+          <div className="text-center text-gray-500 space-y-2">
+            <Radio size={36} className="mx-auto text-saylo-emerald opacity-60 animate-pulse" />
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+              Select a status story or channel to view updates
+            </p>
+            <p className="text-xs text-gray-400">Discover and follow channels to receive broadcast updates</p>
           </div>
         )}
       </div>
@@ -1312,6 +1776,68 @@ const StatusPage = () => {
             </button>
           </div>
         </div>
+      </Modal>
+
+      {/* WhatsApp Create Channel Modal */}
+      <Modal
+        isOpen={showCreateChannelModal}
+        onClose={() => setShowCreateChannelModal(false)}
+        title="Create Channel"
+      >
+        <form onSubmit={handleCreateChannel} className="space-y-4 select-none">
+          <div className="text-center mb-3">
+            <div className="w-16 h-16 rounded-full bg-saylo-emerald/15 text-saylo-emerald flex items-center justify-center mx-auto mb-2">
+              <Radio size={28} />
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
+              Channels reach unlimited followers. Anyone can discover your channel and see updates.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Channel Name
+            </label>
+            <input
+              type="text"
+              value={newChannelName}
+              onChange={(e) => setNewChannelName(e.target.value)}
+              placeholder="e.g. Design News, Daily Tech"
+              required
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2 text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Description
+            </label>
+            <textarea
+              rows={3}
+              value={newChannelDesc}
+              onChange={(e) => setNewChannelDesc(e.target.value)}
+              placeholder="Describe your channel for followers..."
+              className="w-full bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3.5 py-2 text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:border-saylo-emerald resize-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowCreateChannelModal(false)}
+              className="px-4 py-2 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!newChannelName.trim()}
+              className="px-5 py-2 bg-saylo-emerald hover:bg-saylo-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md transition-colors"
+            >
+              Create Channel
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

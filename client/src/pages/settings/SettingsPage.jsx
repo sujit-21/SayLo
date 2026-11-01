@@ -11,6 +11,7 @@ import {
   MessageSquare,
   ChevronRight,
   LogOut,
+  Laptop,
 } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import { useAuth } from '../../context/AuthContext';
@@ -21,6 +22,7 @@ const SettingsPage = () => {
   const settingsLinks = [
     { to: '/profile', icon: User, label: 'Profile', desc: 'Avatar, name, about status' },
     { to: '/settings/account', icon: Key, label: 'Account', desc: 'Security info, export data' },
+    { to: '/settings/linked-devices', icon: Laptop, label: 'Linked Devices', desc: 'Manage web, desktop, and tablet sessions' },
     { to: '/settings/privacy', icon: Lock, label: 'Privacy', desc: 'Last seen, read receipts, disappearing timer' },
     { to: '/settings/security', icon: Shield, label: 'Security & Linked Devices', desc: 'Two-step verification, device sessions' },
     { to: '/settings/chats', icon: MessageSquare, label: 'Chats & Backup', desc: 'Chat backup, enter is send, chat history' },

@@ -41,6 +41,7 @@ import NotificationSettings from './pages/settings/NotificationSettings';
 import AppearanceSettings from './pages/settings/AppearanceSettings';
 import StorageSettings from './pages/settings/StorageSettings';
 import ChatSettings from './pages/settings/ChatSettings';
+import LinkedDevicesPage from './pages/settings/LinkedDevicesPage';
 
 // Not Found
 import NotFoundPage from './pages/NotFoundPage';
@@ -89,6 +90,8 @@ function App() {
                       <Route path="/settings/appearance" element={<AppearanceSettings />} />
                       <Route path="/settings/chats" element={<ChatSettings />} />
                       <Route path="/settings/storage" element={<StorageSettings />} />
+                      <Route path="/settings/linked-devices" element={<LinkedDevicesPage />} />
+                      <Route path="/linked-devices" element={<LinkedDevicesPage />} />
                     </Route>
                   </Route>
 
