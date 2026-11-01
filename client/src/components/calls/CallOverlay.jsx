@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCall } from '../../context/CallContext';
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, Volume2, Lock } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, Volume2, Lock, Sparkles, Wand2, X, Check } from 'lucide-react';
 import Avatar from '../common/Avatar';
 
 const CallOverlay = () => {
@@ -24,7 +24,28 @@ const CallOverlay = () => {
     switchToVideo,
   } = useCall();
 
+  const [showEffectsDrawer, setShowEffectsDrawer] = useState(false);
+  const [selectedEffect, setSelectedEffect] = useState('none'); // 'none' | 'blur' | 'office' | 'cafe' | 'beach'
+  const [selectedFilter, setSelectedFilter] = useState('normal'); // 'normal' | 'warm' | 'cool' | 'noir' | 'vivid' | 'dreamy'
+
   if (callState === 'idle') return null;
+
+  const getFilterStyle = () => {
+    switch (selectedFilter) {
+      case 'warm':
+        return 'sepia(30%) saturate(125%) brightness(105%)';
+      case 'cool':
+        return 'hue-rotate(180deg) saturate(110%)';
+      case 'noir':
+        return 'grayscale(100%) contrast(125%)';
+      case 'vivid':
+        return 'saturate(160%) contrast(110%)';
+      case 'dreamy':
+        return 'contrast(95%) brightness(110%)';
+      default:
+        return 'none';
+    }
+  };
 
   const formatDuration = (secs) => {
     const mins = Math.floor(secs / 60);
@@ -112,14 +133,35 @@ const CallOverlay = () => {
                 playsInline
                 className="w-full h-full object-cover"
               />
-              {/* Local Video PiP */}
-              <div className="absolute bottom-24 right-3 sm:right-6 w-24 h-32 sm:w-48 sm:h-36 bg-black rounded-xl sm:rounded-2xl overflow-hidden border-2 border-saylo-emerald shadow-2xl">
+              {/* Local Video PiP with WhatsApp Background Effects & Filters */}
+              <div
+                className={`absolute bottom-24 right-3 sm:right-6 w-28 h-36 sm:w-48 sm:h-36 bg-black rounded-xl sm:rounded-2xl overflow-hidden border-2 border-saylo-emerald shadow-2xl relative ${
+                  selectedEffect === 'blur' ? 'backdrop-blur-xl' : ''
+                }`}
+                style={{
+                  backgroundImage:
+                    selectedEffect === 'office'
+                      ? 'url(https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop)'
+                      : selectedEffect === 'cafe'
+                      ? 'url(https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop)'
+                      : selectedEffect === 'beach'
+                      ? 'url(https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop)'
+                      : undefined,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              >
                 <video
                   ref={localVideoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover transition-all ${
+                    selectedEffect !== 'none' && selectedEffect !== 'blur' ? 'opacity-90 mix-blend-screen' : ''
+                  }`}
+                  style={{
+                    filter: getFilterStyle(),
+                  }}
                 />
               </div>
             </>
@@ -138,6 +180,84 @@ const CallOverlay = () => {
             </div>
           )}
         </div>
+
+        {/* WhatsApp Video Call Effects Drawer */}
+        {showEffectsDrawer && callType === 'video' && (
+          <div className="absolute bottom-24 inset-x-4 sm:inset-x-auto sm:right-6 sm:w-80 bg-[#1f2c34] border border-gray-700/80 rounded-3xl p-4 shadow-2xl z-30 animate-in slide-in-from-bottom duration-200 text-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-700/50 mb-3">
+              <span className="font-bold text-white flex items-center gap-1.5">
+                <Sparkles size={14} className="text-saylo-emerald" />
+                Call Effects & Backgrounds
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowEffectsDrawer(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Virtual Backgrounds */}
+            <div className="mb-3">
+              <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block mb-1.5">
+                Background
+              </span>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { id: 'none', label: 'None' },
+                  { id: 'blur', label: 'Blur' },
+                  { id: 'office', label: 'Office' },
+                  { id: 'cafe', label: 'Cafe' },
+                  { id: 'beach', label: 'Beach' },
+                ].map((bg) => (
+                  <button
+                    key={bg.id}
+                    type="button"
+                    onClick={() => setSelectedEffect(bg.id)}
+                    className={`py-1.5 px-2 rounded-xl text-center font-medium capitalize border transition-all ${
+                      selectedEffect === bg.id
+                        ? 'bg-saylo-emerald text-white border-saylo-emerald shadow-sm'
+                        : 'bg-black/30 border-gray-700 text-gray-300 hover:border-gray-500'
+                    }`}
+                  >
+                    {bg.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Visual Color Filters */}
+            <div>
+              <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block mb-1.5">
+                Color Filter
+              </span>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { id: 'normal', label: 'Normal' },
+                  { id: 'warm', label: 'Warm' },
+                  { id: 'cool', label: 'Cool' },
+                  { id: 'vivid', label: 'Vivid' },
+                  { id: 'noir', label: 'B&W' },
+                  { id: 'dreamy', label: 'Dreamy' },
+                ].map((flt) => (
+                  <button
+                    key={flt.id}
+                    type="button"
+                    onClick={() => setSelectedFilter(flt.id)}
+                    className={`py-1.5 px-2 rounded-xl text-center font-medium capitalize border transition-all ${
+                      selectedFilter === flt.id
+                        ? 'bg-saylo-emerald text-white border-saylo-emerald shadow-sm'
+                        : 'bg-black/30 border-gray-700 text-gray-300 hover:border-gray-500'
+                    }`}
+                  >
+                    {flt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Call Controls Toolbar */}
         <div className="h-20 bg-[#202c33] border-t border-gray-800 flex items-center justify-center gap-3 sm:gap-6 px-3 sm:px-6 z-20">
@@ -186,6 +306,21 @@ const CallOverlay = () => {
               title="Share Screen"
             >
               <ScreenShare size={20} />
+            </button>
+          )}
+
+          {/* WhatsApp Video Effects & Background Blur */}
+          {callType === 'video' && (
+            <button
+              onClick={() => setShowEffectsDrawer(!showEffectsDrawer)}
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                showEffectsDrawer || selectedEffect !== 'none' || selectedFilter !== 'normal'
+                  ? 'bg-gradient-to-tr from-blue-500 via-purple-500 to-emerald-400 text-white shadow-lg scale-105'
+                  : 'bg-gray-700/60 hover:bg-gray-700 text-white'
+              }`}
+              title="Effects & Virtual Backgrounds"
+            >
+              <Sparkles size={20} />
             </button>
           )}
 

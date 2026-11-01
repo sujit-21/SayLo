@@ -44,6 +44,7 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
   } = useChat();
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [addingMember, setAddingMember] = useState(false);
+  const [shareRecentHistory, setShareRecentHistory] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [mediaTab, setMediaTab] = useState('media'); // 'media', 'docs', 'links'
@@ -758,21 +759,41 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
             </div>
 
             {addingMember && (
-              <form onSubmit={handleAddMember} className="flex gap-2">
-                <input
-                  type="email"
-                  value={newMemberEmail}
-                  onChange={(e) => setNewMemberEmail(e.target.value)}
-                  placeholder="Enter email..."
-                  required
-                  className="flex-1 bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-lg px-2.5 py-1 text-xs text-gray-900 dark:text-white"
-                />
-                <button
-                  type="submit"
-                  className="bg-saylo-emerald text-white px-2.5 py-1 rounded-lg text-xs font-semibold"
-                >
-                  Add
-                </button>
+              <form onSubmit={handleAddMember} className="space-y-2 bg-gray-100 dark:bg-[#182229] p-2.5 rounded-xl border border-gray-200 dark:border-gray-700/60 animate-fadeIn">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newMemberEmail}
+                    onChange={(e) => setNewMemberEmail(e.target.value)}
+                    placeholder="Search name, @username, or email..."
+                    required
+                    className="flex-1 bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-lg px-2.5 py-1 text-xs text-gray-900 dark:text-white"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-saylo-emerald hover:bg-saylo-600 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow-sm"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {/* WhatsApp Share Recent Chat History Toggle (2025 feature) */}
+                <label className="flex items-start gap-2 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={shareRecentHistory}
+                    onChange={(e) => setShareRecentHistory(e.target.checked)}
+                    className="mt-0.5 rounded text-saylo-emerald focus:ring-saylo-emerald w-3.5 h-3.5"
+                  />
+                  <div>
+                    <span className="text-[11px] font-semibold text-gray-800 dark:text-gray-200 block leading-tight">
+                      Share recent chat history
+                    </span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block leading-snug">
+                      Allows new member to read the recent 50 messages to catch up on group context.
+                    </span>
+                  </div>
+                </label>
               </form>
             )}
 

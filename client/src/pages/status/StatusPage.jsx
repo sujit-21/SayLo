@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw, Send } from 'lucide-react';
+import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw, Send, Heart } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -20,6 +20,8 @@ const StatusPage = () => {
   const [allContactsList, setAllContactsList] = useState([]);
   const [selectedPrivacyContacts, setSelectedPrivacyContacts] = useState([]);
   const [replyText, setReplyText] = useState('');
+  const [likedStories, setLikedStories] = useState({});
+  const [showHeartBurst, setShowHeartBurst] = useState(false);
 
   // Create status state
   const [createMode, setCreateMode] = useState('text'); // 'text' | 'media' | 'voice'
@@ -170,6 +172,19 @@ const StatusPage = () => {
     } catch (err) {
       console.error('Failed to reply to status', err);
       alert('Could not send reply');
+    }
+  };
+
+  // WhatsApp Status Quick Like (Heart 💚)
+  const handleLikeStatus = () => {
+    const currentItem = selectedGroup?.items[activeStoryIndex];
+    if (!currentItem) return;
+    const isLiked = likedStories[currentItem._id];
+    if (!isLiked) {
+      setLikedStories((prev) => ({ ...prev, [currentItem._id]: true }));
+      setShowHeartBurst(true);
+      setTimeout(() => setShowHeartBurst(false), 1200);
+      handleSendStatusReply('💚');
     }
   };
 
@@ -529,6 +544,13 @@ const StatusPage = () => {
               )}
             </div>
 
+            {/* WhatsApp Heart Burst Animation on Status Like */}
+            {showHeartBurst && (
+              <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center animate-ping">
+                <Heart size={100} className="text-[#00a884] fill-[#00a884] drop-shadow-2xl" />
+              </div>
+            )}
+
             {/* Tap areas for previous / next */}
             <button
               onClick={prevStory}
@@ -572,13 +594,13 @@ const StatusPage = () => {
                   ))}
                 </div>
 
-                {/* Text Reply Form */}
+                {/* Text Reply Form & WhatsApp Heart Like */}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    handleSendStatusReply(replyText);
+                    if (replyText.trim()) handleSendStatusReply(replyText);
                   }}
-                  className="flex items-center gap-2 bg-black/75 backdrop-blur-md p-1.5 pl-4 rounded-full border border-white/20 shadow-2xl"
+                  className="flex items-center gap-2 bg-black/75 backdrop-blur-md p-1.5 pl-4 rounded-full border border-white/20 shadow-2xl relative"
                 >
                   <input
                     type="text"
@@ -587,14 +609,33 @@ const StatusPage = () => {
                     placeholder={`Reply to ${selectedGroup.user?.name || 'status'}...`}
                     className="flex-1 bg-transparent text-xs text-white placeholder-white/50 focus:outline-none"
                   />
-                  <button
-                    type="submit"
-                    disabled={!replyText.trim()}
-                    className="w-8 h-8 rounded-full bg-saylo-emerald hover:bg-saylo-600 disabled:opacity-30 text-white flex items-center justify-center transition-all shadow-md active:scale-95 flex-shrink-0"
-                    title="Send reply"
-                  >
-                    <Send size={14} />
-                  </button>
+                  {replyText.trim() ? (
+                    <button
+                      type="submit"
+                      className="w-8 h-8 rounded-full bg-saylo-emerald hover:bg-saylo-600 text-white flex items-center justify-center transition-all shadow-md active:scale-95 flex-shrink-0"
+                      title="Send reply"
+                    >
+                      <Send size={14} />
+                    </button>
+                  ) : (
+                    /* WhatsApp Status Instant Heart 💚 Like */
+                    <button
+                      type="button"
+                      onClick={handleLikeStatus}
+                      className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-125 text-white flex items-center justify-center transition-all flex-shrink-0 group"
+                      title="Like status update"
+                      aria-label="Like status update"
+                    >
+                      <Heart
+                        size={18}
+                        className={
+                          likedStories[selectedGroup.items[activeStoryIndex]?._id]
+                            ? 'text-saylo-emerald fill-saylo-emerald scale-110'
+                            : 'text-white group-hover:text-saylo-emerald transition-colors'
+                        }
+                      />
+                    </button>
+                  )}
                 </form>
               </div>
             )}

@@ -57,6 +57,48 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     setContextMenu(null);
   };
 
+  // WhatsApp Custom Chat Lists (2024/2025 feature)
+  const [customLists, setCustomLists] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('saylo_custom_chat_lists')) || [];
+    } catch {
+      return [];
+    }
+  });
+  const [showCustomListModal, setShowCustomListModal] = useState(false);
+  const [newListName, setNewListName] = useState('');
+  const [newListEmoji, setNewListEmoji] = useState('📁');
+  const [selectedConvIds, setSelectedConvIds] = useState([]);
+
+  const handleSaveCustomList = (e) => {
+    e.preventDefault();
+    if (!newListName.trim()) return;
+    const id = `list_${Date.now()}`;
+    const updated = [
+      ...customLists,
+      {
+        id,
+        name: newListName.trim(),
+        emoji: newListEmoji,
+        conversationIds: selectedConvIds,
+      },
+    ];
+    setCustomLists(updated);
+    localStorage.setItem('saylo_custom_chat_lists', JSON.stringify(updated));
+    setActiveTabFilter(id);
+    setShowCustomListModal(false);
+    setNewListName('');
+    setSelectedConvIds([]);
+  };
+
+  const handleDeleteCustomList = (listId, e) => {
+    e.stopPropagation();
+    const updated = customLists.filter((l) => l.id !== listId);
+    setCustomLists(updated);
+    localStorage.setItem('saylo_custom_chat_lists', JSON.stringify(updated));
+    if (activeTabFilter === listId) setActiveTabFilter('all');
+  };
+
   // Format timestamp for sidebar
   const formatSidebarTime = (dateStr) => {
     if (!dateStr) return '';
@@ -111,6 +153,12 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     }
     if (['work', 'personal', 'family', 'vip', 'pending'].includes(activeTabFilter)) {
       if (chatLabels[c._id] !== activeTabFilter) return false;
+    }
+
+    // Filter by custom list
+    const customList = customLists.find((l) => l.id === activeTabFilter);
+    if (customList) {
+      if (!customList.conversationIds.includes(c._id)) return false;
     }
 
     // Filter by search
@@ -256,7 +304,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
           </button>
         </div>
 
-        {/* Filter Pills */}
+        {/* Filter Pills with WhatsApp Custom Chat Lists & '+' Button */}
         <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto no-scrollbar">
           {[
             { id: 'all', label: 'All' },
@@ -267,19 +315,45 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             { id: 'personal', label: '🌿 Personal' },
             { id: 'vip', label: '⭐ VIP' },
             { id: 'pending', label: '⏳ Pending' },
+            ...customLists.map((l) => ({
+              id: l.id,
+              label: `${l.emoji} ${l.name}`,
+              isCustom: true,
+            })),
           ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTabFilter(tab.id)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                activeTabFilter === tab.id
-                  ? 'bg-saylo-emerald text-white'
-                  : 'bg-[#f0f2f5] dark:bg-[#202c33] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              {tab.label}
-            </button>
+            <div key={tab.id} className="relative flex-shrink-0 group/pill">
+              <button
+                onClick={() => setActiveTabFilter(tab.id)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  activeTabFilter === tab.id
+                    ? 'bg-saylo-emerald text-white shadow-sm'
+                    : 'bg-[#f0f2f5] dark:bg-[#202c33] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {tab.isCustom && (
+                  <span
+                    onClick={(e) => handleDeleteCustomList(tab.id, e)}
+                    className="opacity-60 hover:opacity-100 hover:text-red-300 ml-0.5 text-[11px]"
+                    title="Delete list"
+                  >
+                    ×
+                  </span>
+                )}
+              </button>
+            </div>
           ))}
+
+          {/* WhatsApp '+' Add Custom List Button */}
+          <button
+            type="button"
+            onClick={() => setShowCustomListModal(true)}
+            className="p-1.5 px-2.5 rounded-full bg-[#f0f2f5] dark:bg-[#202c33] hover:bg-saylo-emerald/15 text-gray-500 dark:text-gray-400 hover:text-saylo-emerald transition-colors flex items-center justify-center flex-shrink-0"
+            title="Create Custom Chat List"
+            aria-label="Create Custom Chat List"
+          >
+            <Plus size={13} strokeWidth={2.5} />
+          </button>
         </div>
       </div>
 
@@ -631,6 +705,105 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                   className="flex-1 py-2 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-xl text-xs font-semibold"
                 >
                   Unlock
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Custom Chat List Creator Modal */}
+      {showCustomListModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-[#202c33] p-5 rounded-3xl max-w-sm w-full border border-gray-200 dark:border-gray-700 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700/60">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white">Create Custom List</h3>
+              <button
+                type="button"
+                onClick={() => setShowCustomListModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCustomList} className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">
+                  List Name
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={newListEmoji}
+                    onChange={(e) => setNewListEmoji(e.target.value)}
+                    className="bg-gray-100 dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-2 py-2 text-sm focus:outline-none"
+                  >
+                    {['📁', '🎓', '🏢', '🏠', '⚽', '🎯', '🚀', '💡', '🌟', '❤️', '✈️'].map((em) => (
+                      <option key={em} value={em}>
+                        {em}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    placeholder="e.g. College, Office, Project"
+                    required
+                    className="flex-1 bg-white dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-saylo-emerald"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">
+                  Add Chats to this List ({selectedConvIds.length} selected)
+                </label>
+                <div className="max-h-48 overflow-y-auto space-y-1 pr-1 border border-gray-200 dark:border-gray-700/60 rounded-xl p-2 bg-gray-50/50 dark:bg-[#111b21]">
+                  {conversations.map((c) => {
+                    const other = c.participants?.find((p) => (p.user?._id || p.user) !== user?._id)?.user;
+                    const cName = c.isGroup ? c.name : (other?.name || 'Chat');
+                    const isChecked = selectedConvIds.includes(c._id);
+                    return (
+                      <label
+                        key={c._id}
+                        className="flex items-center justify-between p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer text-xs"
+                      >
+                        <span className="truncate max-w-[200px] text-gray-800 dark:text-gray-200 font-medium">
+                          {cName}
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            if (isChecked) {
+                              setSelectedConvIds((prev) => prev.filter((id) => id !== c._id));
+                            } else {
+                              setSelectedConvIds((prev) => [...prev, c._id]);
+                            }
+                          }}
+                          className="rounded text-saylo-emerald focus:ring-saylo-emerald w-4 h-4"
+                        />
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomListModal(false)}
+                  className="flex-1 py-2 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newListName.trim()}
+                  className="flex-1 py-2 bg-saylo-emerald hover:bg-saylo-600 disabled:opacity-40 text-white rounded-xl text-xs font-semibold transition-colors shadow-md"
+                >
+                  Save List
                 </button>
               </div>
             </form>
