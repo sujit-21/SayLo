@@ -173,6 +173,11 @@ const MessageInput = ({
 
     if (activeConversation?._id) {
       localStorage.setItem(`saylo_draft_${activeConversation._id}`, val);
+      window.dispatchEvent(
+        new CustomEvent('saylo_draft_updated', {
+          detail: { conversationId: activeConversation._id, draft: val },
+        })
+      );
     }
 
     // Mention detection in groups
@@ -221,6 +226,11 @@ const MessageInput = ({
     setMentionQuery(null);
     if (activeConversation?._id) {
       localStorage.removeItem(`saylo_draft_${activeConversation._id}`);
+      window.dispatchEvent(
+        new CustomEvent('saylo_draft_updated', {
+          detail: { conversationId: activeConversation._id, draft: '' },
+        })
+      );
     }
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
@@ -387,6 +397,11 @@ const MessageInput = ({
       setShowAttachmentMenu(false);
       if (activeConversation?._id) {
         localStorage.removeItem(`saylo_draft_${activeConversation._id}`);
+        window.dispatchEvent(
+          new CustomEvent('saylo_draft_updated', {
+            detail: { conversationId: activeConversation._id, draft: '' },
+          })
+        );
       }
     } catch (err) {
       console.error('Upload failed', err);
@@ -425,6 +440,11 @@ const MessageInput = ({
       setViewOnce(false);
       if (activeConversation?._id) {
         localStorage.removeItem(`saylo_draft_${activeConversation._id}`);
+        window.dispatchEvent(
+          new CustomEvent('saylo_draft_updated', {
+            detail: { conversationId: activeConversation._id, draft: '' },
+          })
+        );
       }
     } catch (err) {
       console.error(err);
@@ -711,6 +731,11 @@ const MessageInput = ({
                   setText(q.text);
                   if (activeConversation?._id) {
                     localStorage.setItem(`saylo_draft_${activeConversation._id}`, q.text);
+                    window.dispatchEvent(
+                      new CustomEvent('saylo_draft_updated', {
+                        detail: { conversationId: activeConversation._id, draft: q.text },
+                      })
+                    );
                   }
                 }}
                 className="w-full text-left p-2 rounded-xl text-xs hover:bg-gray-100 dark:hover:bg-white/5 flex flex-col gap-0.5 text-gray-800 dark:text-gray-100 transition-colors"

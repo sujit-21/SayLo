@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCall } from '../../context/CallContext';
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, Volume2, Lock, Sparkles, Wand2, X, Check } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, Volume2, Lock, Sparkles, Wand2, X, Check, ZoomIn } from 'lucide-react';
 import Avatar from '../common/Avatar';
 
 const CallOverlay = () => {
@@ -45,6 +45,13 @@ const CallOverlay = () => {
       default:
         return 'none';
     }
+  };
+
+  // WhatsApp 2025 Remote Video Zoom (1x, 1.5x, 2x)
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const cycleZoom = (e) => {
+    if (e) e.stopPropagation();
+    setZoomLevel((prev) => (prev === 1 ? 1.5 : prev === 1.5 ? 2 : 1));
   };
 
   const formatDuration = (secs) => {
@@ -126,13 +133,26 @@ const CallOverlay = () => {
         <div className="flex-1 relative bg-[#0b141a] flex items-center justify-center overflow-hidden">
           {callType === 'video' ? (
             <>
-              {/* Remote Video */}
+              {/* Remote Video with WhatsApp 2025 Zoom */}
               <video
                 ref={remoteVideoRef}
                 autoPlay
                 playsInline
-                className="w-full h-full object-cover"
+                onDoubleClick={cycleZoom}
+                className="w-full h-full object-cover transition-transform duration-300 origin-center cursor-zoom-in"
+                style={{ transform: `scale(${zoomLevel})` }}
               />
+
+              {/* Remote Video Zoom Pill Button */}
+              <button
+                type="button"
+                onClick={cycleZoom}
+                className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-xs font-semibold text-white shadow-lg transition-transform active:scale-95"
+                title="Zoom remote video (1x, 1.5x, 2x)"
+              >
+                <ZoomIn size={14} className={zoomLevel > 1 ? 'text-saylo-emerald' : 'text-gray-300'} />
+                <span>{zoomLevel}x</span>
+              </button>
               {/* Local Video PiP with WhatsApp Background Effects & Filters */}
               <div
                 className={`absolute bottom-24 right-3 sm:right-6 w-28 h-36 sm:w-48 sm:h-36 bg-black rounded-xl sm:rounded-2xl overflow-hidden border-2 border-saylo-emerald shadow-2xl relative ${

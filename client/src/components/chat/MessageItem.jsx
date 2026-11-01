@@ -316,11 +316,23 @@ const MessageItem = ({
     }
   };
 
-  // WhatsApp Mobile Touch Swipe-to-Reply
+  // WhatsApp Mobile Touch Swipe-to-Reply & Double-Tap Quick React
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [showHeartBurst, setShowHeartBurst] = useState(false);
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
   const isSwipingRef = useRef(false);
+  const lastTapRef = useRef(0);
+
+  const handleQuickReact = (e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (isSelectMode) return;
+    reactToMessage(message._id, '❤️');
+    setShowHeartBurst(true);
+    setTimeout(() => setShowHeartBurst(false), 900);
+  };
 
   // Dynamic Font Size
   const fontSizeSetting = localStorage.getItem('saylo_font_size') || 'medium';
@@ -333,6 +345,13 @@ const MessageItem = ({
 
   const handleTouchStart = (e) => {
     if (isSelectMode) return;
+    const now = Date.now();
+    if (now - lastTapRef.current < 320) {
+      handleQuickReact(e);
+      lastTapRef.current = 0;
+      return;
+    }
+    lastTapRef.current = now;
     touchStartXRef.current = e.touches[0].clientX;
     touchStartYRef.current = e.touches[0].clientY;
     isSwipingRef.current = false;
@@ -520,6 +539,7 @@ const MessageItem = ({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onDoubleClick={handleQuickReact}
         style={{
           transform: swipeOffset > 0 ? `translateX(${swipeOffset}px)` : undefined,
           transition: swipeOffset === 0 ? 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none',
@@ -539,6 +559,14 @@ const MessageItem = ({
           isSelectMode ? 'cursor-pointer' : ''
         } ${message.deletedForEveryone ? 'italic opacity-70' : ''}`}
       >
+        {/* WhatsApp Double-Tap Animated Heart Burst Pop */}
+        {showHeartBurst && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+            <div className="text-4xl animate-bounce drop-shadow-[0_4px_12px_rgba(255,0,80,0.6)] select-none transform scale-125 transition-transform">
+              ❤️
+            </div>
+          </div>
+        )}
         {/* Sender name for group chats */}
         {!isSelf && message.sender?.name && (
           <p className="text-xs font-semibold text-saylo-600 dark:text-saylo-400 mb-1">{message.sender.name}</p>
@@ -1076,11 +1104,11 @@ const MessageItem = ({
           )}
         </div>
 
-        {/* Reaction Emojis Badges */}
+        {/* Reaction Emojis Badges with Animated Pop */}
         {message.reactions && message.reactions.length > 0 && (
-          <div className="absolute -bottom-3 left-3 flex items-center gap-1 bg-white dark:bg-[#182229] border border-gray-200 dark:border-gray-700/60 rounded-full px-2 py-0.5 shadow-md">
+          <div className="absolute -bottom-3 left-3 flex items-center gap-1 bg-white dark:bg-[#182229] border border-gray-200 dark:border-gray-700/60 rounded-full px-2 py-0.5 shadow-md transform hover:scale-110 active:scale-95 transition-transform duration-150 cursor-pointer">
             {Array.from(new Set(message.reactions.map((r) => r.emoji))).map((emoji, idx) => (
-              <span key={idx} className="text-xs">
+              <span key={idx} className="text-xs hover:scale-125 transition-transform inline-block">
                 {emoji}
               </span>
             ))}

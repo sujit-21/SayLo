@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Phone,
@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   VolumeX,
   Volume2,
+  Star,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import Modal from '../common/Modal';
@@ -52,6 +53,43 @@ const ChatHeader = ({
   const [showClearModal, setShowClearModal] = useState(false);
   const [showCallLinkModal, setShowCallLinkModal] = useState(false);
   const [clearing, setClearing] = useState(false);
+
+  // WhatsApp 2024 Dedicated Favorites Management
+  const [isFavorite, setIsFavorite] = useState(() => {
+    try {
+      const favs = JSON.parse(localStorage.getItem('saylo_favorite_chats')) || [];
+      return favs.includes(activeConversation?._id);
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const favs = JSON.parse(localStorage.getItem('saylo_favorite_chats')) || [];
+      setIsFavorite(favs.includes(activeConversation?._id));
+    } catch {
+      setIsFavorite(false);
+    }
+  }, [activeConversation?._id]);
+
+  const handleToggleFavorite = () => {
+    if (!activeConversation?._id) return;
+    try {
+      let favs = JSON.parse(localStorage.getItem('saylo_favorite_chats')) || [];
+      if (favs.includes(activeConversation._id)) {
+        favs = favs.filter((id) => id !== activeConversation._id);
+        setIsFavorite(false);
+      } else {
+        favs.push(activeConversation._id);
+        setIsFavorite(true);
+      }
+      localStorage.setItem('saylo_favorite_chats', JSON.stringify(favs));
+      window.dispatchEvent(new CustomEvent('saylo_favorites_updated', { detail: { favorites: favs } }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const myParticipant = activeConversation?.participants?.find(
     (p) => (p.user?._id || p.user) === user?._id
@@ -239,6 +277,23 @@ const ChatHeader = ({
           title="Search in chat"
         >
           <Search size={19} />
+        </button>
+
+        {/* WhatsApp 2024 Favorite Chat Toggle */}
+        <button
+          onClick={handleToggleFavorite}
+          className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-transform active:scale-90"
+          title={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+          aria-label="Toggle Favorite"
+        >
+          <Star
+            size={19}
+            className={
+              isFavorite
+                ? 'text-amber-400 fill-amber-400 animate-in zoom-in-50 duration-200'
+                : 'text-gray-500 dark:text-gray-400 hover:text-amber-400'
+            }
+          />
         </button>
 
         {/* More options menu */}

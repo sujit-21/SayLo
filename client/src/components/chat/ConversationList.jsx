@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X, Megaphone, MessageSquarePlus, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X, Megaphone, MessageSquarePlus, Sparkles, Star } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import BroadcastModal from './BroadcastModal';
 import { useChat } from '../../context/ChatContext';
@@ -36,6 +36,66 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       return {};
     }
   });
+
+  // WhatsApp Real-Time Drafts Map
+  const [draftsMap, setDraftsMap] = useState(() => {
+    const map = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('saylo_draft_')) {
+        const convId = key.replace('saylo_draft_', '');
+        map[convId] = localStorage.getItem(key) || '';
+      }
+    }
+    return map;
+  });
+
+  useEffect(() => {
+    const handleDraftUpdate = (e) => {
+      const { conversationId, draft } = e.detail || {};
+      if (conversationId) {
+        setDraftsMap((prev) => ({
+          ...prev,
+          [conversationId]: draft || '',
+        }));
+      }
+    };
+    window.addEventListener('saylo_draft_updated', handleDraftUpdate);
+    return () => window.removeEventListener('saylo_draft_updated', handleDraftUpdate);
+  }, []);
+
+  // WhatsApp 2024 Dedicated Favorites Management
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('saylo_favorite_chats')) || [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleFavUpdate = (e) => {
+      const { favorites: updatedFavs } = e.detail || {};
+      if (Array.isArray(updatedFavs)) {
+        setFavorites(updatedFavs);
+      }
+    };
+    window.addEventListener('saylo_favorites_updated', handleFavUpdate);
+    return () => window.removeEventListener('saylo_favorites_updated', handleFavUpdate);
+  }, []);
+
+  const handleToggleFavorite = (convId) => {
+    let updated;
+    if (favorites.includes(convId)) {
+      updated = favorites.filter((id) => id !== convId);
+    } else {
+      updated = [...favorites, convId];
+    }
+    setFavorites(updated);
+    localStorage.setItem('saylo_favorite_chats', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('saylo_favorites_updated', { detail: { favorites: updated } }));
+    setContextMenu(null);
+  };
 
   const availableLabels = [
     { id: 'work', label: 'Work', bg: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
@@ -148,7 +208,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     if (activeTabFilter === 'groups' && !c.isGroup) {
       return false;
     }
-    if (activeTabFilter === 'favorites' && !participant?.isPinned) {
+    if (activeTabFilter === 'favorites' && !participant?.isPinned && !favorites.includes(c._id)) {
       return false;
     }
     if (['work', 'personal', 'family', 'vip', 'pending'].includes(activeTabFilter)) {
@@ -456,8 +516,8 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             const isPinned = participant?.isPinned;
             const isMuted = participant?.isMuted;
 
-            // Draft message indicator
-            const draftText = localStorage.getItem(`saylo_draft_${c._id}`);
+            // Draft message indicator (real-time synchronized)
+            const draftText = draftsMap[c._id] ?? (localStorage.getItem(`saylo_draft_${c._id}`) || '');
             const hasDraft = draftText && draftText.trim().length > 0;
 
             // Typing indicator for this conversation
@@ -517,6 +577,9 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5 truncate mr-2">
                       <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{chatName}</h3>
+                      {favorites.includes(c._id) && (
+                        <Star size={12} className="text-amber-400 fill-amber-400 flex-shrink-0" title="Favorite Chat" />
+                      )}
                       {chatLabels[c._id] && (
                         <span
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border uppercase tracking-wider flex-shrink-0 ${
@@ -591,10 +654,17 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
         >
           <button
             onClick={() => handleTogglePin(contextMenu.conversation)}
-            className="w-full text-left px-3 py-2 hover:bg-gray-700/50 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
           >
             <Pin size={14} />
             {contextMenu.conversation.participants?.find((p) => (p.user?._id || p.user) === user?._id)?.isPinned ? 'Unpin chat' : 'Pin chat'}
+          </button>
+          <button
+            onClick={() => handleToggleFavorite(contextMenu.conversation._id)}
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
+          >
+            <Star size={14} className={favorites.includes(contextMenu.conversation._id) ? "text-amber-400 fill-amber-400" : "text-amber-400"} />
+            {favorites.includes(contextMenu.conversation._id) ? 'Remove from Favorites' : 'Add to Favorites'}
           </button>
           {contextMenu.conversation.participants?.find((p) => (p.user?._id || p.user) === user?._id)?.isMuted ? (
             <button

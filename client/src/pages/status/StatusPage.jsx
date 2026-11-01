@@ -23,6 +23,11 @@ const StatusPage = () => {
   const [likedStories, setLikedStories] = useState({});
   const [showHeartBurst, setShowHeartBurst] = useState(false);
 
+  // WhatsApp Late 2024 Status Private Mentions (@mention)
+  const [mentionedContacts, setMentionedContacts] = useState([]);
+  const [showMentionPicker, setShowMentionPicker] = useState(false);
+  const [mentionFilterQuery, setMentionFilterQuery] = useState('');
+
   // Create status state
   const [createMode, setCreateMode] = useState('text'); // 'text' | 'media' | 'voice'
   const [newContent, setNewContent] = useState('');
@@ -105,12 +110,12 @@ const StatusPage = () => {
   }, []);
 
   useEffect(() => {
-    if (showPrivacyModal && allContactsList.length === 0) {
+    if ((showPrivacyModal || showCreateModal || showMentionPicker) && allContactsList.length === 0) {
       api.get('/contacts')
         .then((res) => setAllContactsList(res.data.contacts || []))
         .catch(console.error);
     }
-  }, [showPrivacyModal, allContactsList.length]);
+  }, [showPrivacyModal, showCreateModal, showMentionPicker, allContactsList.length]);
 
   // Open story group viewer
   const handleOpenGroup = (group) => {
@@ -205,6 +210,9 @@ const StatusPage = () => {
 
     setLoading(true);
     try {
+      const mentionsUserIds = mentionedContacts.map((c) => c._id || c.contactUser?._id).filter(Boolean);
+      let createdRes = null;
+
       if (createMode === 'media') {
         if (!mediaFile) {
           alert('Please choose an image or video file');
@@ -220,11 +228,12 @@ const StatusPage = () => {
 
         const uploadedUrl = uploadRes.data?.file?.url;
 
-        await api.post('/status', {
+        createdRes = await api.post('/status', {
           type: mediaType,
           content: uploadedUrl,
           caption: caption.trim(),
           privacy,
+          mentions: mentionsUserIds,
         });
       } else if (createMode === 'voice') {
         if (!voiceAudioBlob) {
@@ -241,12 +250,13 @@ const StatusPage = () => {
 
         const uploadedUrl = uploadRes.data?.file?.url;
 
-        await api.post('/status', {
+        createdRes = await api.post('/status', {
           type: 'voice',
           content: uploadedUrl,
           bgColor,
           privacy,
           mediaDuration: voiceRecordTime,
+          mentions: mentionsUserIds,
         });
       } else {
         if (!newContent.trim()) {
@@ -254,16 +264,45 @@ const StatusPage = () => {
           return;
         }
 
-        await api.post('/status', {
+        createdRes = await api.post('/status', {
           type: 'text',
           content: newContent.trim(),
           bgColor,
           fontStyle,
           privacy,
+          mentions: mentionsUserIds,
         });
       }
 
+      // WhatsApp 2024 Private Mentions Persistence & Discreet DM Alert
+      const createdStatusId = createdRes?.data?.status?._id || `temp_${Date.now()}`;
+      if (mentionsUserIds.length > 0) {
+        try {
+          const stored = JSON.parse(localStorage.getItem('saylo_status_mentions') || '{}');
+          stored[createdStatusId] = mentionsUserIds;
+          localStorage.setItem('saylo_status_mentions', JSON.stringify(stored));
+
+          for (const mContact of mentionedContacts) {
+            const recipientId = mContact._id || mContact.contactUser?._id;
+            if (recipientId) {
+              api.post('/conversations', { recipientId }).then((convRes) => {
+                const cId = convRes.data?.conversation?._id;
+                if (cId) {
+                  api.post('/messages', {
+                    conversationId: cId,
+                    text: '📌 Mentioned you in a Status update.',
+                  }).catch(() => {});
+                }
+              }).catch(() => {});
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
       setShowCreateModal(false);
+      setMentionedContacts([]);
       setNewContent('');
       setCaption('');
       setMediaFile(null);
@@ -470,6 +509,34 @@ const StatusPage = () => {
                 </button>
               </div>
             </div>
+
+            {/* WhatsApp 2024 Private Mentions Notification in Story */}
+            {(() => {
+              const currentStoryId = selectedGroup.items[activeStoryIndex]?._id;
+              let mentionsList = selectedGroup.items[activeStoryIndex]?.mentions || [];
+              if (!Array.isArray(mentionsList) || mentionsList.length === 0) {
+                try {
+                  const stored = JSON.parse(localStorage.getItem('saylo_status_mentions') || '{}');
+                  mentionsList = stored[currentStoryId] || [];
+                } catch {}
+              }
+              const isMeMentioned = mentionsList.includes(user?._id);
+              if (isMeMentioned) {
+                return (
+                  <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-saylo-emerald/90 backdrop-blur-md px-3.5 py-1 rounded-full text-[11px] font-semibold text-white shadow-xl border border-white/20 animate-in fade-in duration-300 pointer-events-none">
+                    <span>🏷️ You were mentioned in this status</span>
+                  </div>
+                );
+              }
+              if (selectedGroup.isSelf && mentionsList.length > 0) {
+                return (
+                  <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-gray-300 border border-white/10 pointer-events-none">
+                    <span>🔒 {mentionsList.length} contact{mentionsList.length > 1 ? 's' : ''} mentioned privately</span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
 
             {/* Story Content Canvas */}
             <div
@@ -967,6 +1034,50 @@ const StatusPage = () => {
             </div>
           )}
 
+          {/* WhatsApp Late 2024 Private Contact Mentions */}
+          <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-saylo-emerald text-sm">@</span>
+                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                  Mention Contacts (Private)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMentionPicker(true)}
+                className="text-xs text-saylo-emerald hover:underline font-semibold flex items-center gap-1"
+              >
+                <Plus size={13} />
+                <span>{mentionedContacts.length > 0 ? `Edit (${mentionedContacts.length}/5)` : 'Add mentions'}</span>
+              </button>
+            </div>
+
+            {mentionedContacts.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {mentionedContacts.map((c) => (
+                  <span
+                    key={c._id}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-saylo-emerald/15 text-saylo-emerald border border-saylo-emerald/30 font-medium"
+                  >
+                    <span>@{c.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setMentionedContacts((prev) => prev.filter((p) => p._id !== c._id))}
+                      className="hover:text-red-400 p-0.5"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                Mentioned contacts receive a private in-chat notification. Other viewers cannot see who was mentioned.
+              </p>
+            )}
+          </div>
+
           {/* Status Audience / Privacy Settings */}
           <div className="pt-2 border-t border-gray-800/80">
             <div className="flex items-center justify-between mb-2">
@@ -1035,6 +1146,79 @@ const StatusPage = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* WhatsApp 2024 Mention Contacts Modal */}
+      <Modal
+        isOpen={showMentionPicker}
+        onClose={() => setShowMentionPicker(false)}
+        title="Mention Contacts (Up to 5)"
+      >
+        <div className="space-y-3">
+          <input
+            type="text"
+            value={mentionFilterQuery}
+            onChange={(e) => setMentionFilterQuery(e.target.value)}
+            placeholder="Search contacts to mention..."
+            className="w-full bg-[#f0f2f5] dark:bg-[#111b21] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-saylo-emerald"
+          />
+          <div className="max-h-60 overflow-y-auto space-y-1">
+            {allContactsList.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-4">No contacts found</p>
+            ) : (
+              allContactsList
+                .filter((contact) => {
+                  const contactUser = contact.contactUser || contact;
+                  const name = contactUser.name || contact.nickname || '';
+                  return name.toLowerCase().includes(mentionFilterQuery.toLowerCase());
+                })
+                .map((contact) => {
+                  const contactUser = contact.contactUser || contact;
+                  const isSelected = mentionedContacts.some((m) => m._id === contactUser._id);
+                  return (
+                    <div
+                      key={contactUser._id}
+                      onClick={() => {
+                        if (isSelected) {
+                          setMentionedContacts((prev) => prev.filter((m) => m._id !== contactUser._id));
+                        } else {
+                          if (mentionedContacts.length >= 5) {
+                            alert('You can mention up to 5 contacts in a status');
+                            return;
+                          }
+                          setMentionedContacts((prev) => [...prev, contactUser]);
+                        }
+                      }}
+                      className="flex items-center justify-between p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Avatar src={contactUser.avatar} name={contactUser.name} size="sm" />
+                        <div>
+                          <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-200">{contactUser.name}</h4>
+                          <p className="text-[10px] text-gray-400">@{contactUser.username || 'user'}</p>
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        readOnly
+                        checked={isSelected}
+                        className="rounded text-saylo-emerald focus:ring-saylo-emerald w-4 h-4 cursor-pointer"
+                      />
+                    </div>
+                  );
+                })
+            )}
+          </div>
+          <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+            <button
+              type="button"
+              onClick={() => setShowMentionPicker(false)}
+              className="px-4 py-1.5 bg-saylo-emerald hover:bg-saylo-600 text-white text-xs font-semibold rounded-xl shadow-md transition-colors"
+            >
+              Done ({mentionedContacts.length}/5)
+            </button>
+          </div>
+        </div>
       </Modal>
 
       {/* Global Status Privacy Modal */}
