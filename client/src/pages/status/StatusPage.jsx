@@ -73,9 +73,9 @@ const StatusPage = () => {
 
       voiceTimerRef.current = setInterval(() => {
         setVoiceRecordTime((prev) => {
-          if (prev >= 30) {
+          if (prev >= 60) {
             stopRecordingVoice();
-            return 30;
+            return 60;
           }
           return prev + 1;
         });
@@ -911,7 +911,7 @@ const StatusPage = () => {
                       <Mic size={28} />
                     </button>
                     <span className="text-xs text-white/90 font-medium">
-                      Tap mic to record audio status (up to 30s)
+                      Tap mic to record audio status (up to 60s • WhatsApp 2024)
                     </span>
                   </div>
                 )}
@@ -924,7 +924,7 @@ const StatusPage = () => {
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-ping" />
                       <span className="text-sm font-bold text-white font-mono">
-                        00:{voiceRecordTime < 10 ? `0${voiceRecordTime}` : voiceRecordTime} / 00:30
+                        {Math.floor(voiceRecordTime / 60).toString().padStart(2, '0')}:{(voiceRecordTime % 60).toString().padStart(2, '0')} / 01:00
                       </span>
                     </div>
                     <button
@@ -1017,7 +1017,7 @@ const StatusPage = () => {
                 >
                   <Image size={32} className="mx-auto mb-2 text-saylo-emerald" />
                   <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">Click to select photo or video</p>
-                  <p className="text-[11px] text-gray-500 mt-1">Supports PNG, JPG, MP4, WebM</p>
+                  <p className="text-[11px] text-gray-500 mt-1">Supports PNG, JPG, MP4, WebM (up to 60s)</p>
                 </div>
               )}
 

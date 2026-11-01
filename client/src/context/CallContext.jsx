@@ -218,28 +218,40 @@ export const CallProvider = ({ children }) => {
     }
   };
 
-  // Screen sharing
+  // Screen sharing with WhatsApp 2024 System / Device Audio
   const toggleScreenShare = async () => {
     if (!peerConnectionRef.current) return;
 
     if (!isScreenSharing) {
       try {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true,
+        });
         const screenTrack = screenStream.getVideoTracks()[0];
+        const screenAudioTrack = screenStream.getAudioTracks()[0];
 
         const senders = peerConnectionRef.current.getSenders();
         const videoSender = senders.find((s) => s.track && s.track.kind === 'video');
+        const audioSender = senders.find((s) => s.track && s.track.kind === 'audio');
 
-        if (videoSender) {
+        if (videoSender && screenTrack) {
           videoSender.replaceTrack(screenTrack);
+        }
+        if (audioSender && screenAudioTrack) {
+          audioSender.replaceTrack(screenAudioTrack);
         }
 
         screenTrack.onended = () => {
-          // Revert to camera if available
+          // Revert to camera & mic if available
           if (localStreamRef.current) {
             const camTrack = localStreamRef.current.getVideoTracks()[0];
+            const micTrack = localStreamRef.current.getAudioTracks()[0];
             if (camTrack && videoSender) {
               videoSender.replaceTrack(camTrack);
+            }
+            if (micTrack && audioSender) {
+              audioSender.replaceTrack(micTrack);
             }
           }
           setIsScreenSharing(false);
@@ -252,10 +264,15 @@ export const CallProvider = ({ children }) => {
     } else {
       if (localStreamRef.current) {
         const camTrack = localStreamRef.current.getVideoTracks()[0];
+        const micTrack = localStreamRef.current.getAudioTracks()[0];
         const senders = peerConnectionRef.current.getSenders();
         const videoSender = senders.find((s) => s.track && s.track.kind === 'video');
+        const audioSender = senders.find((s) => s.track && s.track.kind === 'audio');
         if (videoSender && camTrack) {
           videoSender.replaceTrack(camTrack);
+        }
+        if (audioSender && micTrack) {
+          audioSender.replaceTrack(micTrack);
         }
       }
       setIsScreenSharing(false);

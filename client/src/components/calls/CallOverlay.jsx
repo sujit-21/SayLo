@@ -129,6 +129,14 @@ const CallOverlay = () => {
           <span>End-to-end encrypted</span>
         </div>
 
+        {/* WhatsApp 2024 Screen Share with Audio Indicator */}
+        {isScreenSharing && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-saylo-emerald/90 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-white shadow-xl border border-white/20 animate-fadeIn">
+            <ScreenShare size={13} />
+            <span>Sharing screen & audio</span>
+          </div>
+        )}
+
         {/* Video / Audio Stage */}
         <div className="flex-1 relative bg-[#0b141a] flex items-center justify-center overflow-hidden">
           {callType === 'video' ? (

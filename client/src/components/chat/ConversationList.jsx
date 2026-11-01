@@ -97,6 +97,31 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     setContextMenu(null);
   };
 
+  // WhatsApp 2024 Secret Code for Locked Chats
+  const [secretCodeConfig, setSecretCodeConfig] = useState(() => ({
+    enabled: localStorage.getItem('saylo_hide_locked_chats') === 'true',
+    code: localStorage.getItem('saylo_chat_lock_secret_code') || '',
+  }));
+
+  useEffect(() => {
+    const handleSecretUpdate = () => {
+      setSecretCodeConfig({
+        enabled: localStorage.getItem('saylo_hide_locked_chats') === 'true',
+        code: localStorage.getItem('saylo_chat_lock_secret_code') || '',
+      });
+    };
+    window.addEventListener('saylo_secret_code_updated', handleSecretUpdate);
+    return () => window.removeEventListener('saylo_secret_code_updated', handleSecretUpdate);
+  }, []);
+
+  const isSecretCodeMatched = Boolean(
+    secretCodeConfig.enabled &&
+    secretCodeConfig.code &&
+    searchQuery.trim().toLowerCase() === secretCodeConfig.code.toLowerCase()
+  );
+
+  const showBlueTicks = user?.privacy?.readReceipts !== false;
+
   const availableLabels = [
     { id: 'work', label: 'Work', bg: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
     { id: 'personal', label: 'Personal', bg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
@@ -419,8 +444,8 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
 
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto pb-24 md:pb-20">
-        {/* Locked Chats Folder */}
-        {lockedCount > 0 && (
+        {/* WhatsApp 2024 Locked Chats Folder with Secret Code Support */}
+        {lockedCount > 0 && (!secretCodeConfig.enabled || isSecretCodeMatched || isLockedFolderOpen) && (
           <div
             onClick={() => {
               if (isLockedFolderOpen) {
@@ -429,16 +454,37 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                 setShowPinPrompt(true);
               }
             }}
-            className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-[#182229] border-b border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#202c33] transition-colors"
+            className={`flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 cursor-pointer transition-colors ${
+              isSecretCodeMatched
+                ? 'bg-saylo-emerald/10 dark:bg-saylo-emerald/15 hover:bg-saylo-emerald/20 animate-fadeIn'
+                : 'bg-gray-50 dark:bg-[#182229] hover:bg-gray-100 dark:hover:bg-[#202c33]'
+            }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-saylo-emerald/15 text-saylo-emerald flex items-center justify-center">
-                {isLockedFolderOpen ? <Unlock size={18} /> : <Lock size={18} />}
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform ${
+                  isSecretCodeMatched
+                    ? 'bg-saylo-emerald text-white shadow-lg scale-105'
+                    : 'bg-saylo-emerald/15 text-saylo-emerald'
+                }`}
+              >
+                {isLockedFolderOpen || isSecretCodeMatched ? <Unlock size={18} /> : <Lock size={18} />}
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Locked Chats</h4>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Locked Chats</h4>
+                  {isSecretCodeMatched && (
+                    <span className="text-[10px] font-bold bg-saylo-emerald text-white px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                      Code Match
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                  {isLockedFolderOpen ? 'Unlocked • Tap to hide' : `${lockedCount} chat(s) protected`}
+                  {isLockedFolderOpen
+                    ? 'Unlocked • Tap to hide'
+                    : isSecretCodeMatched
+                    ? 'Revealed by Secret Code • Tap to open'
+                    : `${lockedCount} chat(s) protected`}
                 </p>
               </div>
             </div>
@@ -614,9 +660,9 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                         <>
                           {isLastSelf && (
                             <span className="flex-shrink-0">
-                              {lastStatus === 'read' ? (
+                              {lastStatus === 'read' && showBlueTicks ? (
                                 <CheckCheck size={14} className="text-[#53bdeb]" />
-                              ) : lastStatus === 'delivered' ? (
+                              ) : lastStatus === 'delivered' || lastStatus === 'read' ? (
                                 <CheckCheck size={14} className="text-gray-400" />
                               ) : (
                                 <Check size={14} className="text-gray-400" />

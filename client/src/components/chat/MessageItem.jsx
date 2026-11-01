@@ -779,30 +779,56 @@ const MessageItem = ({
               />
             )}
 
-            {/* Document Media with Rich PDF / File Preview Card */}
+            {/* Document Media with Authentic WhatsApp Color-Coded File Badges */}
             {message.type === 'document' && message.mediaUrl && (() => {
               const fileName = message.mediaName || 'Document';
-              const isPdf = fileName.toLowerCase().endsWith('.pdf') || message.mediaMimeType?.includes('pdf');
+              const ext = (fileName.split('.').pop() || '').toLowerCase();
               const fileSizeStr = message.mediaSize
                 ? message.mediaSize > 1024 * 1024
                   ? `${(message.mediaSize / (1024 * 1024)).toFixed(1)} MB`
                   : `${(message.mediaSize / 1024).toFixed(0)} KB`
                 : 'Document';
 
+              let badgeStyle = 'bg-gray-500/15 text-gray-400 border-gray-500/30';
+              let tagStyle = 'bg-gray-600 text-white';
+              let typeLabel = ext.toUpperCase() || 'FILE';
+
+              if (ext === 'pdf') {
+                badgeStyle = 'bg-red-500/15 text-red-500 dark:text-red-400 border-red-500/30';
+                tagStyle = 'bg-red-600 text-white';
+                typeLabel = 'PDF';
+              } else if (['docx', 'doc'].includes(ext)) {
+                badgeStyle = 'bg-blue-500/15 text-blue-500 dark:text-blue-400 border-blue-500/30';
+                tagStyle = 'bg-blue-600 text-white';
+                typeLabel = 'DOCX';
+              } else if (['xlsx', 'xls', 'csv'].includes(ext)) {
+                badgeStyle = 'bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 border-emerald-500/30';
+                tagStyle = 'bg-emerald-600 text-white';
+                typeLabel = 'XLSX';
+              } else if (['pptx', 'ppt'].includes(ext)) {
+                badgeStyle = 'bg-amber-500/15 text-amber-500 dark:text-amber-400 border-amber-500/30';
+                tagStyle = 'bg-amber-600 text-white';
+                typeLabel = 'PPTX';
+              } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
+                badgeStyle = 'bg-purple-500/15 text-purple-400 border-purple-500/30';
+                tagStyle = 'bg-purple-600 text-white';
+                typeLabel = 'ZIP';
+              } else if (['txt', 'md', 'json', 'js', 'py', 'html', 'css'].includes(ext)) {
+                badgeStyle = 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30';
+                tagStyle = 'bg-cyan-600 text-white';
+                typeLabel = ext.toUpperCase();
+              }
+
               return (
                 <div className="my-1.5 p-3 bg-black/5 dark:bg-black/30 rounded-2xl border border-gray-200 dark:border-gray-700/60 min-w-[240px] max-w-sm space-y-2">
                   <div className="flex items-start gap-3">
-                    <div className={`p-2.5 rounded-xl flex-shrink-0 flex items-center justify-center ${
-                      isPdf ? 'bg-red-500/20 text-red-500 dark:text-red-400 border border-red-500/40' : 'bg-saylo-emerald/15 text-saylo-emerald'
-                    }`}>
+                    <div className={`p-2.5 rounded-xl flex-shrink-0 flex items-center justify-center border ${badgeStyle}`}>
                       <FileText size={22} />
                     </div>
                     <div className="truncate flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                          isPdf ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                        }`}>
-                          {isPdf ? 'PDF' : (fileName.split('.').pop() || 'DOC').toUpperCase()}
+                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm ${tagStyle}`}>
+                          {typeLabel}
                         </span>
                         <span className="text-[10px] text-gray-500 dark:text-gray-400 font-mono">{fileSizeStr}</span>
                       </div>
@@ -1093,9 +1119,9 @@ const MessageItem = ({
 
           {isSelf && (
             <span className="ml-0.5">
-              {message.status === 'read' ? (
+              {message.status === 'read' && user?.privacy?.readReceipts !== false ? (
                 <CheckCheck size={14} className="text-[#53bdeb]" />
-              ) : message.status === 'delivered' ? (
+              ) : message.status === 'delivered' || message.status === 'read' ? (
                 <CheckCheck size={14} className="text-gray-500 dark:text-gray-400" />
               ) : (
                 <Check size={14} className="text-gray-500 dark:text-gray-400" />
