@@ -60,7 +60,17 @@ const MessageInput = ({
     }
   });
   const [viewOnce, setViewOnce] = useState(false);
-  const [isHdQuality, setIsHdQuality] = useState(true);
+  const [isHdQuality, setIsHdQuality] = useState(() => {
+    return localStorage.getItem('saylo_default_media_quality') !== 'standard';
+  });
+
+  useEffect(() => {
+    const handleMediaQuality = (e) => {
+      setIsHdQuality(e.detail?.quality !== 'standard');
+    };
+    window.addEventListener('saylo_media_quality_changed', handleMediaQuality);
+    return () => window.removeEventListener('saylo_media_quality_changed', handleMediaQuality);
+  }, []);
   const [isRecording, setIsRecording] = useState(false);
   const [isHandsFreeLocked, setIsHandsFreeLocked] = useState(false);
   const [isRecordingPaused, setIsRecordingPaused] = useState(false);

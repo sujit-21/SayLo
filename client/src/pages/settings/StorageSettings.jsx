@@ -20,12 +20,23 @@ const StorageSettings = () => {
   const [lowDataCalls, setLowDataCalls] = useState(() => {
     return localStorage.getItem('saylo_low_data_calls') === 'true';
   });
+  const [mediaQuality, setMediaQuality] = useState(() => {
+    return localStorage.getItem('saylo_default_media_quality') || 'hd';
+  });
 
   const handleToggleLowData = (val) => {
     setLowDataCalls(val);
     localStorage.setItem('saylo_low_data_calls', val ? 'true' : 'false');
     window.dispatchEvent(
       new CustomEvent('saylo_low_data_changed', { detail: { lowData: val } })
+    );
+  };
+
+  const handleSetMediaQuality = (quality) => {
+    setMediaQuality(quality);
+    localStorage.setItem('saylo_default_media_quality', quality);
+    window.dispatchEvent(
+      new CustomEvent('saylo_media_quality_changed', { detail: { quality } })
     );
   };
 
@@ -301,6 +312,57 @@ const StorageSettings = () => {
                     }`}
                   />
                 </button>
+              </div>
+            </div>
+
+            {/* WhatsApp Media Upload Quality Settings */}
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-3xl border border-gray-200 dark:border-gray-700/60 shadow-lg space-y-3">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Media upload quality</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  Choose default quality for photos and videos sent across chats
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-1 text-xs">
+                <label
+                  onClick={() => handleSetMediaQuality('standard')}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-[#111b21] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#182229] transition-colors"
+                >
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200">Standard quality</p>
+                    <p className="text-[11px] text-gray-500">Faster uploads, uses less storage and cellular data</p>
+                  </div>
+                  <input
+                    type="radio"
+                    name="mediaQuality"
+                    checked={mediaQuality === 'standard'}
+                    onChange={() => handleSetMediaQuality('standard')}
+                    className="accent-saylo-emerald w-4 h-4"
+                  />
+                </label>
+
+                <label
+                  onClick={() => handleSetMediaQuality('hd')}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-[#111b21] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#182229] transition-colors"
+                >
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-gray-800 dark:text-gray-200">HD quality</p>
+                      <span className="text-[10px] bg-saylo-emerald/20 text-saylo-emerald font-bold px-1.5 py-0.5 rounded-md">
+                        HD
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-500">Preserves original high-resolution detail for photos and videos</p>
+                  </div>
+                  <input
+                    type="radio"
+                    name="mediaQuality"
+                    checked={mediaQuality === 'hd'}
+                    onChange={() => handleSetMediaQuality('hd')}
+                    className="accent-saylo-emerald w-4 h-4"
+                  />
+                </label>
               </div>
             </div>
 

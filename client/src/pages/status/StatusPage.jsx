@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw, Send, Heart } from 'lucide-react';
+import { Plus, X, Trash2, ChevronLeft, ChevronRight, Eye, Image, Video, Type, Globe, Users, Lock, ShieldCheck, Mic, Square, Play, Pause, RotateCcw, Send, Heart, Repeat } from 'lucide-react';
 import Avatar from '../../components/common/Avatar';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
@@ -190,6 +190,30 @@ const StatusPage = () => {
       setShowHeartBurst(true);
       setTimeout(() => setShowHeartBurst(false), 1200);
       handleSendStatusReply('💚');
+    }
+  };
+
+  // WhatsApp Status Re-share ("Add to Your Status")
+  const handleReshareStatus = async (item, originalAuthor) => {
+    try {
+      setLoading(true);
+      const reshareCaption = `Reshared from @${originalAuthor?.username || originalAuthor?.name || 'contact'}${
+        item?.caption ? ` • ${item.caption}` : ''
+      }`;
+      await api.post('/status', {
+        type: item?.type || 'text',
+        content: item?.content,
+        caption: reshareCaption,
+        bgColor: item?.bgColor || '#005c4b',
+        privacy: 'contacts',
+      });
+      await fetchStatuses();
+      alert('Added to your status! 🔄');
+    } catch (err) {
+      console.error('Failed to reshare status', err);
+      alert('Unable to reshare status right now.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -523,8 +547,20 @@ const StatusPage = () => {
               const isMeMentioned = mentionsList.includes(user?._id);
               if (isMeMentioned) {
                 return (
-                  <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-saylo-emerald/90 backdrop-blur-md px-3.5 py-1 rounded-full text-[11px] font-semibold text-white shadow-xl border border-white/20 animate-in fade-in duration-300 pointer-events-none">
-                    <span>🏷️ You were mentioned in this status</span>
+                  <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] text-white shadow-xl border border-white/20 animate-in fade-in duration-300">
+                    <span className="font-medium text-saylo-emerald">🏷️ Mentioned you</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleReshareStatus(
+                          selectedGroup.items[activeStoryIndex],
+                          selectedGroup.user
+                        )
+                      }
+                      className="px-2.5 py-0.5 bg-saylo-emerald hover:bg-saylo-600 text-white rounded-full text-[10px] font-bold flex items-center gap-1 transition-colors shadow-sm"
+                    >
+                      <Repeat size={11} /> Add to your status
+                    </button>
                   </div>
                 );
               }

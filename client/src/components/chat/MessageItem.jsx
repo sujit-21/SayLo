@@ -28,6 +28,7 @@ import {
   Bookmark,
   Languages,
   X,
+  Copy,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import Modal from '../common/Modal';
@@ -44,7 +45,17 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, sender
   const [showTranscription, setShowTranscription] = useState(false);
   const [transcription, setTranscription] = useState('');
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [copiedTranscript, setCopiedTranscript] = useState(false);
   const audioRef = useRef(null);
+
+  const handleCopyTranscript = (e) => {
+    e.stopPropagation();
+    if (transcription) {
+      navigator.clipboard.writeText(transcription);
+      setCopiedTranscript(true);
+      setTimeout(() => setCopiedTranscript(false), 2000);
+    }
+  };
 
   const handlePlayInBackground = (e) => {
     e.stopPropagation();
@@ -247,8 +258,26 @@ const VoiceMessagePlayer = ({ src, duration: initialDuration, senderName, sender
       </div>
 
       {showTranscription && (
-        <div className="p-2 rounded-xl bg-black/5 dark:bg-black/30 border border-gray-200 dark:border-gray-700/40 text-xs text-gray-700 dark:text-gray-200 italic animate-fadeIn">
-          {isTranscribing ? 'Transcribing audio...' : transcription}
+        <div className="p-2.5 rounded-xl bg-black/5 dark:bg-black/30 border border-gray-200 dark:border-gray-700/40 text-xs text-gray-800 dark:text-gray-200 animate-fadeIn space-y-1.5 mt-1.5">
+          <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700/30 pb-1">
+            <span className="flex items-center gap-1 font-semibold text-saylo-emerald">
+              📄 Speech Transcript (Auto-detected)
+            </span>
+            {transcription && !isTranscribing && (
+              <button
+                type="button"
+                onClick={handleCopyTranscript}
+                className="hover:text-saylo-emerald transition-colors font-medium flex items-center gap-1"
+                title="Copy transcript text"
+              >
+                <Copy size={11} />
+                <span>{copiedTranscript ? 'Copied!' : 'Copy'}</span>
+              </button>
+            )}
+          </div>
+          <p className="italic leading-relaxed">
+            {isTranscribing ? 'Transcribing audio...' : `"${transcription}"`}
+          </p>
         </div>
       )}
     </div>
@@ -315,6 +344,43 @@ const MessageItem = ({
     } finally {
       setIsTranslating(false);
     }
+  };
+
+  // WhatsApp Calendar Event .ics Exporter
+  const handleDownloadIcs = (event) => {
+    if (!event) return;
+    const title = event.title || 'SAYLO Group Event';
+    const desc = event.description || '';
+    const loc = event.location || '';
+    const start = event.startTime ? new Date(event.startTime) : new Date();
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+    const formatIcsDate = (d) =>
+      d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const icsData = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//SAYLO//Group Event//EN',
+      'BEGIN:VEVENT',
+      `SUMMARY:${title}`,
+      `DESCRIPTION:${desc}`,
+      `LOCATION:${loc}`,
+      `DTSTART:${formatIcsDate(start)}`,
+      `DTEND:${formatIcsDate(end)}`,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/\s+/g, '_')}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // WhatsApp Mobile Touch Swipe-to-Reply & Double-Tap Quick React
@@ -950,11 +1016,22 @@ const MessageItem = ({
                   )}
                 </div>
 
-                {/* RSVP Controls */}
-                <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40">
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
-                    RSVP ({message.event.attendees?.filter(a => a.status === 'going').length || 0} Going)
-                  </p>
+                {/* RSVP Controls & WhatsApp Calendar Export */}
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">
+                      RSVP ({message.event.attendees?.filter(a => a.status === 'going').length || 0} Going)
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadIcs(message.event)}
+                      className="text-[10px] text-saylo-emerald hover:underline font-semibold flex items-center gap-1"
+                      title="Add to Google / Apple Calendar"
+                    >
+                      <Calendar size={11} />
+                      <span>Add to Calendar</span>
+                    </button>
+                  </div>
                   <div className="grid grid-cols-3 gap-1.5">
                     {['going', 'maybe', 'declined'].map((rsvpStatus) => {
                       const myStatus = message.event.attendees?.find(
@@ -968,7 +1045,7 @@ const MessageItem = ({
                           onClick={() => rsvpEvent(message._id, rsvpStatus)}
                           className={`py-1 px-2 rounded-lg text-xs font-semibold capitalize border transition-all ${
                             isActive
-                              ? 'bg-saylo-emerald text-white border-saylo-emerald'
+                              ? 'bg-saylo-emerald text-white border-saylo-emerald shadow-sm'
                               : 'bg-black/5 dark:bg-black/30 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
                           }`}
                         >
