@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ChatHeader from './ChatHeader';
 import MessageItem from './MessageItem';
 import MessageInput from './MessageInput';
@@ -261,6 +261,13 @@ const ChatWindow = () => {
   // Pinned messages in this conversation
   const pinnedMessages = messages.filter((m) => !!m.pinned);
 
+  // WhatsApp 2024 Media Lightbox Gallery List
+  const conversationMedia = useMemo(() => {
+    return messages.filter(
+      (m) => (m.type === 'image' || m.type === 'video') && m.mediaUrl
+    );
+  }, [messages]);
+
   // Jump to active matched message
   const jumpToMatch = (idx) => {
     if (matchingMessages.length === 0) return;
@@ -479,6 +486,11 @@ const ChatWindow = () => {
                   <span className="text-gray-300 truncate">
                     {currentPinned.text || `[Attachment: ${currentPinned.type || 'Media'}]`}
                   </span>
+                  {currentPinned.pinnedDurationHours && (
+                    <span className="ml-2 text-[10px] text-saylo-300 bg-saylo-emerald/20 border border-saylo-emerald/30 px-1.5 py-0.5 rounded font-mono font-semibold">
+                      ⏱️ {currentPinned.pinnedDurationHours < 48 ? '24h' : currentPinned.pinnedDurationHours <= 168 ? '7d' : '30d'}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -691,21 +703,41 @@ const ChatWindow = () => {
         }}
       />
 
-      {/* Media Lightbox Gallery Modal */}
-      <MediaLightboxModal
-        isOpen={!!lightboxData}
-        mediaUrl={lightboxData?.url}
-        mediaName={lightboxData?.name}
-        mediaType={lightboxData?.type}
-        onClose={() => setLightboxData(null)}
-        onForward={() => {
-          const matching = messages.find((m) => m.mediaUrl === lightboxData?.url);
-          if (matching) {
-            setForwardingMessage(matching);
-          }
-          setLightboxData(null);
-        }}
-      />
+      {/* Media Lightbox Gallery Modal with WhatsApp Gallery Slider */}
+      {(() => {
+        const currentMediaIndex = lightboxData?.url
+          ? conversationMedia.findIndex((m) => m.mediaUrl === lightboxData.url)
+          : -1;
+
+        return (
+          <MediaLightboxModal
+            isOpen={!!lightboxData}
+            mediaUrl={lightboxData?.url}
+            mediaName={lightboxData?.name}
+            mediaType={lightboxData?.type}
+            mediaList={conversationMedia}
+            currentIndex={currentMediaIndex !== -1 ? currentMediaIndex : 0}
+            onNavigate={(newIdx) => {
+              const target = conversationMedia[newIdx];
+              if (target) {
+                setLightboxData({
+                  url: target.mediaUrl,
+                  name: target.mediaName,
+                  type: target.type,
+                });
+              }
+            }}
+            onClose={() => setLightboxData(null)}
+            onForward={() => {
+              const matching = messages.find((m) => m.mediaUrl === lightboxData?.url);
+              if (matching) {
+                setForwardingMessage(matching);
+              }
+              setLightboxData(null);
+            }}
+          />
+        );
+      })()}
 
       {/* Image Doodle & Photo Canvas Editor */}
       <ImageDoodleEditor

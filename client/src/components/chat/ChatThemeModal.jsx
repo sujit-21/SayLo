@@ -3,12 +3,18 @@ import { Palette, Check, RefreshCw } from 'lucide-react';
 import Modal from '../common/Modal';
 
 export const CHAT_THEMES = [
-  { id: 'default', name: 'Default Emerald', bg: 'bg-[#005c4b]', ring: 'ring-[#005c4b]', preview: '#005c4b' },
-  { id: 'ocean', name: 'Ocean Cyan', bg: 'bg-[#0284c7]', ring: 'ring-[#0284c7]', preview: '#0284c7' },
-  { id: 'purple', name: 'Royal Violet', bg: 'bg-[#7c3aed]', ring: 'ring-[#7c3aed]', preview: '#7c3aed' },
+  { id: 'default', name: 'WhatsApp Emerald', bg: 'bg-[#005c4b]', ring: 'ring-[#005c4b]', preview: '#005c4b' },
+  { id: 'mint', name: 'Fresh Mint', bg: 'bg-[#0d9488]', ring: 'ring-[#0d9488]', preview: '#0d9488' },
+  { id: 'ocean', name: 'Ocean Cerulean', bg: 'bg-[#0284c7]', ring: 'ring-[#0284c7]', preview: '#0284c7' },
+  { id: 'indigo', name: 'Royal Indigo', bg: 'bg-[#4f46e5]', ring: 'ring-[#4f46e5]', preview: '#4f46e5' },
+  { id: 'purple', name: 'Electric Violet', bg: 'bg-[#7c3aed]', ring: 'ring-[#7c3aed]', preview: '#7c3aed' },
+  { id: 'lavender', name: 'Lavender Mist', bg: 'bg-[#a855f7]', ring: 'ring-[#a855f7]', preview: '#a855f7' },
   { id: 'crimson', name: 'Crimson Ember', bg: 'bg-[#e11d48]', ring: 'ring-[#e11d48]', preview: '#e11d48' },
   { id: 'sunset', name: 'Golden Sunset', bg: 'bg-[#d97706]', ring: 'ring-[#d97706]', preview: '#d97706' },
-  { id: 'midnight', name: 'Midnight Charcoal', bg: 'bg-[#334155]', ring: 'ring-[#334155]', preview: '#334155' },
+  { id: 'coral', name: 'Coral Sunrise', bg: 'bg-[#ea580c]', ring: 'ring-[#ea580c]', preview: '#ea580c' },
+  { id: 'sage', name: 'Sage Forest', bg: 'bg-[#15803d]', ring: 'ring-[#15803d]', preview: '#15803d' },
+  { id: 'rose', name: 'Rose Petal', bg: 'bg-[#db2777]', ring: 'ring-[#db2777]', preview: '#db2777' },
+  { id: 'midnight', name: 'Midnight Slate', bg: 'bg-[#334155]', ring: 'ring-[#334155]', preview: '#334155' },
 ];
 
 const ChatThemeModal = ({ isOpen, currentTheme = 'default', onClose, onSelectTheme }) => {
@@ -22,13 +28,13 @@ const ChatThemeModal = ({ isOpen, currentTheme = 'default', onClose, onSelectThe
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Custom Chat Theme">
+    <Modal isOpen={isOpen} onClose={onClose} title="WhatsApp 2024 Chat Themes">
       <div className="space-y-4">
         <p className="text-xs text-gray-500 dark:text-gray-400">
           Personalize the message bubble accent color for this conversation:
         </p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
           {CHAT_THEMES.map((theme) => {
             const isChosen = selected === theme.id;
             return (

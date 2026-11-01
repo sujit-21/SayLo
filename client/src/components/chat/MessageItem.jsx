@@ -30,6 +30,7 @@ import {
   X,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
+import Modal from '../common/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 
@@ -319,6 +320,7 @@ const MessageItem = ({
   // WhatsApp Mobile Touch Swipe-to-Reply & Double-Tap Quick React
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
+  const [showPinDurationModal, setShowPinDurationModal] = useState(false);
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
   const isSwipingRef = useRef(false);
@@ -479,17 +481,29 @@ const MessageItem = ({
     );
   }
 
-  // Determine self bubble color based on customTheme
+  // Determine self bubble color based on WhatsApp 2024 Theme Engine
   const getThemeClass = () => {
     switch (customTheme) {
+      case 'mint':
+        return 'bg-[#0d9488] text-white';
       case 'ocean':
         return 'bg-[#0284c7] text-white';
+      case 'indigo':
+        return 'bg-[#4f46e5] text-white';
       case 'purple':
         return 'bg-[#7c3aed] text-white';
+      case 'lavender':
+        return 'bg-[#a855f7] text-white';
       case 'crimson':
         return 'bg-[#e11d48] text-white';
       case 'sunset':
         return 'bg-[#d97706] text-white';
+      case 'coral':
+        return 'bg-[#ea580c] text-white';
+      case 'sage':
+        return 'bg-[#15803d] text-white';
+      case 'rose':
+        return 'bg-[#db2777] text-white';
       case 'midnight':
         return 'bg-[#334155] text-white';
       case 'default':
@@ -1254,16 +1268,30 @@ const MessageItem = ({
             Forward
           </button>
 
-          <button
-            onClick={() => {
-              togglePinMessage(message._id);
-              setShowMenu(false);
-            }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
-          >
-            <Pin size={14} className={isPinned ? 'text-saylo-emerald' : ''} />
-            {isPinned ? 'Unpin message' : 'Pin message'}
-          </button>
+          {/* WhatsApp 2024 Pinned Message Duration Trigger */}
+          {isPinned ? (
+            <button
+              onClick={() => {
+                togglePinMessage(message._id);
+                setShowMenu(false);
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
+            >
+              <Pin size={14} className="text-saylo-emerald fill-saylo-emerald" />
+              Unpin message
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setShowPinDurationModal(true);
+                setShowMenu(false);
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 flex items-center gap-2"
+            >
+              <Pin size={14} />
+              Pin message
+            </button>
+          )}
 
           <button
             onClick={() => {
@@ -1363,6 +1391,62 @@ const MessageItem = ({
             </button>
           )}
         </div>
+      )}
+
+      {/* WhatsApp 2024 Pinned Message Duration Selector Modal */}
+      {showPinDurationModal && (
+        <Modal
+          isOpen={showPinDurationModal}
+          onClose={() => setShowPinDurationModal(false)}
+          title="Choose how long your pin lasts"
+        >
+          <div className="space-y-4 select-none">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Members will see this message pinned at the top of the chat:
+            </p>
+
+            <div className="space-y-2">
+              {[
+                { hours: 24, label: '24 Hours', desc: 'Short-term announcement' },
+                { hours: 168, label: '7 Days', desc: 'Recommended duration', badge: 'Default' },
+                { hours: 720, label: '30 Days', desc: 'Extended visibility' },
+              ].map((opt) => (
+                <button
+                  key={opt.hours}
+                  type="button"
+                  onClick={() => {
+                    togglePinMessage(message._id, opt.hours);
+                    setShowPinDurationModal(false);
+                  }}
+                  className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-700/80 hover:border-saylo-emerald hover:bg-saylo-emerald/5 flex items-center justify-between text-left transition-all group"
+                >
+                  <div>
+                    <h5 className="text-xs font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <span>{opt.label}</span>
+                      {opt.badge && (
+                        <span className="text-[9px] bg-saylo-emerald/20 text-saylo-emerald font-semibold px-2 py-0.5 rounded-full uppercase">
+                          {opt.badge}
+                        </span>
+                      )}
+                    </h5>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">{opt.desc}</p>
+                  </div>
+                  <Pin size={16} className="text-gray-400 group-hover:text-saylo-emerald transition-colors" />
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={() => setShowPinDurationModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

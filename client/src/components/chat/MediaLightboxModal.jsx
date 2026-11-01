@@ -7,6 +7,8 @@ import {
   ZoomOut,
   RotateCw,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 const MediaLightboxModal = ({
@@ -14,6 +16,9 @@ const MediaLightboxModal = ({
   mediaUrl,
   mediaName,
   mediaType = 'image',
+  mediaList = [],
+  currentIndex = 0,
+  onNavigate,
   onClose,
   onForward,
 }) => {
@@ -33,12 +38,18 @@ const MediaLightboxModal = ({
       if (e.key === '+' || e.key === '=') setZoom((z) => Math.min(z + 0.25, 3));
       if (e.key === '-' || e.key === '_') setZoom((z) => Math.max(z - 0.25, 0.5));
       if (e.key === 'r' || e.key === 'R') setRotation((r) => (r + 90) % 360);
+      if (e.key === 'ArrowLeft' && onNavigate && currentIndex > 0) {
+        onNavigate(currentIndex - 1);
+      }
+      if (e.key === 'ArrowRight' && onNavigate && currentIndex < mediaList.length - 1) {
+        onNavigate(currentIndex + 1);
+      }
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, currentIndex, mediaList.length, onNavigate]);
 
   if (!isOpen || !mediaUrl) return null;
 
@@ -68,6 +79,11 @@ const MediaLightboxModal = ({
           <p className="text-sm font-medium text-gray-200 truncate max-w-xs md:max-w-md">
             {mediaName || (isVideo ? 'Video' : 'Photo')}
           </p>
+          {mediaList.length > 1 && (
+            <span className="text-xs text-gray-300 font-mono bg-white/15 px-2.5 py-0.5 rounded-full">
+              {currentIndex + 1} of {mediaList.length}
+            </span>
+          )}
           {zoom !== 1 && (
             <span className="text-xs text-saylo-emerald font-mono bg-saylo-emerald/15 px-2 py-0.5 rounded-full">
               {Math.round(zoom * 100)}%
@@ -145,6 +161,30 @@ const MediaLightboxModal = ({
 
       {/* Media Canvas */}
       <div className="flex-1 flex items-center justify-center p-4 overflow-hidden relative">
+        {/* Previous Media Arrow */}
+        {mediaList.length > 1 && currentIndex > 0 && (
+          <button
+            type="button"
+            onClick={() => onNavigate && onNavigate(currentIndex - 1)}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/20 shadow-2xl transition-all active:scale-90"
+            title="Previous (Left Arrow)"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
+
+        {/* Next Media Arrow */}
+        {mediaList.length > 1 && currentIndex < mediaList.length - 1 && (
+          <button
+            type="button"
+            onClick={() => onNavigate && onNavigate(currentIndex + 1)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/20 shadow-2xl transition-all active:scale-90"
+            title="Next (Right Arrow)"
+          >
+            <ChevronRight size={24} />
+          </button>
+        )}
+
         {isVideo ? (
           <video
             src={mediaUrl}

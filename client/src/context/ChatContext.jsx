@@ -445,14 +445,21 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Toggle Pin message
-  const togglePinMessage = async (messageId) => {
+  // Toggle Pin message with WhatsApp 2024 Duration (24h, 7d, 30d)
+  const togglePinMessage = async (messageId, durationHours = 168) => {
     try {
-      const res = await api.post(`/messages/${messageId}/pin`);
+      const res = await api.post(`/messages/${messageId}/pin`, { durationHours });
+      const expiresAt = durationHours ? new Date(Date.now() + durationHours * 3600 * 1000).toISOString() : null;
       setMessages((prev) =>
         prev.map((m) =>
           m._id === messageId
-            ? { ...m, pinned: res.data.pinned, pinnedAt: res.data.pinned ? new Date() : null }
+            ? {
+                ...m,
+                pinned: res.data.pinned,
+                pinnedAt: res.data.pinned ? new Date() : null,
+                pinnedExpiresAt: res.data.pinned ? expiresAt : null,
+                pinnedDurationHours: res.data.pinned ? durationHours : null,
+              }
             : m
         )
       );

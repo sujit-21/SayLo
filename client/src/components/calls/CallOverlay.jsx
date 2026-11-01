@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCall } from '../../context/CallContext';
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, Volume2, Lock, Sparkles, Wand2, X, Check, ZoomIn } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, Volume2, Lock, Sparkles, Wand2, X, Check, ZoomIn, Minimize2, Maximize2 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 
 const CallOverlay = () => {
@@ -27,6 +27,7 @@ const CallOverlay = () => {
   const [showEffectsDrawer, setShowEffectsDrawer] = useState(false);
   const [selectedEffect, setSelectedEffect] = useState('none'); // 'none' | 'blur' | 'office' | 'cafe' | 'beach'
   const [selectedFilter, setSelectedFilter] = useState('normal'); // 'normal' | 'warm' | 'cool' | 'noir' | 'vivid' | 'dreamy'
+  const [isMinimized, setIsMinimized] = useState(false);
 
   if (callState === 'idle') return null;
 
@@ -107,6 +108,77 @@ const CallOverlay = () => {
   // 2. CALLING / CONNECTED MODAL
   const activeUser = targetUser || caller;
 
+  // WhatsApp 2024 In-App Call Picture-in-Picture Mini Player
+  if (isMinimized) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50 w-72 sm:w-80 bg-[#111b21] border-2 border-saylo-emerald rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-slideUp select-none">
+        {/* Mini Stage */}
+        <div className="relative h-44 bg-black flex items-center justify-center overflow-hidden">
+          {callType === 'video' ? (
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-2 p-4">
+              <Avatar src={activeUser?.avatar} name={activeUser?.name || 'User'} size="lg" />
+              <span className="text-xs text-white font-medium">{activeUser?.name}</span>
+            </div>
+          )}
+
+          {/* Top Floating Mini Header */}
+          <div className="absolute top-2 inset-x-2 flex items-center justify-between z-10">
+            <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] text-white">
+              <span className="w-2 h-2 rounded-full bg-saylo-emerald animate-pulse" />
+              <span className="font-mono">{formatDuration(callDuration)}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsMinimized(false)}
+              className="p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
+              title="Maximize call"
+            >
+              <Maximize2 size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Mini Controls Bar */}
+        <div className="px-3.5 py-2.5 bg-[#202c33] flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar src={activeUser?.avatar} name={activeUser?.name || 'User'} size="sm" />
+            <p className="text-xs font-semibold text-white truncate max-w-[100px]">
+              {activeUser?.name}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={toggleMute}
+              className={`p-2 rounded-full transition-colors ${
+                isMuted ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+              title={isMuted ? 'Unmute' : 'Mute'}
+            >
+              {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
+            </button>
+            <button
+              type="button"
+              onClick={endCall}
+              className="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition-colors"
+              title="End Call"
+            >
+              <PhoneOff size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-0 md:p-4 animate-fadeIn">
       <div className="relative w-full h-full md:max-w-4xl md:h-[85vh] bg-[#111b21] rounded-none md:rounded-3xl overflow-hidden border-0 md:border md:border-gray-800 shadow-2xl flex flex-col">
@@ -155,11 +227,21 @@ const CallOverlay = () => {
               <button
                 type="button"
                 onClick={cycleZoom}
-                className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-xs font-semibold text-white shadow-lg transition-transform active:scale-95"
+                className="absolute top-4 right-14 z-20 flex items-center gap-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-xs font-semibold text-white shadow-lg transition-transform active:scale-95"
                 title="Zoom remote video (1x, 1.5x, 2x)"
               >
                 <ZoomIn size={14} className={zoomLevel > 1 ? 'text-saylo-emerald' : 'text-gray-300'} />
                 <span>{zoomLevel}x</span>
+              </button>
+
+              {/* WhatsApp 2024 Picture-in-Picture Minimize Button */}
+              <button
+                type="button"
+                onClick={() => setIsMinimized(true)}
+                className="absolute top-4 right-4 z-20 flex items-center justify-center p-2 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-full border border-white/20 text-white shadow-lg transition-transform active:scale-95"
+                title="Minimize call (Picture-in-Picture)"
+              >
+                <Minimize2 size={14} />
               </button>
               {/* Local Video PiP with WhatsApp Background Effects & Filters */}
               <div
