@@ -18,6 +18,15 @@ import Avatar from '../common/Avatar';
 import { format } from 'date-fns';
 import api from '../../services/api';
 
+const safeFormatDate = (dateVal, fmt) => {
+  try {
+    const d = new Date(dateVal || Date.now());
+    return !isNaN(d.getTime()) ? format(d, fmt) : '';
+  } catch {
+    return '';
+  }
+};
+
 const MessageInfoModal = ({ isOpen, message, conversation, onClose }) => {
   const [details, setDetails] = useState(message);
   const [convDetails, setConvDetails] = useState(conversation);
@@ -124,7 +133,7 @@ const MessageInfoModal = ({ isOpen, message, conversation, onClose }) => {
                   </span>
                 )}
               </span>
-              <span>{format(new Date(currentMsg.createdAt || Date.now()), 'MMM d, HH:mm')}</span>
+              <span>{safeFormatDate(currentMsg.createdAt, 'MMM d, HH:mm')}</span>
             </div>
           </div>
         </div>
@@ -195,7 +204,7 @@ const MessageInfoModal = ({ isOpen, message, conversation, onClose }) => {
                           </div>
                         </div>
                         <span className="text-[11px] text-saylo-emerald font-mono whitespace-nowrap ml-2">
-                          {format(new Date(r.readAt || Date.now()), 'MMM d, HH:mm:ss')}
+                          {safeFormatDate(r.readAt, 'MMM d, HH:mm:ss')}
                         </span>
                       </div>
                     ))}
@@ -269,10 +278,7 @@ const MessageInfoModal = ({ isOpen, message, conversation, onClose }) => {
                   <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                     <span>Read at</span>
                     <span className="font-mono text-[11px] text-saylo-emerald">
-                      {format(
-                        new Date(readList[0]?.readAt || currentMsg.updatedAt || Date.now()),
-                        'MMM d, yyyy HH:mm:ss'
-                      )}
+                      {safeFormatDate(readList[0]?.readAt || currentMsg.updatedAt, 'MMM d, yyyy HH:mm:ss')}
                     </span>
                   </div>
                 )}
@@ -295,7 +301,7 @@ const MessageInfoModal = ({ isOpen, message, conversation, onClose }) => {
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                   <span>Sent to Server</span>
                   <span className="font-mono text-[11px]">
-                    {format(new Date(currentMsg.createdAt || Date.now()), 'MMM d, yyyy HH:mm:ss')}
+                    {safeFormatDate(currentMsg.createdAt, 'MMM d, yyyy HH:mm:ss')}
                   </span>
                 </div>
               </div>

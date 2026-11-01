@@ -29,6 +29,7 @@ import {
   Languages,
   X,
   Copy,
+  Ban,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import Modal from '../common/Modal';
@@ -669,8 +670,13 @@ const MessageItem = ({
           </div>
         )}
 
-        {/* View Once Media Item */}
-        {message.viewOnce ? (
+        {/* WhatsApp Deleted Message Banner */}
+        {message.deletedForEveryone ? (
+          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 italic text-xs py-1 select-none">
+            <Ban size={15} className="flex-shrink-0 text-gray-400 dark:text-gray-500" />
+            <span>{isSelf ? 'You deleted this message' : 'This message was deleted'}</span>
+          </div>
+        ) : message.viewOnce ? (
           <div className="my-1">
             {!isViewOnceOpened && !viewOnceRevealed ? (
               <button
@@ -1002,12 +1008,22 @@ const MessageItem = ({
                 </div>
 
                 <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400 pt-1 border-t border-gray-200 dark:border-gray-700/40">
-                  {message.event.startTime && (
-                    <div className="flex items-center gap-1.5 text-saylo-600 dark:text-saylo-300 font-medium">
-                      <Clock size={13} />
-                      <span>{format(new Date(message.event.startTime), 'EEE, MMM d • HH:mm')}</span>
-                    </div>
-                  )}
+                  {message.event.startTime && (() => {
+                    try {
+                      const d = new Date(message.event.startTime);
+                      if (!isNaN(d.getTime())) {
+                        return (
+                          <div className="flex items-center gap-1.5 text-saylo-600 dark:text-saylo-300 font-medium">
+                            <Clock size={13} />
+                            <span>{format(d, 'EEE, MMM d • HH:mm')}</span>
+                          </div>
+                        );
+                      }
+                    } catch {
+                      return null;
+                    }
+                    return null;
+                  })()}
                   {message.event.location && (
                     <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                       <MapPin size={13} className="text-saylo-emerald" />
@@ -1206,7 +1222,17 @@ const MessageItem = ({
           )}
           {message.edited && <span className="italic">edited</span>}
           {isStarred && <Star size={11} className="text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400" />}
-          <span>{format(new Date(message.createdAt || Date.now()), 'HH:mm')}</span>
+          {(() => {
+            try {
+              const d = new Date(message?.createdAt || Date.now());
+              if (!isNaN(d.getTime())) {
+                return <span>{format(d, 'HH:mm')}</span>;
+              }
+            } catch {
+              return null;
+            }
+            return null;
+          })()}
 
           {isSelf && (
             <span className="ml-0.5">

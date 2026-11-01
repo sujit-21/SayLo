@@ -485,7 +485,14 @@ const ChatInfoPanel = ({ isOpen, onClose, onOpenMedia }) => {
                           {m.sender?.name || 'Message'}
                         </span>
                         <span className="text-gray-500 dark:text-gray-400 font-normal">
-                          {format(new Date(m.createdAt), 'MMM d, HH:mm')}
+                          {(() => {
+                            try {
+                              const d = new Date(m.createdAt || Date.now());
+                              return !isNaN(d.getTime()) ? format(d, 'MMM d, HH:mm') : '';
+                            } catch {
+                              return '';
+                            }
+                          })()}
                         </span>
                       </div>
                       <p className="text-gray-800 dark:text-gray-200 line-clamp-2">

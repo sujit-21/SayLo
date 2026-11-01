@@ -297,10 +297,20 @@ const ChatWindow = () => {
 
   // Format date dividers
   const renderDateDivider = (dateStr) => {
+    if (!dateStr) return null;
     const d = new Date(dateStr);
-    let label = format(d, 'MMMM d, yyyy');
-    if (isToday(d)) label = 'Today';
-    else if (isYesterday(d)) label = 'Yesterday';
+    if (isNaN(d.getTime())) return null;
+
+    let label = '';
+    try {
+      if (isToday(d)) label = 'Today';
+      else if (isYesterday(d)) label = 'Yesterday';
+      else label = format(d, 'MMMM d, yyyy');
+    } catch {
+      label = '';
+    }
+
+    if (!label) return null;
 
     return (
       <div className="flex justify-center my-3 select-none">
@@ -464,14 +474,18 @@ const ChatWindow = () => {
 
         {/* Pinned Messages Top Banner (Multi-Pin Carousel) */}
         {pinnedMessages.length > 0 && (() => {
-          const currentPinned = pinnedMessages[activePinIndex % pinnedMessages.length];
+          const safePinIndex = ((activePinIndex % pinnedMessages.length) + pinnedMessages.length) % pinnedMessages.length;
+          const currentPinned = pinnedMessages[safePinIndex];
+          if (!currentPinned) return null;
           return (
             <div className="bg-[#182229] border-b border-gray-800 px-4 py-2 flex items-center justify-between z-10 animate-fadeIn">
               <div
                 onClick={() => {
-                  document
-                    .getElementById(`msg-${currentPinned._id}`)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  if (currentPinned._id) {
+                    document
+                      .getElementById(`msg-${currentPinned._id}`)
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
                 }}
                 className="flex items-center gap-2.5 truncate flex-1 cursor-pointer hover:opacity-90"
               >
@@ -481,7 +495,7 @@ const ChatWindow = () => {
                 />
                 <div className="truncate text-xs">
                   <span className="font-semibold text-saylo-300 mr-2">
-                    Pinned {pinnedMessages.length > 1 ? `(${activePinIndex % pinnedMessages.length + 1}/${pinnedMessages.length})` : ''}:
+                    Pinned {pinnedMessages.length > 1 ? `(${safePinIndex + 1}/${pinnedMessages.length})` : ''}:
                   </span>
                   <span className="text-gray-300 truncate">
                     {currentPinned.text || `[Attachment: ${currentPinned.type || 'Media'}]`}
@@ -542,10 +556,18 @@ const ChatWindow = () => {
           ) : (
             messages.map((msg, idx) => {
               const prevMsg = messages[idx - 1];
-              const isDifferentDay =
-                !prevMsg ||
-                format(new Date(prevMsg.createdAt), 'yyyy-MM-dd') !==
-                  format(new Date(msg.createdAt), 'yyyy-MM-dd');
+              let isDifferentDay = !prevMsg;
+              if (prevMsg && prevMsg.createdAt && msg.createdAt) {
+                try {
+                  const prevD = new Date(prevMsg.createdAt);
+                  const currD = new Date(msg.createdAt);
+                  if (!isNaN(prevD.getTime()) && !isNaN(currD.getTime())) {
+                    isDifferentDay = format(prevD, 'yyyy-MM-dd') !== format(currD, 'yyyy-MM-dd');
+                  }
+                } catch {
+                  isDifferentDay = false;
+                }
+              }
 
               const isMatch =
                 searchFilter.trim() &&

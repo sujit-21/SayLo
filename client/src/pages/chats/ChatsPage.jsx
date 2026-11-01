@@ -8,7 +8,8 @@ import { useChat } from '../../context/ChatContext';
 import api from '../../services/api';
 
 const ChatsPage = () => {
-  const { conversationId } = useParams();
+  const { conversationId, groupId } = useParams();
+  const currentTargetId = conversationId || groupId;
   const { activeConversation, selectConversation, fetchConversations } = useChat();
 
   const [showNewChatModal, setShowNewChatModal] = useState(false);
@@ -42,10 +43,10 @@ const ChatsPage = () => {
   }, []);
 
   useEffect(() => {
-    if (conversationId && (!activeConversation || activeConversation._id !== conversationId)) {
-      selectConversation(conversationId);
+    if (currentTargetId && activeConversation?._id !== currentTargetId) {
+      selectConversation(currentTargetId);
     }
-  }, [conversationId, activeConversation, selectConversation]);
+  }, [currentTargetId]);
 
   return (
     <div className="flex-1 h-full flex overflow-hidden">

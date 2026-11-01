@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Users, Filter, Check, CheckCheck, Pin, VolumeX, Archive, Lock, Unlock, X, Megaphone, MessageSquarePlus, Sparkles, Star } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import BroadcastModal from './BroadcastModal';
@@ -9,6 +10,7 @@ import { format, isToday, isYesterday } from 'date-fns';
 import api from '../../services/api';
 
 const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const {
     conversations,
@@ -187,10 +189,15 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
   // Format timestamp for sidebar
   const formatSidebarTime = (dateStr) => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isToday(date)) return format(date, 'HH:mm');
-    if (isYesterday(date)) return 'Yesterday';
-    return format(date, 'dd/MM/yyyy');
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '';
+      if (isToday(date)) return format(date, 'HH:mm');
+      if (isYesterday(date)) return 'Yesterday';
+      return format(date, 'dd/MM/yyyy');
+    } catch {
+      return '';
+    }
   };
 
   // Filter conversations
@@ -322,6 +329,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
       if (res.data.conversation) {
         await fetchConversations();
         selectConversation(res.data.conversation);
+        navigate(`/chats/${res.data.conversation._id}`);
       }
     } catch (err) {
       console.error('Error starting SAYLO AI', err);
@@ -550,9 +558,15 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                 (p) => (p.user?._id || p.user) !== user?._id
               )?.user;
               if (other) {
-                chatName = getContactNickname(other._id, other.name);
-                chatAvatar = other.avatar;
-                isOnline = onlineUsers.has(other._id?.toString());
+                if (typeof other === 'object') {
+                  chatName = getContactNickname(other._id, other.name || c.name || 'Chat');
+                  chatAvatar = other.avatar || c.avatar;
+                  isOnline = onlineUsers.has(other._id?.toString());
+                } else {
+                  chatName = getContactNickname(other, c.name || 'Chat');
+                  chatAvatar = c.avatar;
+                  isOnline = onlineUsers.has(other.toString());
+                }
               }
             } else if (c.isNoteToSelf) {
               chatName = 'Message Yourself';
@@ -601,7 +615,10 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             return (
               <div
                 key={c._id}
-                onClick={() => selectConversation(c)}
+                onClick={() => {
+                  selectConversation(c);
+                  navigate(`/chats/${c._id}`);
+                }}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setContextMenu({ x: e.clientX, y: e.clientY, conversation: c });

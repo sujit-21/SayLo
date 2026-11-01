@@ -149,14 +149,22 @@ const ChatHeader = ({
     statusText = 'Message yourself, take notes & links';
   } else {
     // 1-on-1 direct
-    otherParticipant = activeConversation.participants?.find(
+    const rawParticipant = activeConversation.participants?.find(
       (p) => (p.user?._id || p.user) !== user?._id
     )?.user;
 
-    if (otherParticipant) {
-      name = getContactNickname(otherParticipant._id, otherParticipant.name);
-      avatar = otherParticipant.avatar;
-      isOnline = onlineUsers.has(otherParticipant._id?.toString());
+    if (rawParticipant) {
+      if (typeof rawParticipant === 'object') {
+        otherParticipant = rawParticipant;
+        name = getContactNickname(otherParticipant._id, otherParticipant.name || activeConversation.name || 'User');
+        avatar = otherParticipant.avatar || activeConversation.avatar;
+        isOnline = onlineUsers.has(otherParticipant._id?.toString());
+      } else {
+        otherParticipant = { _id: rawParticipant };
+        name = getContactNickname(rawParticipant, activeConversation.name || 'User');
+        avatar = activeConversation.avatar;
+        isOnline = onlineUsers.has(rawParticipant.toString());
+      }
 
       // Check if other participant is currently typing
       const chatTyping = typingUsers[activeConversation._id];
@@ -165,7 +173,14 @@ const ChatHeader = ({
       } else if (isOnline) {
         statusText = 'online';
       } else if (otherParticipant.lastSeen) {
-        statusText = `last seen ${format(new Date(otherParticipant.lastSeen), 'HH:mm')}`;
+        try {
+          const lastSeenDate = new Date(otherParticipant.lastSeen);
+          if (!isNaN(lastSeenDate.getTime())) {
+            statusText = `last seen ${format(lastSeenDate, 'HH:mm')}`;
+          }
+        } catch {
+          // ignore date parse error
+        }
       }
     }
   }
@@ -178,7 +193,13 @@ const ChatHeader = ({
         m.sender?._id === user?._id || m.sender === user?._id
           ? 'You'
           : m.sender?.name || 'User';
-      const time = format(new Date(m.createdAt || Date.now()), 'dd/MM/yyyy, HH:mm:ss');
+      let time = '';
+      try {
+        const d = new Date(m.createdAt || Date.now());
+        time = !isNaN(d.getTime()) ? format(d, 'dd/MM/yyyy, HH:mm:ss') : '';
+      } catch {
+        time = '';
+      }
       let content = m.text || '';
       if (m.type === 'image') content = `[Image: ${m.fileUrl || 'Photo'}] ${m.caption || ''}`.trim();
       else if (m.type === 'video') content = `[Video: ${m.fileUrl || 'Video'}] ${m.caption || ''}`.trim();
