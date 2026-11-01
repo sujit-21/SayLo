@@ -22,7 +22,7 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
     getContactNickname,
   } = useChat();
 
-  const { onlineUsers } = useSocket();
+  const { onlineUsers, typingUsers } = useSocket();
   const [contextMenu, setContextMenu] = useState(null); // { x, y, conversation }
   const [isLockedFolderOpen, setIsLockedFolderOpen] = useState(false);
   const [showPinPrompt, setShowPinPrompt] = useState(false);
@@ -352,6 +352,10 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
             const draftText = localStorage.getItem(`saylo_draft_${c._id}`);
             const hasDraft = draftText && draftText.trim().length > 0;
 
+            // Typing indicator for this conversation
+            const chatTyping = typingUsers?.[c._id];
+            const isSomeoneTyping = Boolean(chatTyping && Object.keys(chatTyping).length > 0);
+
             // Last message text preview
             let lastText = 'No messages yet';
             let isLastSelf = false;
@@ -426,7 +430,11 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
 
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1 text-xs truncate">
-                      {hasDraft ? (
+                      {isSomeoneTyping ? (
+                        <span className="truncate text-xs font-semibold text-saylo-emerald animate-pulse flex items-center gap-1">
+                          <span>typing...</span>
+                        </span>
+                      ) : hasDraft ? (
                         <span className="truncate flex items-center gap-1.5 text-xs">
                           <span className="font-bold text-saylo-emerald">Draft:</span>
                           <span className="text-gray-600 dark:text-gray-300 truncate">{draftText.trim()}</span>
@@ -436,7 +444,9 @@ const ConversationList = ({ onOpenNewChat, onOpenNewGroup }) => {
                           {isLastSelf && (
                             <span className="flex-shrink-0">
                               {lastStatus === 'read' ? (
-                                <CheckCheck size={14} className="text-saylo-emerald" />
+                                <CheckCheck size={14} className="text-[#53bdeb]" />
+                              ) : lastStatus === 'delivered' ? (
+                                <CheckCheck size={14} className="text-gray-400" />
                               ) : (
                                 <Check size={14} className="text-gray-400" />
                               )}
